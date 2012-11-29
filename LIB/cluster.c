@@ -95,10 +95,12 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		}
 		Clus_ACF[num_of_clusters] /= (double)Clus_FRE[num_of_clusters];
 		num_of_clusters++;
+        
+        // quit storing clusters up to N max results
+        if(num_clusters == num_of_results){break;}
 	}
       
-	/*
-        // print cluster information
+    // print cluster information
 	sprintf(sufix,".cad");
 	strcpy(tmp_end_strfile,end_strfile);
 	strcat(tmp_end_strfile,sufix);
@@ -122,7 +124,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		}
 	}
 	CloseFile_B(&outfile_ptr,"w");
-	*/
+	
 
 	num_of_results=FA->max_results;
 	if(num_of_clusters < num_of_results){num_of_results=num_of_clusters;}
@@ -136,7 +138,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 	for(j=0;j<num_of_results;j++){
 		// get parameters of fittest individual in population
 		// after optimization -> best docking candidate
-					
+    
 		// cf=chrom[Clus_TOP[j]].evalue;
 
 		for(int k=0; k<GB->num_genes; k++){
