@@ -97,7 +97,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		num_of_clusters++;
         
         // quit storing clusters up to N max results
-        if(num_clusters == num_of_results){break;}
+        if(num_of_clusters == num_of_results){break;}
 	}
       
     // print cluster information
