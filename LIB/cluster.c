@@ -12,7 +12,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 	FILE* outfile_ptr = NULL;
 
 	float rmsd = 0.0f;
-	int num_of_results = 0;
+	int num_of_results = FA->max_results;
 	int num_of_clusters = 0;
 	int n_unclus = 0;
 
@@ -126,7 +126,6 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 	CloseFile_B(&outfile_ptr,"w");
 	
 
-	num_of_results=FA->max_results;
 	if(num_of_clusters < num_of_results){num_of_results=num_of_clusters;}
         //num_of_results=1;
       
