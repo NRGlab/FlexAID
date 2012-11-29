@@ -1,0 +1,55 @@
+# Nombre de chromosomes du GA
+NUMCHROM 300
+
+# Nombre de generations
+NUMGENER 300
+
+# Use Adaptive Genetic-Algorithm
+ADAPTVGA 1
+
+# Adaptive GA Constants
+ADAPTKCO 0.95 0.10 0.95 0.10
+
+# Taux de crossover
+CROSRATE 0.90
+
+# Taux de mutation
+MUTARATE 0.05
+
+# Parametres obsolete
+#INIMPROB 0.10
+#ENDMPROB 0.10
+
+# Generation de la population initiale (Aleatoire)
+POPINIMT RANDOM
+
+# Modele de fitness
+# Autre possibilite LINEAR (non-recommande)
+#FITMODEL LINEAR
+FITMODEL PSHARE
+
+# Parametres de PSHARE
+SHAREALF 4.0
+SHAREPEK 5.0
+SHARESCL 10.0
+
+# Modele de reproduction
+REPMODEL BOOMWD
+
+# Fraction de la population a generer
+# Lorsque REPMODEL vaut BOOMWD
+BOOMFRAC 1.0
+
+# Nombre d'individus a generer
+# Lorsque REPMODEL vaut STEADS/STEAWD
+STEADNUM 999
+
+# Nombre de chromosomes a imprimer en output
+# A chaque generation
+PRINTCHR 10
+
+# Permet de sauvegarder la population a toutes
+# les 10 generations
+OUTGENER 0
+
+#OPTIGRID 50 50

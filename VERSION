@@ -1,0 +1,350 @@
+==========     VERSION 1.76    ==========
+
+* No more outputting of the PREFIX.cad cluster information file
+  The file generated is too large.
+
+==========     VERSION 1.75    ==========
+
+* The whole population is saved during the simulation
+  The structure is an array of chromosomes: chrom_snapshot
+
+* A new function was created called cluster. The function
+  clusters the whole genetic algorithm individuals.
+
+* A new parameter allows to set the RMSD between poses in
+  the clustering step at the end of the GA
+  The parameter is included in the docking input file
+
+  CLRMSD <float_value>
+
+==========     VERSION 1.74    ==========
+
+* allocation of box now using malloc rather than calloc,
+  due to errors on windows with calloc.
+
+* Next to improve: box could be allocated only once 
+  at the start of the program (dimension-issue)
+
+* Fixed roulette such in cases where a chromosome with index -1
+  is selected (read access violation)
+
+==========     VERSION 1.73    ==========
+
+* altfdih is now freed (memory) in read_lig function.
+
+* now using boost headers to generate random numbers
+  also using boost::int32_t to avoid using RAND_MAX;
+
+==========     VERSION 1.72    ==========
+
+* Fixed a bug when reallocation opt_par structures.
+  map_opt_par was not being reallocated like others.
+
+==========     VERSION 1.71    ==========
+
+* floats have been changed to doubles in genetic algorithms genes
+  parameters and in CF calculations.
+
+* Genetic algorithm now encodes all genes as 32-bits.
+  The integral type saved is divided by RAND_MAX to gives a value between
+  [0,1[ and this value is used to select the correct bin
+  for a given parameter
+
+==========     VERSION 1.69    ==========
+
+* Modifies_pdb now lists ligands/modified a.a. as HETATM by default,
+  if they are listed as ATOM
+  However, they cannot be filtered out not including HET (INCHET)
+
+* Optimization of vcfunction using double casts
+  More precision when multiplying floats
+
+* When an atom has type 0, we ensure complementarity is 0.000
+  otherwise it would use block of memory[-1] (Type0 - 1 in matrix)
+
+==========     VERSION 1.68    ==========
+
+* Accounts for cases where residue names of RNA molecules are reversed
+  e.g. '  C' --> 'C  '
+
+* residue_conect is no longer executed when a RNA molecule is target
+
+* Atom types are being assigned properly with RNA molecules
+
+==========     VERSION 1.67    ==========
+
+* Accounts for cases where ligands are listed as ATOM in PDB format
+  A new function ensures the residue is a natural amino acids before
+  reordering its atoms
+
+==========     VERSION 1.66    ==========
+
+* RNA molecules also go through modify_pdb.
+
+* GLOBAL does not exist anymore.
+  To do a GLOBAL simulation, you need to combine multiple clefts
+  together. A grid will be built in all clefts.
+
+==========     VERSION 1.65    ==========
+
+* ori_atoms and rmsd_structures were removed.
+  New member fields called coor_ori and coor_ref in atoms structure
+  are now used to replace those. The new input format is now:
+  
+  RMSDST <RMSD_STRUCTURE.pdb>
+
+  Only the matching atoms are used to calculate RMSD.
+  (Matching residue number, name, chain and atom number)
+
+* The code is optimized
+
+* More than 3 GPA atoms are now possible.
+  e.g.     0    0    0
+        GPA1    0    0
+        GPA2    0    0
+        GPA2    0    0
+
+* A new member field in atoms structure called graph is used to
+  specify in which subgraph of the molecule the atom belongs to
+
+==========     VERSION 1.62a    ==========
+
+* The code is optimized
+
+==========     VERSION 1.61     ==========
+
+* Bugfix: Fixed the bug when generating the grid from the ensemble
+  of spheres
+
+==========     VERSION 1.60     ==========
+
+* LOCCLF now takes as input a sphere file (cleft spheres)
+  instead of a pre-built grid. The grid is now built automatically
+  at the start of each run using C++ code (maps) within the 
+  function generate_grid
+
+* LOCCEN now has the same effect as LOCCLF as a grid is also
+  generated within the boundaries of the sphere.
+
+* SPACER can be used in CONFIG data file in order the set the spacing
+  length between 2 vertices of the grid
+
+* OUTRNG now prints a PDB atoms for the grid rather than PDB lines
+
+* DELTAP is now equivalent to VARDIS, VARANG, VARDIH, VARFLX for
+  respectively: Distance, Angle, Dihedrals, Flexible Dihedrals
+
+* NORMAL is now equivalent to NMAMOD, NMAAMP, NMAEIG for respectively:
+  Number of modes, amplitudes and eigenvectors
+
+* Files partition_grid and slice_grid now uses C++ code.
+  
+
+==========     VERSION 1.58     ==========
+
+* Default interaction matrix is now set to M6_cons_3.dat
+  The interaction matrix allows to select the right 
+  definition of types.
+  e.g. when 12 types are read --> AMINO12.def will be used
+
+* DEPSPA can be used in CONFIG data file in order to search
+  for dependencies files elsewhere
+
+* radii.dat file is no longer necessary for 
+  overriding FlexAID's default radii
+
+* Bugfix: Fixed the bug when deallocating memory
+  at the end of simulations when using NMA
+
+==========     VERSION 1.57     ==========
+
+* Bugfix: Fixed the bug when reading normal grid files when
+  using normal mode analysis (NMA) - Line buffering
+
+* Bugfix: Fixed the alteration of coordinates of individual
+  atoms using NMA
+
+* Bugfix: A default value is now given to force_interaction
+  when using constraints
+
+==========     VERSION 1.55     ==========
+
+* New feature: 'METTYP %d' can be used in CONFIGURATION file
+  that allows to change the type of metals (HETATM)
+
+==========     VERSION 1.54     ==========
+
+* Bugfix: in flexible side-chain file, as well as 
+  in constraints file, now automatically
+  replaces '-' sign (no chain identifier) by ' '
+
+* Changed the rotamer outputting format to match
+  was is read by the NRGsuite
+
+==========     VERSION 1.53     ==========
+
+* New feature: 'REFPCG %f %f %f' can be used in the input 
+  ligand file to force a reference protein center of geometry
+  It allows to use the same one as the one used in the
+  extraction process.
+
+==========     VERSION 1.52     ==========
+
+* Bugfix: nan happened when dividing by 0.0 when
+  rebuilding atom coordinates. Perturbed atom
+  coordinates.
+
+* Contact areas between atoms now use the minimal area
+  between in the 2 atoms in contact (min_areas function)
+  	e.g. ( A --> B [30.0A^2] )
+               B --> B [35.0A^2] )
+	The area considered is 30.0
+
+* Contact areas now use 'Radical Plane (R)' as opposed to
+  'Extended Radical Plane (X)' in the Vcontacts function
+  This allows better accuracy in contacting areas
+
+* SAS calculations are now done within the vcfunction
+  Previously, it was calculated within Vcontacts
+
+* Bugfix: Intramolecular interactions of optimizable
+  residues are now only calculated once
+
+==========     VERSION 1.51     ==========
+
+* Bugfix: order_pdb renamed to modify_pdb
+  The function now controls filters applied
+  such as removal of water/HETATM/H as well as 
+  for the reordering of the PDB to match AMINO.def
+  'A' conformations are saved by default  
+
+==========     VERSION 1.50     ==========
+
+* Bugfix: order_pdb can now account for inserted residues
+
+* Bugfix: Fixed the bug for which BOINC users cannot end a task
+  because the application is stalled at 100% because of memory deallocation
+  Error: Vcontacts negative subscript when NC = 0
+
+==========     VERSION 1.48     ==========
+
+* Code optimization
+
+* Bugfix: Vcontacts structures are allocated dynamically
+
+==========     VERSION 1.47     ==========
+
+* Bugfix: Initialization of some variables in release
+
+* Bugfix: Fixed a bug when reading types definition
+
+* Added a WARNING when atom types assigned exceed the number
+  of atom types defined in the energy matrix
+
+* Added safety when changing the solvent type using SLVTYP
+
+==========     VERSION 1.46     ==========
+
+* Bugfix: CONECT lines are fixed when atom indexing exceeds 9999
+
+* Added error handling BOINC functions to check heartbeat
+
+==========     VERSION 1.45     ==========
+
+* ICDATA field is obsolete in .inp file for ligand
+
+* NTYPES is obsolete in preprocessor defines
+  Automatically assigned when reading Ematrix file
+
+* SLVENT is redefined to SLVPEN
+
+* SLVTYP '\d+' assigns a type to the solvent
+  rather than using a fixed value against all atom types
+
+* DEFTYP can be used to override the default
+  atom definition files (AMINO.def/NUCLEOTIDES.def)
+
+==========     VERSION 1.43     ==========
+
+* Redirected all errors to STDERR to capture errors
+  in the NRGsuite
+
+==========     VERSION 1.42     ==========
+
+* Dihedrals now have their own delta parameter value
+  the field is DELTAF %f
+
+==========     VERSION 1.41     ==========
+
+* Fixed the bug when docking using RNA structures because
+  of the re-ordering of PDB structures.
+
+==========     VERSION 1.36     ==========
+
+* Bugfix: Fixed the freeing of memory that stopped BOINC from
+  giving valid results.
+
+* Now fully Windows-compatible with BOINC
+  Stack overflow because of huge structures.
+  
+* Bugfix: Fixed a bug in order_pdb to print out lines.
+
+==========     VERSION 1.31     ==========
+
+* Bugfix: Writing of the temporary PDB file.
+  BOINC functions must not be used for temporary files
+  but only for files writing in templates
+
+==========     VERSION 1.30     ==========
+
+* Fixed a bug when adding twice the same residue in flexible side-chains
+
+* Constraints can now be as interaction between 2 atoms.
+  A factor must be given, which multiplies the complementarity between those 2 atoms.
+  Complementarity can be overriden (always be positive) by adding 'f' after the factor
+
+     e.g.  INTERACT ...:10.0f 
+
+* Added the SUPRNO in CONFIG.inp to explicitly assign SuperNodes Mode when using normal modes.
+
+==========     VERSION 1.27     ==========
+
+* In Flexible Side-Chains List file (in docking input file), ROTOBS is
+now used as flag to the constant filename rotobs.lst.
+
+* Default outputting was altered in order to account for NRGsuite interface.
+
+==========     VERSION 1.26     ==========
+
+* Fixed the error while free-ing up memory for data structures at 
+  the end simulations.
+
+==========     VERSION 1.25     ==========
+
+* Compatibility with Windows XP platform.
+
+* Changed the random seed number generator to srand() function.
+  Also changed the random number generator to rand() in in-house function GenerateRandomNum().
+
+==========     VERSION 1.22     ==========
+
+* Fixed the error while generating the list of bonded atoms for side-chains.
+  The list still does not include extra-residue bonds (peptide bonds).
+
+==========     VERSION 1.21     ==========
+
+* Added a new field 'MAXRES' in order to cap the number of results generated at the end of the GA. The param
+  has to be filled in CONFIG.inp. The number of results (%d) has to follow 'MAXRES'.
+  By default, the number is always set to 10.
+
+==========     VERSION 1.20     ==========
+
+* Changed the bonded structure for optimizable residues. Instead of having a list of neighbours for each atom
+  in the optimizable residue, the whole residue is shown as a matrix N x N, in which N is the number of atoms
+  of the optimizable residue.
+
+* Added the new constraints to the function 'vcfunction'.
+
+* Added the details on CF for each optimizable residue(s) in result file(s).
+
+==========                      ===========

@@ -1,0 +1,335 @@
+#################################################################
+# Makefile for the FlexAID program (Linux Version)              #
+#                                                               #
+# Francis Gaudreault & Rafael Najmanovich                       #
+#                                                               #
+#################################################################
+
+BOINC = 0
+DEBUG = 0
+
+# Include path
+I = ../LIB
+
+# Executable path
+W = ../WRK
+
+CXX = g++
+
+CXXFLAGS = -Wall -O3
+
+ifeq ($(DEBUG),1)
+	CXXFLAGS = -Wall -g
+endif
+
+# BOOST Installation path
+BOOST_INCLUDES = /home/francis/boost_1_51_0
+
+# BOINC Installation path
+BOINC_BUILD = /home/francis/boinc
+
+LIBDIRS = 
+LIBS = 
+INCLUDES = -I$(BOOST_INCLUDES)
+LDFLAGS = 
+DEFS =
+
+ifeq ($(BOINC),1)
+
+	#===========================================================#
+	#----------------------#	    
+	# BOINC Libraries
+	
+	LIBDIRS := -L. -L$(BOINC_BUILD)/lib -L$(BOINC_BUILD)/api
+	LIBS := $(LIBDIRS) -lboinc_api -lboinc
+
+	#===========================================================#
+	#----------------------#
+	# BOINC Includes
+
+	INCLUDES := $(INCLUDES) -I$(BOINC_BUILD) -I$(BOINC_BUILD)/lib -I$(BOINC_BUILD)/api
+	#----------------------#
+
+	LDFLAGS := -pthread
+
+	DEFS := -DENABLE_BOINC
+
+endif
+
+OBJ =	top.o			\
+    	boinc.o			\
+	assign_eigen.o		\
+	alter_mode.o		\
+    	buildic.o 		\
+    	Vcontacts.o             \
+        vcfunction.o            \
+	spfunction.o		\
+	create_rebuild_list.o 	\
+	print_surfmat.o 	\
+	ic2cf.o 		\
+	read_coor.o 		\
+	read_grid.o		\
+	read_input.o 		\
+	read_lig.o 		\
+	read_pdb.o 		\
+	read_normalgrid.o	\
+	read_eigen.o		\
+	add2_optimiz_vec.o 	\
+	partition_grid.o	\
+	assign_radius.o 	\
+	assign_radii.o		\
+	assign_types.o 		\
+	assign_shift.o		\
+	bondedlist.o 		\
+	buildcc.o 		\
+	buildlist.o 		\
+	geometry.o 		\
+	read_conect.o 		\
+	residue_conect.o 	\
+	modify_pdb.o		\
+	wif083.o		\
+	calc_cleftic.o		\
+	write_pdb.o		\
+	gaboom.o		\
+	calc_center.o		\
+	ic_bounds.o		\
+	buildic_point.o		\
+	buildcc_point.o		\
+	read_rmsdst.o		\
+	calc_rmsd_chrom.o	\
+	calc_rmsd.o		\
+	write_rrd.o		\
+	write_rrg.o		\
+	write_sphere.o		\
+	write_grid.o		\
+	read_rotlib.o		\
+	number_of_dihedrals.o	\
+	read_flexscfile.o	\
+	read_rotobs.o		\
+	set_intprob.o		\
+	slice_grid.o		\
+	build_rotamers.o	\
+	check_clash.o		\
+	dee_pivot.o		\
+	read_constraints.o	\
+	assign_constraint.o	\
+	assign_constraint_threshold.o	\
+	update_constraint.o	\
+	update_bonded.o		\
+	update_optres.o		\
+	read_emat.o		\
+	read_spheres.o		\
+	generate_grid.o		\
+	cluster.o		\
+	maps.o
+	
+all: a.out
+	\mv a.out $W/FlexAID_Linux32
+	\ln -sfn $W/FlexAID_Linux32 $W/FlexAID
+clean:
+	\rm -f $W/FlexAID core *~ $I/*~ $W/*~ *.o a.out
+	clear
+
+# Linking / Create executable
+a.out:  $(OBJ)
+	$(CXX) -lm $(LDFLAGS) $(OBJ) $(LIBS)	
+
+# Build main()
+top.o:	$I/top.c $I/flexaid.h $I/gaboom.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/top.c $(INCLUDES)
+
+# Build the BOINC FlexAID Library
+boinc.o: $I/boinc.c $I/boinc.h
+	 $(CXX) $(CXXFLAGS) $(DEFS) -c $I/boinc.c $(INCLUDES)
+
+assign_shift.o: $I/assign_shift.c $I/flexaid.h
+		$(CXX) $(CXXFLAGS) $(DEFS) -c $I/assign_shift.c
+
+buildic.o: $I/buildic.c $I/flexaid.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/buildic.c
+
+Vcontacts.o : $I/Vcontacts.c $I/flexaid.h $I/Vcontacts.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/Vcontacts.c $(INCLUDES)	   
+
+ic2cf.o: $I/ic2cf.c $I/flexaid.h $I/gaboom.h 
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/ic2cf.c $(INCLUDES)
+
+vcfunction.o: $I/vcfunction.c $I/flexaid.h $I/Vcontacts.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/vcfunction.c
+
+spfunction.o: $I/spfunction.c $I/flexaid.h $I/Vcontacts.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/spfunction.c
+
+create_rebuild_list.o: $I/create_rebuild_list.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/create_rebuild_list.c $(INCLUDES)
+
+read_coor.o: $I/read_coor.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/read_coor.c $(INCLUDES)
+
+read_constraints.o: $I/read_constraints.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/read_constraints.c $(INCLUDES)
+
+assign_constraint.o: $I/assign_constraint.c $I/flexaid.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/assign_constraint.c
+
+assign_constraint_threshold.o: $I/assign_constraint_threshold.c $I/flexaid.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/assign_constraint_threshold.c
+
+modify_pdb.o: $I/modify_pdb.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/modify_pdb.c $(INCLUDES)
+
+update_constraint.o: $I/update_constraint.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/update_constraint.c $(INCLUDES)
+
+update_optres.o: $I/update_optres.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/update_optres.c $(INCLUDES)
+
+slice_grid.o: $I/slice_grid.cpp $I/flexaid.h $I/maps.hpp $I/gaboom.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/slice_grid.cpp $(INCLUDES)
+
+update_bonded.o: $I/update_bonded.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/update_bonded.c $(INCLUDES)
+
+read_grid.o: $I/read_grid.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/read_grid.c $(INCLUDES)
+
+read_input.o: $I/read_input.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/read_input.c $(INCLUDES)
+
+read_lig.o: $I/read_lig.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/read_lig.c $(INCLUDES)
+
+read_pdb.o: $I/read_pdb.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/read_pdb.c $(INCLUDES)
+
+add2_optimiz_vec.o: $I/add2_optimiz_vec.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/add2_optimiz_vec.c $(INCLUDES)
+
+assign_radius.o: $I/assign_radius.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/assign_radius.c $(INCLUDES)
+
+assign_radii.o: $I/assign_radii.c $I/flexaid.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/assign_radii.c $(INCLUDES)
+
+assign_types.o: $I/assign_types.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/assign_types.c $(INCLUDES)
+
+bondedlist.o: $I/bondedlist.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/bondedlist.c $(INCLUDES)
+
+buildcc.o: $I/buildcc.c $I/flexaid.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/buildcc.c
+
+buildlist.o: $I/buildlist.c $I/flexaid.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/buildlist.c
+
+geometry.o: $I/geometry.c $I/flexaid.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/geometry.c
+
+read_conect.o: $I/read_conect.c $I/flexaid.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/read_conect.c
+
+residue_conect.o: $I/residue_conect.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/residue_conect.c $(INCLUDES)
+
+wif083.o: $I/wif083.c $I/flexaid.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/wif083.c
+
+calc_cleftic.o: $I/calc_cleftic.c $I/flexaid.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/calc_cleftic.c
+
+write_pdb.o: $I/write_pdb.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/write_pdb.c $(INCLUDES)
+
+gaboom.o: $I/gaboom.c $I/flexaid.h $I/gaboom.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/gaboom.c $(INCLUDES)
+
+calc_center.o: $I/calc_center.c $I/flexaid.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/calc_center.c
+
+ic_bounds.o: $I/ic_bounds.c $I/flexaid.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/ic_bounds.c
+
+buildic_point.o: $I/buildic_point.c $I/flexaid.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/buildic_point.c
+
+buildcc_point.o: $I/buildcc_point.c $I/flexaid.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/buildcc_point.c
+
+read_rmsdst.o: $I/read_rmsdst.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/read_rmsdst.c $(INCLUDES)
+
+calc_rmsd_chrom.o: $I/calc_rmsd_chrom.c $I/flexaid.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/calc_rmsd_chrom.c $(INCLUDES)
+
+calc_rmsd.o: $I/calc_rmsd.c $I/flexaid.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/calc_rmsd.c
+
+write_rrd.o: $I/write_rrd.c $I/flexaid.h $I/gaboom.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/write_rrd.c $(INCLUDES)
+
+write_sphere.o: $I/write_sphere.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/write_sphere.c $(INCLUDES)
+
+write_grid.o: $I/write_grid.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/write_grid.c $(INCLUDES)
+
+write_rrg.o: $I/write_rrg.c $I/flexaid.h $I/gaboom.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/write_rrg.c $(INCLUDES)
+
+read_rotlib.o: $I/read_rotlib.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/read_rotlib.c $(INCLUDES)
+
+number_of_dihedrals.o: $I/number_of_dihedrals.c $I/flexaid.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/number_of_dihedrals.c
+
+read_flexscfile.o: $I/read_flexscfile.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/read_flexscfile.c $(INCLUDES)
+
+read_rotobs.o: $I/read_rotobs.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/read_rotobs.c $(INCLUDES)
+
+set_intprob.o: $I/set_intprob.c $I/flexaid.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/set_intprob.c
+
+build_rotamers.o: $I/build_rotamers.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/build_rotamers.c $(INCLUDES)
+
+check_clash.o: $I/check_clash.c $I/flexaid.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/check_clash.c
+
+partition_grid.o: $I/partition_grid.cpp $I/flexaid.h $I/boinc.h $I/maps.hpp $I/gaboom.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/partition_grid.cpp $(INCLUDES)
+
+read_normalgrid.o: $I/read_normalgrid.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/read_normalgrid.c $(INCLUDES)
+
+read_eigen.o: $I/read_eigen.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/read_eigen.c $(INCLUDES)
+
+assign_eigen.o: $I/assign_eigen.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/assign_eigen.c $(INCLUDES)
+
+print_surfmat.o: $I/print_surfmat.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/print_surfmat.c $(INCLUDES)
+
+alter_mode.o: $I/alter_mode.c $I/flexaid.h		
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/alter_mode.c
+
+dee_pivot.o: $I/dee_pivot.c $I/flexaid.h		
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/dee_pivot.c
+
+read_emat.o: $I/read_emat.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/read_emat.c $(INCLUDES)
+
+read_spheres.o: $I/read_spheres.c $I/flexaid.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/read_spheres.c $(INCLUDES)
+
+generate_grid.o: $I/generate_grid.cpp $I/flexaid.h $I/boinc.h $I/maps.hpp
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/generate_grid.cpp $(INCLUDES)
+
+cluster.o: $I/cluster.c $I/gaboom.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/cluster.c $(INCLUDES)
+
+maps.o: $I/maps.cpp $I/maps.hpp
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/maps.cpp

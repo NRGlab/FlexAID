@@ -1,0 +1,440 @@
+COMENT the columns in the atmtyp field are:
+COMENT aminoacid_number atom_number atom_type atom_name residue_name counter
+COMENT conect field has atom_number and list of atom_number for covalently
+COMENT bonded atoms
+COMENT Version 2011.12.08
+      
+RESIDU ALA
+ATMTYP  1 11 N   r  0  0  0
+ATMTYP  2  3 CA  r  1  0  0
+ATMTYP  3  2 C   r  2  1  0
+ATMTYP  4 13 O   r  3  2  1
+ATMTYP  5  3 CB  r  2  3  4
+CONECT  1  2
+CONECT  2  1  3  5
+CONECT  3  2  4
+CONECT  4  3
+CONECT  5  2
+RESEND
+
+COMMENT ARG has a guanidinium group
+COMMENT The 3 terminal nitrogen atoms are planar
+COMMENT There is resonance among the 3
+COMMENT In which the positive charge is delocalized      
+RESIDU ARG
+ATMTYP  1 11 N   r  0  0  0
+ATMTYP  2  3 CA  r  1  0  0
+ATMTYP  3  2 C   r  2  1  0
+ATMTYP  4 13 O   r  3  2  1
+ATMTYP  5  3 CB  r  2  3  4
+ATMTYP  6  3 CG  m  5  2  1  0
+ATMTYP  7  3 CD  m  6  5  2  0
+ATMTYP  8 12 NE  m  7  6  5  0
+ATMTYP  9  5 CZ  m  8  7  6  0
+ATMTYP 10 12 NH1 m  9  8  7 11
+ATMTYP 11 12 NH2 m  9  8  7 10
+CONECT  1  2
+CONECT  2  1  3  5
+CONECT  3  2  4  
+CONECT  4  3
+CONECT  5  2  6    
+CONECT  6  5  7
+CONECT  7  6  8
+CONECT  8  7  9
+CONECT  9  8 10 11
+CONECT 10  9 
+CONECT 11  9
+FLEDIH  1  6
+FLEDIH  2  7
+FLEDIH  3  8
+FLEDIH  4  9  
+RESEND
+      
+RESIDU ASN
+ATMTYP  1 11 N   r  0  0  0
+ATMTYP  2  3 CA  r  1  0  0
+ATMTYP  3  2 C   r  2  1  0
+ATMTYP  4 13 O   r  3  2  1
+ATMTYP  5  3 CB  r  2  3  4
+ATMTYP  6  2 CG  m  5  2  1  0
+ATMTYP  7 13 OD1 m  6  5  2  8
+ATMTYP  8 11 ND2 m  6  5  2  7
+CONECT  1  2
+CONECT  2  1  3  5
+CONECT  3  2  4  
+CONECT  4  3
+CONECT  5  2  6
+CONECT  6  5  7  8
+CONECT  7  6
+CONECT  8  6
+FLEDIH  1  6
+FLEDIH  2  7
+RESEND
+      
+RESIDU ASP
+ATMTYP  1 11 N   r  0  0  0
+ATMTYP  2  3 CA  r  1  0  0
+ATMTYP  3  2 C   r  2  1  0
+ATMTYP  4 13 O   r  3  2  1
+ATMTYP  5  3 CB  r  2  3  4
+ATMTYP  6  2 CG  m  5  2  1  0
+ATMTYP  7 15 OD1 m  6  5  2  8
+ATMTYP  8 15 OD2 m  6  5  2  7
+CONECT  1  2
+CONECT  2  1  3  5
+CONECT  3  2  4  
+CONECT  4  3
+CONECT  5  2  6
+CONECT  6  5  7  8
+CONECT  7  6
+CONECT  8  6
+FLEDIH  1  6
+FLEDIH  2  7
+RESEND
+      
+RESIDU CYS
+ATMTYP  1 11 N   r  0  0  0
+ATMTYP  2  3 CA  r  1  0  0
+ATMTYP  3  2 C   r  2  1  0
+ATMTYP  4 13 O   r  3  2  1
+ATMTYP  5  3 CB  r  2  3  4
+ATMTYP  6 18 SG  m  5  2  1  0
+CONECT  1  2
+CONECT  2  1  3  5
+CONECT  3  2  4  
+CONECT  4  3
+CONECT  5  2  6
+CONECT  6  5
+FLEDIH  1  6
+RESEND
+      
+RESIDU GLN
+ATMTYP  1 11 N   r  0  0  0
+ATMTYP  2  3 CA  r  1  0  0
+ATMTYP  3  2 C   r  2  1  0
+ATMTYP  4 13 O   r  3  2  1
+ATMTYP  5  3 CB  r  2  3  4
+ATMTYP  6  3 CG  m  5  2  1  0
+ATMTYP  7  2 CD  m  6  5  2  0
+ATMTYP  8 13 OE1 m  7  6  5  9
+ATMTYP  9 11 NE2 m  7  6  5  8
+CONECT  1  2
+CONECT  2  1  3  5
+CONECT  3  2  4  
+CONECT  4  3
+CONECT  5  2  6    
+CONECT  6  5  7
+CONECT  7  6  8  9
+CONECT  8  7
+CONECT  9  7
+FLEDIH  1  6
+FLEDIH  2  7
+FLEDIH  3  8
+RESEND
+      
+RESIDU GLU
+ATMTYP  1 11 N   r  0  0  0
+ATMTYP  2  3 CA  r  1  0  0
+ATMTYP  3  2 C   r  2  1  0
+ATMTYP  4 13 O   r  3  2  1
+ATMTYP  5  3 CB  r  2  3  4
+ATMTYP  6  3 CG  m  5  2  1  0
+ATMTYP  7  2 CD  m  6  5  2  0
+ATMTYP  8 15 OE1 m  7  6  5  9
+ATMTYP  9 15 OE2 m  7  6  5  8
+CONECT  1  2
+CONECT  2  1  3  5
+CONECT  3  2  4  
+CONECT  4  3
+CONECT  5  2  6    
+CONECT  6  5  7
+CONECT  7  6  8  9
+CONECT  8  7
+CONECT  9  7
+FLEDIH  1  6
+FLEDIH  2  7
+FLEDIH  3  8
+RESEND
+      
+RESIDU GLY
+ATMTYP  1 11 N   r  0  0  0
+ATMTYP  2  3 CA  r  1  0  0
+ATMTYP  3  2 C   r  2  1  0
+ATMTYP  4 13 O   r  3  2  1
+CONECT  1  2
+CONECT  2  1  3  5
+CONECT  3  2  4  
+CONECT  4  3
+RESEND
+      
+RESIDU HIS
+ATMTYP  1 11 N   r  0  0  0
+ATMTYP  2  3 CA  r  1  0  0
+ATMTYP  3  2 C   r  2  1  0
+ATMTYP  4 13 O   r  3  2  1
+ATMTYP  5  7 CB  r  2  3  4
+ATMTYP  6  4 CG  m  5  2  1  0
+ATMTYP  7 10 ND1 m  6  5  2  8
+ATMTYP  8  4 CD2 m  6  5  2  7
+ATMTYP  9  4 CE1 m  7  6  5  0
+ATMTYP 10 10 NE2 m  8  6  5  0
+CONECT  1  2
+CONECT  2  1  3  5
+CONECT  3  2  4  
+CONECT  4  3
+CONECT  5  2  6
+CONECT  6  5  7  8
+CONECT  7  6  9
+CONECT  8  6 10
+CONECT  9  7 10
+CONECT 10  8  9
+FLEDIH  1  6
+FLEDIH  2  7
+RESEND
+      
+RESIDU ILE
+ATMTYP  1 11 N   r  0  0  0
+ATMTYP  2  3 CA  r  1  0  0
+ATMTYP  3  2 C   r  2  1  0
+ATMTYP  4 13 O   r  3  2  1
+ATMTYP  5  3 CB  r  2  3  4
+ATMTYP  6  3 CG1 m  5  2  1  7
+ATMTYP  7  3 CG2 m  5  2  1  6
+ATMTYP  8  3 CD1 m  6  5  2  0
+CONECT  1  2
+CONECT  2  1  3  5
+CONECT  3  2  4  
+CONECT  4  3
+CONECT  5  2  6  7
+CONECT  6  5  8
+CONECT  7  5
+CONECT  8  6  
+FLEDIH  1  6
+FLEDIH  2  8
+RESEND
+      
+RESIDU LEU
+ATMTYP  1 11 N   r  0  0  0
+ATMTYP  2  3 CA  r  1  0  0
+ATMTYP  3  2 C   r  2  1  0
+ATMTYP  4 13 O   r  3  2  1
+ATMTYP  5  3 CB  r  2  3  4
+ATMTYP  6  3 CG  m  5  2  1  0
+ATMTYP  7  3 CD1 m  6  5  2  8
+ATMTYP  8  3 CD2 m  6  5  2  7
+CONECT  1  2
+CONECT  2  1  3  5
+CONECT  3  2  4  
+CONECT  4  3
+CONECT  5  2  6  
+CONECT  6  5  7  8
+CONECT  7  6
+CONECT  8  6
+FLEDIH  1  6
+FLEDIH  2  7
+RESEND
+      
+RESIDU LYS
+ATMTYP  1 11 N   r  0  0  0
+ATMTYP  2  3 CA  r  1  0  0
+ATMTYP  3  2 C   r  2  1  0
+ATMTYP  4 13 O   r  3  2  1
+ATMTYP  5  3 CB  r  2  3  4
+ATMTYP  6  3 CG  m  5  2  1  0
+ATMTYP  7  3 CD  m  6  5  2  0
+ATMTYP  8  3 CE  m  7  6  5  0
+ATMTYP  9  9 NZ  m  8  7  6  0
+CONECT  1  2
+CONECT  2  1  3  5
+CONECT  3  2  4  
+CONECT  4  3
+CONECT  5  2  6  
+CONECT  6  5  7
+CONECT  7  6  8
+CONECT  8  7  9
+CONECT  9  8
+FLEDIH  1  6
+FLEDIH  2  7
+FLEDIH  3  8
+FLEDIH  4  9
+RESEND
+      
+RESIDU MET
+ATMTYP  1 11 N   r  0  0  0
+ATMTYP  2  3 CA  r  1  0  0
+ATMTYP  3  2 C   r  2  1  0
+ATMTYP  4 13 O   r  3  2  1
+ATMTYP  5  3 CB  r  2  3  4
+ATMTYP  6  3 CG  m  5  2  1  0
+ATMTYP  7 18 SD  m  6  5  2  0
+ATMTYP  8  3 CE  m  7  6  5  0
+CONECT  1  2
+CONECT  2  1  3  5
+CONECT  3  2  4  
+CONECT  4  3
+CONECT  5  2  6  
+CONECT  6  5  7
+CONECT  7  6  8
+CONECT  8  7
+FLEDIH  1  6
+FLEDIH  2  7
+FLEDIH  3  8
+RESEND
+      
+RESIDU PHE
+ATMTYP  1 11 N   r  0  0  0
+ATMTYP  2  3 CA  r  1  0  0
+ATMTYP  3  2 C   r  2  1  0
+ATMTYP  4 13 O   r  3  2  1
+ATMTYP  5  3 CB  r  2  3  4
+ATMTYP  6  4 CG  m  5  2  1  0
+ATMTYP  7  4 CD1 m  6  5  2  8
+ATMTYP  8  4 CD2 m  6  5  2  7
+ATMTYP  9  4 CE1 m  7  6  5  0
+ATMTYP 10  4 CE2 m  8  6  5  0
+ATMTYP 11  4 CZ  m  9  7  6  0
+CONECT  1  2
+CONECT  2  1  3  5
+CONECT  3  2  4  
+CONECT  4  3
+CONECT  5  2  6  
+CONECT  6  5  7  8
+CONECT  7  6  9
+CONECT  8  6 10
+CONECT  9  7 11
+CONECT 10  8 11
+CONECT 11  9 10
+FLEDIH  1  6
+FLEDIH  2  7
+RESEND
+      
+RESIDU PRO
+ATMTYP  1 11 N   r  0  0  0
+ATMTYP  2  3 CA  r  1  0  0
+ATMTYP  3  2 C   r  2  1  0
+ATMTYP  4 13 O   r  3  2  1
+ATMTYP  5  3 CB  r  2  3  4
+ATMTYP  6  3 CG  r  5  2  1
+ATMTYP  7  3 CD  r  6  5  2
+CONECT  1  2  7
+CONECT  2  1  3  5
+CONECT  3  2  4  
+CONECT  4  3
+CONECT  5  2  6
+CONECT  6  5  7
+CONECT  7  1  6
+RESEND
+      
+RESIDU SER
+ATMTYP  1 11 N   r  0  0  0
+ATMTYP  2  3 CA  r  1  0  0
+ATMTYP  3  2 C   r  2  1  0
+ATMTYP  4 13 O   r  3  2  1
+ATMTYP  5  3 CB  r  2  3  4
+ATMTYP  6 14 OG  m  5  2  1  0
+CONECT  1  2
+CONECT  2  1  3  5
+CONECT  3  2  4  
+CONECT  4  3
+CONECT  5  2  6  
+CONECT  6  5
+FLEDIH  1  6
+RESEND
+      
+RESIDU THR
+ATMTYP  1 11 N   r  0  0  0
+ATMTYP  2  3 CA  r  1  0  0
+ATMTYP  3  2 C   r  2  1  0
+ATMTYP  4 13 O   r  3  2  1
+ATMTYP  5  3 CB  r  2  3  4
+ATMTYP  6 14 OG1 m  5  2  1  7
+ATMTYP  7  3 CG2 m  5  2  1  6
+CONECT  1  2
+CONECT  2  1  3  5
+CONECT  3  2  4  
+CONECT  4  3
+CONECT  5  2  6  7
+CONECT  6  5
+CONECT  7  5
+FLEDIH  1  6
+RESEND
+      
+RESIDU TRP
+ATMTYP  1 11 N   r  0  0  0
+ATMTYP  2  3 CA  r  1  0  0
+ATMTYP  3  2 C   r  2  1  0
+ATMTYP  4 13 O   r  3  2  1
+ATMTYP  5  3 CB  r  2  3  4
+ATMTYP  6  4 CG  m  5  2  1  0
+ATMTYP  7  4 CD1 m  6  5  2  8
+ATMTYP  8  4 CD2 m  6  5  2  7
+ATMTYP  9 10 NE1 m  7  6  5  0
+ATMTYP 10  4 CE2 m  8  6  5  0
+ATMTYP 11  4 CE3 m  8  6  5  0
+ATMTYP 12  4 CZ2 m 10  8  6  0
+ATMTYP 13  4 CZ3 m 11  8  6  0
+ATMTYP 14  4 CH2 m 12 10  8  0
+CONECT  1  2
+CONECT  2  1  3  5
+CONECT  3  2  4  
+CONECT  4  3
+CONECT  5  2  6  
+CONECT  6  7  8
+CONECT  7  6  9
+CONECT  8  6 10 11
+CONECT  9  7 10
+CONECT 10  8  9 12
+CONECT 11  8 13
+CONECT 12 10 14
+CONECT 13 11 14
+CONECT 14 12 13
+FLEDIH  1  6
+FLEDIH  2  7
+RESEND
+      
+RESIDU TYR
+ATMTYP  1 11 N   r  0  0  0
+ATMTYP  2  3 CA  r  1  0  0
+ATMTYP  3  2 C   r  2  1  0
+ATMTYP  4 13 O   r  3  2  1
+ATMTYP  5  3 CB  r  2  3  4
+ATMTYP  6  4 CG  m  5  2  1  0
+ATMTYP  7  4 CD1 m  6  5  2  8
+ATMTYP  8  4 CD2 m  6  5  2  7
+ATMTYP  9  4 CE1 m  7  6  5  0
+ATMTYP 10  4 CE2 m  8  6  5  0
+ATMTYP 11  4 CZ  m  9  7  6  0
+ATMTYP 12 14 OH  m 11  9  7  0
+CONECT  1  2
+CONECT  2  1  3  5
+CONECT  3  2  4  
+CONECT  4  3
+CONECT  5  2  6  
+CONECT  6  5  7  8
+CONECT  7  6  9
+CONECT  8  6 10
+CONECT  9  7 11
+CONECT 10  8 11
+CONECT 11  9 10 12
+CONECT 12 11
+FLEDIH  1  6
+FLEDIH  2  7
+RESEND
+      
+RESIDU VAL
+ATMTYP  1 11 N   r  0  0  0
+ATMTYP  2  3 CA  r  1  0  0
+ATMTYP  3  2 C   r  2  1  0
+ATMTYP  4 13 O   r  3  2  1
+ATMTYP  5  3 CB  r  2  3  4
+ATMTYP  6  3 CG1 m  5  2  1  7
+ATMTYP  7  3 CG2 m  5  2  1  6
+CONECT  1  2
+CONECT  2  1  3  5
+CONECT  3  2  4  
+CONECT  4  3
+CONECT  5  2  6  7
+CONECT  6  5
+CONECT  7  5
+FLEDIH  1  6
+RESEND
