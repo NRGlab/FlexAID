@@ -10,8 +10,12 @@ float calc_rmsd_chrom(FA_Global* FA, GB_Global* GB, const chromosome* chrom, con
 	int i,j,k,l,m;
 	int cat;
 	int rot;
-	float coor_a[MAX_ATM_HET][3];
-	float coor_b[MAX_ATM_HET][3];
+    
+	//float* coor_a;
+	//float* coor_b;
+    float coor_a[MAX_ATM_HET][3];
+    float coor_b[MAX_ATM_HET][3];
+    
 	uint grd_idx;
 	int normalmode=-1;
 	int rot_idx=0;
@@ -86,7 +90,6 @@ float calc_rmsd_chrom(FA_Global* FA, GB_Global* GB, const chromosome* chrom, con
       
 		}
 
-
 		if(normalmode > -1)
 			alter_mode(atoms,residue,FA->normal_grid[normalmode],FA->res_cnt,FA->normal_modes);
   
@@ -118,21 +121,9 @@ float calc_rmsd_chrom(FA_Global* FA, GB_Global* GB, const chromosome* chrom, con
 		}    
 	}
   
-	for(i=0;i<m;i++){
-		/*
-		  printf("A:%d %f %f %f\n",i,
-		  coor_a[i][0],
-		  coor_a[i][1],
-		  coor_a[i][2]);
-		  printf("B:%d %f %f %f\n",i,
-		  coor_b[i][0],
-		  coor_b[i][1],
-		  coor_b[i][2]);
-		  printf("RMSD=%8.5f DRMSD=%8.5f\n",rmsd_chrom,sqrdist(coor_a[i],coor_b[i]));
-		  PAUSE;
-		*/
+	for(i=0;i<m;i++)
 		rmsd_chrom += sqrdist(coor_a[i],coor_b[i]);
-	}
+	
 	rmsd_chrom = sqrt(rmsd_chrom/((float)m));
   
 	//printf("RMSD=%f\n",rmsd_chrom); 

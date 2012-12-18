@@ -388,15 +388,19 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 
 		sscanf(optline[i],"%s %d %s %d",a,&opt[0],a,&opt[1]);
 		//printf("%d %d\n",opt[0],opt[1]);
-		//PAUSE;
+		//getchar();
 		//chain=buffer[11];
 		chain=a[0];
 		if(chain == '-'){chain = ' ';}
 		//printf("Add2 optimiz vector...\n");
-		add2_optimiz_vec(FA,*atoms,*residue,*cleftgrid,opt,chain);
+		add2_optimiz_vec(FA,*atoms,*residue,*cleftgrid,opt,chain,"");
 
 	}
 
+    add2_optimiz_vec(FA,*atoms,*residue,*cleftgrid,opt,chain,"SC");
+    add2_optimiz_vec(FA,*atoms,*residue,*cleftgrid,opt,chain,"NM");
+    
+    
 	// fill in optres pointer in atoms struct.
 	update_optres(*atoms,FA->atm_cnt,FA->optres,FA->num_optres);
   

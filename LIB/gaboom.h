@@ -113,8 +113,8 @@ void  mutate(gene *john,int num_genes,double mut_rate);
 void  bin_print(int dec,int len);
 void  read_gainputs(FA_Global* FA,GB_Global* GB,genlim** gene_lim,int*,int*,char file[]);
 
-void  set_bins(genlim* gene_lim);
-void  set_bins(genlim* gene_lim, int num_genes);
+void   set_bins(genlim* gene_lim);
+double set_bins(genlim* gene_lim, int num_genes);
 double genetoic(const genlim* gene_lim, boost::int32_t gene);
 int ictogene(const genlim* gene_lim, double ic);
 

@@ -7,7 +7,7 @@
  * SUBROUTINE add2_optimiz_vec builds the vector with the values of the ic's
  * that are going to be optimized for one or more residues/ligands.
  *****************************************************************************/
-void add2_optimiz_vec(FA_Global* FA,atom* atoms,resid* residue,gridpoint* cleftgrid,int val[], char chain){
+void add2_optimiz_vec(FA_Global* FA,atom* atoms,resid* residue,gridpoint* cleftgrid,int val[], char chain, char* extras){
 	int i,j;
 	int at;
 	//int rot;
@@ -15,53 +15,18 @@ void add2_optimiz_vec(FA_Global* FA,atom* atoms,resid* residue,gridpoint* cleftg
 	// val[0]=residue number
 	// val[1]=0 -> optimization of global position; 
 	// val[1]=n -> optimization of dihedral bond number n
-	
-	//printf("val[0]=%d val[1]=%d\n",val[0],val[1]);
-	//PAUSE;
-	
+		
 	i=1;
 	while(residue[i].number != val[0] || residue[i].chn != chain){
 		i++;
 		if(i == FA->res_cnt) break;
 	}
 	at=i;
-
-	/*
-	  printf("gpa atoms: gpa[0]=atoms[%d]=%d gpa[1]=atoms[%d]=%d gpa[2]=atoms[%d]=%d\n", 
-	  residue[at].gpa[0],atoms[residue[at].gpa[0]].number,
-	  residue[at].gpa[1],atoms[residue[at].gpa[1]].number,
-	  residue[at].gpa[2],atoms[residue[at].gpa[2]].number);
-	*/
-
-	//printf("at=%d\n",at);
   
 	buildic(FA,atoms,residue,at);
 
-	/*
-	  rot=residue[at].rot;
-	  for(i=residue[at].fatm[rot];i<=residue[at].latm[rot];i++){
-	  if(atoms[i].rec[3] != 0){
-	  atoms[i].shift=atoms[i].dih-atoms[atoms[i].rec[3]].dih;
-	  //printf("%.3f\t%.3f\t%.3f\n",atoms[i].shift,atoms[i].dih,atoms[atoms[i].rec[3]].dih);
-	  }
-	  }
-	*/
-  
-	//printf("residue[%d].latm[%d]=%d (%s)\n",at,i,FA->num_atm[i],residue[at].name);
-	//PAUSE;
+    if(strcmp(extras,"SC") == 0){
 
-	/* map_par.typ=0 --> distance  */
-	/* map_par.typ=1 --> bnd angle */
-	/* map_par.typ=2 --> dih angle */
-
-	/*printf("gpa[0].dis=%8.3f\tgpa[0].ang=%8.3f\tgpa[0].dih=%8.3f\n",
-	  atoms[residue[at].gpa[0]].dis,
-	  atoms[residue[at].gpa[0]].ang,
-	  atoms[residue[at].gpa[0]].dih);
-	*/
-
-    if(val[1] == -3){        // side-chain optimization
-        
         for(i=0;i<FA->nflxsc;i++){
             
             if(residue[FA->flex_res[i].inum].trot > 0){
@@ -90,9 +55,9 @@ void add2_optimiz_vec(FA_Global* FA,atom* atoms,resid* residue,gridpoint* cleftg
             }
             
         }
-    
-    }else if(val[1] == -2){       // normal-modes integration
         
+    }else if(strcmp(extras,"NM") == 0){
+                
         if (FA->normal_modes > 0){
             
             if(FA->npar==FA->MIN_PAR){ realloc_par(FA,&FA->MIN_PAR); }
@@ -131,6 +96,8 @@ void add2_optimiz_vec(FA_Global* FA,atom* atoms,resid* residue,gridpoint* cleftg
         FA->max_opt_par[FA->npar] = FA->index_max;
         FA->map_opt_par[FA->npar] = 1;
         
+        FA->npar++;
+
         
     }else if(val[1] == 0){          // (3 degrees of freedom of rotation)
     

@@ -56,7 +56,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	strcat(STOPFILE,"/.stop");
 
 	GB->num_genes=FA->npar;
-	//printf("num_genes=%d\n",GB->num_genes);
+	printf("num_genes=%d\n",GB->num_genes);
   
 	GB->rrg_skip=0;
 	GB->adaptive_ga=0;
@@ -83,6 +83,16 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 		       geninterval, popszpartition);
 	}
 
+    double n_poss = set_bins((*gene_lim),GB->num_genes);
+    printf("%.1lf\n", n_poss);
+    if(n_poss < GB->num_chrom && 
+       (strcmp(GB->rep_model,"STEAWD")==0 || strcmp(GB->rep_model,"BOOMWD")==0)){
+        fprintf(stderr,"Too many chromosomes without duplicates for the number of possibilites.\n");
+        Terminate(2);
+        //fprintf(stderr,"Switching to non-duplicates (STEADS).\n");
+        //strcpy(GB->rep_model,"STEADS");
+    }
+    
 	(*memchrom) = GB->num_chrom;
 	if(strcmp(GB->rep_model,"STEAWD")==0 || strcmp(GB->rep_model,"STEADS")==0){
 		(*memchrom) += GB->ssnum;
@@ -133,9 +143,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 		(*chrom_snapshot)[i].status = ' ';
 		//printf("chrom_snapshot[%d] allocated at address %p!\n", i, &(*chrom_snapshot)[i]);
 	}
-
-	set_bins((*gene_lim),GB->num_genes);
-
+    
 	printf("alpha %lf peaks %lf scale %lf\n",GB->alpha,GB->peaks,GB->scale);
 	GB->sig_share=0.0;
   
@@ -410,7 +418,11 @@ void adapt_prob(GB_Global* GB,double fit1, double fit2, double* mutp, double* cr
 /*234567890123456789012345678901234567890123456789012345678901234567890*/
 /*        1         2         3         4         5         6         7*/
 /***********************************************************************/
-void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,const genlim* gene_lim,atom* atoms,resid* residue,gridpoint* cleftgrid,char method[], double mutprob, double crossprob, int print, boost::variate_generator< RNGType, boost::uniform_int<> > &, double (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*)){
+void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,const genlim* gene_lim,
+               atom* atoms,resid* residue,gridpoint* cleftgrid,char method[], 
+               double mutprob, double crossprob, int print, 
+               boost::variate_generator< RNGType, boost::uniform_int<> > &, 
+               double (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*)){
 
 	int i,j,k;
 	int nnew,p1,p2;
@@ -743,7 +755,9 @@ int roullete_wheel(const chromosome* chrom,int n){
 /*234567890123456789012345678901234567890123456789012345678901234567890*/
 /*        1         2         3         4         5         6         7*/
 /***********************************************************************/
-void calculate_fitness(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chrom, const genlim* gene_lim,atom* atoms,resid* residue,gridpoint* cleftgrid,char method[], int pop_size, int print,double (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*)){
+void calculate_fitness(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chrom, const genlim* gene_lim,
+                       atom* atoms,resid* residue,gridpoint* cleftgrid,char method[], int pop_size, int print,
+                       double (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*)){
 
 	int i,j;
 	//float tot=0.0;
@@ -833,7 +847,11 @@ double eval_chromosome(FA_Global* FA,GB_Global* GB,VC_Global* VC,const genlim* g
 /*234567890123456789012345678901234567890123456789012345678901234567890*/
 /*        1         2         3         4         5         6         7*/
 /***********************************************************************/
-void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chrom, const genlim* gene_lim, atom* atoms,resid* residue,gridpoint* cleftgrid,char method[], double (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*), char file[], int popoffset, int print, boost::variate_generator< RNGType, boost::uniform_int<> > &){
+void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chrom, const genlim* gene_lim, 
+                          atom* atoms,resid* residue,gridpoint* cleftgrid,char method[], 
+                          double (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*), 
+                          char file[], int popoffset, int print, 
+                          boost::variate_generator< RNGType, boost::uniform_int<> > &){
   
 	int i,j,l;
 	
@@ -868,7 +886,7 @@ void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* 
 	//------------------------------------------------------------------------------
 	// use method to create new genes
 	if(strcmp(method,"RANDOM")==0){
-		//printf("generating random population...\n");
+		printf("generating random population...\n");
 		//printf("num_chrom=%d num_genes=%d\n",GB->num_chrom,GB->num_genes);
     
 		i=popoffset;
@@ -1029,17 +1047,25 @@ int cmp_chrom2pop_int(const chromosome* chrom,const gene* genes, int num_genes,i
 /*234567890123456789012345678901234567890123456789012345678901234567890*/
 /*        1         2         3         4         5         6         7*/
 /***********************************************************************/
-void set_bins(genlim* gene_lim, int num_genes){	
+double set_bins(genlim* gene_lim, int num_genes){	
 	
+    double n_poss = 0.0;
+    
 	for(int i=0; i<num_genes; i++){
 		double nbin = (gene_lim[i].max - gene_lim[i].min) / gene_lim[i].del;
 		if(nbin - (int)nbin > 0.0){ nbin += 1.0; }
 		if(gene_lim[i].map){ nbin += 1.0; }
 		
 		gene_lim[i].bin = 1.0/nbin;
+            
+        if(n_poss > 0.0){
+            n_poss *= nbin;
+        }else{
+            n_poss = nbin;
+        }
 	}
 
-	return;
+	return n_poss;
 }
 
 /***********************************************************************/

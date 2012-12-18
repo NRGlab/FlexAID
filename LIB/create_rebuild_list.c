@@ -17,7 +17,7 @@ void create_rebuild_list(FA_Global* FA,atom* atoms,resid* residue){
         //printf("map_par[%d].typ=%d\n",i,FA->map_par[i].typ);
 		newres=atoms[FA->map_par[i].atm].ofres;
         
-        if(newres != res){
+        if(newres != res && residue[newres].type == 1){
             
 			res=newres;
 			FA->opt_res[FA->nors]=res;
