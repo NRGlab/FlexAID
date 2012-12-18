@@ -22,7 +22,7 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue)
 	int    type=1;
 	int    fatm=0;
 
-	double dist_opt = 1.330;
+    double dist_opt = 0.0;
 	double complementarity;
 	//int   intra;
 	//int   intraf;
@@ -274,27 +274,23 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue)
 
 						covalent=1;
 	    
+                        dist_opt = cons->bond_len;
+
 						//ang = angle(atoms[atomzero].coor,atoms[atomcont].coor,atoms[atoms[atomcont].bond[1]].coor);
-
-						/*
-						  printf("radA: %.2f radB: %.2f\n", radA,radB);
-						  getchar();
-	      
-						  printf("angle found: %.3f\n",ang);
-						  getchar();
-	      
-						  printf("dist found: %.3f\n",VC->ca_rec[currindex].dist);
-						  getchar();
-						*/
-
 						//cfs->con -= KANGLE*cons->max_ang*GetValueFromGaussian(ang,120.0,cons->max_ang);
 	    
 						//float gaus=GetValueFromGaussian(VC->ca_rec[currindex].dist,dist_opt,cons->max_dist);
 						//printf("gaus: %.2f\n",gaus);
 						//getchar();
 
+                        /*
+                        printf("cons->max_dist=%.3f - VC->ca_rec[currindex].dist=%.3f - dist_opt=%.3f - GetValueFromGaussian=%.3f\n", 
+                               cons->max_dist, VC->ca_rec[currindex].dist, dist_opt,
+                               GetValueFromGaussian(VC->ca_rec[currindex].dist,dist_opt,cons->max_dist));
+                        */
+                        
 						//printf("before: %.3f\n",cfs->con);
-						cfs->con -= ( KDIST * (double)cons->max_dist * GetValueFromGaussian((float)VC->ca_rec[currindex].dist,dist_opt,cons->max_dist) ) ;
+						cfs->con -= ( KDIST * (double)cons->max_dist * GetValueFromGaussian(VC->ca_rec[currindex].dist,dist_opt,cons->max_dist) ) ;
 						//printf("after: %.3f\n",cfs->con);
 						//getchar();
 	    

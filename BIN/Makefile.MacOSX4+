@@ -118,7 +118,6 @@ OBJ =	top.o			\
 	check_clash.o		\
 	boinc.o			\
 	read_constraints.o	\
-	assign_constraint_threshold.o	\
 	assign_constraint.o	\
 	update_constraint.o	\
 	update_bonded.o		\
@@ -303,9 +302,6 @@ assign_constraint.o: $I/assign_constraint.c $I/flexaid.h
 
 modify_pdb.o: $I/modify_pdb.c $I/flexaid.h $I/boinc.h
 	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/modify_pdb.c $(INCLUDES)
-
-assign_constraint_threshold.o: $I/assign_constraint_threshold.c $I/flexaid.h
-	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/assign_constraint_threshold.c
 
 update_constraint.o: $I/update_constraint.c $I/flexaid.h $I/boinc.h
 	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/update_constraint.c $(INCLUDES)
