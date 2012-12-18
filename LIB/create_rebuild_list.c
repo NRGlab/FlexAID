@@ -14,7 +14,7 @@ void create_rebuild_list(FA_Global* FA,atom* atoms,resid* residue){
 
 	for(i=0;i<FA->npar;i++){
 		newres=atoms[FA->map_par[i].atm].ofres;
-		if(FA->map_par[i].typ == 0 || FA->map_par[i].typ == -1){ 
+		if(FA->map_par[i].typ == 0 || FA->map_par[i].typ == -1){
 			//printf("map_par[%d].typ=%d\n",i,FA->map_par[i].typ);
 
 			res=newres;
@@ -34,12 +34,12 @@ void create_rebuild_list(FA_Global* FA,atom* atoms,resid* residue){
 			printf("nors=%d opt_res[%d]=%d nmov[%d]=%d\n",
 			       FA->nors,FA->nors,FA->opt_res[FA->nors],FA->nors,FA->nmov[FA->nors]);
       
-			/*
+			
 			  for(j=0;j<FA->nmov[FA->nors];j++){
 			  printf("mov[%d][%d]=%d\n",FA->nors,j,FA->mov[FA->nors][j]);
 			  }
 			  //PAUSE;
-			  */
+			  
 
 			FA->nors++;
 

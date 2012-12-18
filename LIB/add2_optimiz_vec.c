@@ -60,182 +60,128 @@ void add2_optimiz_vec(FA_Global* FA,atom* atoms,resid* residue,gridpoint* cleftg
 	  atoms[residue[at].gpa[0]].dih);
 	*/
 
-  
+    if(val[1] == -3){        // side-chain optimization
+        
+        for(i=0;i<FA->nflxsc;i++){
+            
+            if(residue[FA->flex_res[i].inum].trot > 0){
+                
+                //printf("new par flex sc: %s %c %d\n", residue[FA->flex_res[i].inum].name,residue[FA->flex_res[i].inum].chn, residue[FA->flex_res[i].inum].number);
+                //printf("npar: %d - MIN_PAR: %d\n", FA->npar,FA->MIN_PAR);
+                
+                if(FA->npar==FA->MIN_PAR){ realloc_par(FA,&FA->MIN_PAR); }
+                
+                FA->map_par[FA->npar].atm = residue[FA->flex_res[i].inum].fatm[0];
+                FA->map_par[FA->npar].typ = 4;
+                FA->opt_par[FA->npar] = 0.0;
+                FA->del_opt_par[FA->npar] = FA->delta_index;
+                FA->min_opt_par[FA->npar] = 0.0;
+                FA->max_opt_par[FA->npar] = (double)residue[FA->flex_res[i].inum].trot;
+                FA->map_opt_par[FA->npar] = 1;
+                
+                printf("npar=%d map_par[%d].typ=%d map_par[%d].atm=%d opt_par[%d]=%f\n",FA->npar,	   
+                       FA->npar,FA->map_par[FA->npar].typ,
+                       FA->npar,atoms[FA->map_par[FA->npar].atm].number,
+                       FA->npar,FA->opt_par[FA->npar]);
+                //	  printf("min=%f max=%f del=%f\n",FA->min_opt_par[FA->npar],FA->max_opt_par[FA->npar],FA->del_opt_par[FA->npar]);
+                
+                FA->npar++;
+                
+            }
+            
+        }
+    
+    }else if(val[1] == -2){       // normal-modes integration
+        
+        if (FA->normal_modes > 0){
+            
+            if(FA->npar==FA->MIN_PAR){ realloc_par(FA,&FA->MIN_PAR); }
+            
+            FA->map_par[FA->npar].typ = 3;
+            FA->opt_par[FA->npar] = 0.0;
+            FA->del_opt_par[FA->npar] = FA->delta_index;
+            FA->min_opt_par[FA->npar] = FA->normalindex_min;
+            FA->max_opt_par[FA->npar] = FA->normalindex_max;
+            FA->map_opt_par[FA->npar] = 1;
+            
+            printf("npar=%d map_par[%d].typ=%d map_par[%d].atm=%d opt_par[%d]=%f\n",FA->npar,	   
+                   FA->npar,FA->map_par[FA->npar].typ,
+                   FA->npar,atoms[FA->map_par[FA->npar].atm].number,
+                   FA->npar,FA->opt_par[FA->npar]);
+            //      printf("min=%f max=%f del=%f\n",FA->min_opt_par[FA->npar],FA->max_opt_par[FA->npar],FA->del_opt_par[FA->npar]);
+            
+            FA->npar++;
+        }
+        
+    }else if(val[1] == -1){    // (3 degrees of freedom of translation)
 
-	if(val[1]==0){
+		if(FA->npar==FA->MIN_PAR){ realloc_par(FA,&FA->MIN_PAR); }
+
+        cleftgrid[0].number = 0;
+        for (j=0;j<3;j++) cleftgrid[0].coor[j] = atoms[residue[at].gpa[0]].coor[j];
+        cleftgrid[0].dis = atoms[residue[at].gpa[0]].dis;
+        cleftgrid[0].ang = atoms[residue[at].gpa[0]].ang;
+        cleftgrid[0].dih = atoms[residue[at].gpa[0]].dih;
+
+        FA->map_par[FA->npar].typ = -1; //anchor point in space (3 degrees of freedom of translation)
+        FA->map_par[FA->npar].atm = residue[at].gpa[0];
+        FA->opt_par[FA->npar] = 0.0; //sets default position to sphere index 0
+        FA->del_opt_par[FA->npar] = FA->delta_index;
+        FA->min_opt_par[FA->npar] = FA->index_min;
+        FA->max_opt_par[FA->npar] = FA->index_max;
+        FA->map_opt_par[FA->npar] = 1;
+        
+        
+    }else if(val[1] == 0){          // (3 degrees of freedom of rotation)
     
 		if(FA->npar==FA->MIN_PAR){ realloc_par(FA,&FA->MIN_PAR); }
     
-		/* global/sphere positioning optimization */
-		if (strcmp(FA->rngopt,"global")==0) {
-			for(j=0;j<3;j++){
-				for(i=j;i<3;i++){
-					FA->map_par[FA->npar].typ=i;
-					FA->map_par[FA->npar].bnd=0;
-					FA->map_par[FA->npar].atm=residue[at].gpa[j];
-					if(i==0){
-						FA->opt_par[FA->npar]=atoms[FA->map_par[FA->npar].atm].dis;
-						FA->del_opt_par[FA->npar]=FA->delta_angstron;
-						FA->min_opt_par[FA->npar]=FA->dis_min;
-						FA->max_opt_par[FA->npar]=FA->dis_max;
-						FA->map_opt_par[FA->npar]=0;
+        for (i=1;i<=3;i++) {
+            FA->map_par[FA->npar].bnd=0;
 
-					}else if(i==1){
-						FA->opt_par[FA->npar]=atoms[FA->map_par[FA->npar].atm].ang;
-						FA->del_opt_par[FA->npar]=FA->delta_angle;
-						if(j==0){
-							FA->min_opt_par[FA->npar]=FA->ang_min;
-							FA->max_opt_par[FA->npar]=FA->ang_max;
-						}else{
-							FA->min_opt_par[FA->npar]=-180.0;
-							FA->max_opt_par[FA->npar]=180.0;
-						}
-						FA->map_opt_par[FA->npar]=0;
+            if (i==1) {
+                FA->map_par[FA->npar].typ = 1;  //ang
+                FA->map_par[FA->npar].atm = residue[at].gpa[1];
+                FA->opt_par[FA->npar] = atoms[FA->map_par[FA->npar].atm].ang;
+                FA->del_opt_par[FA->npar] = FA->delta_angle;
+                FA->min_opt_par[FA->npar] = -180.0;
+                FA->max_opt_par[FA->npar] = 180.0;
+                FA->map_opt_par[FA->npar] = 0;
 
-					}else if(i==2){
-						FA->opt_par[FA->npar]=atoms[FA->map_par[FA->npar].atm].dih;
-						FA->del_opt_par[FA->npar]=FA->delta_dihedral;
-						if(j==0){
-							FA->min_opt_par[FA->npar]=FA->dih_min;
-							FA->max_opt_par[FA->npar]=FA->dih_max;
-						}else{
-							FA->min_opt_par[FA->npar]=-180.0;
-							FA->max_opt_par[FA->npar]=180.0;
-						}
-						FA->map_opt_par[FA->npar]=0;
+            }else if (i==2) {
+                FA->map_par[FA->npar].typ = 2;  //dih
+                FA->map_par[FA->npar].atm=residue[at].gpa[1];
+                FA->opt_par[FA->npar]=atoms[FA->map_par[FA->npar].atm].dih;
+                FA->del_opt_par[FA->npar] = FA->delta_dihedral;
+                FA->min_opt_par[FA->npar] = -180.0;
+                FA->max_opt_par[FA->npar] = 180.0;
+                FA->map_opt_par[FA->npar] = 0;
 
-					}
-					printf("npar=%d map_par[%d].typ=%d map_par[%d].atm=%d opt_par[%d]=%f\n",FA->npar,
-					       FA->npar,FA->map_par[FA->npar].typ,
-					       FA->npar,atoms[FA->map_par[FA->npar].atm].number,
-					       FA->npar,FA->opt_par[FA->npar]);
-					//PAUSE;
-					FA->npar++;
-				}
-			}
+            }else if (i==3) {
+                FA->map_par[FA->npar].typ = 2;
+                FA->map_par[FA->npar].atm=residue[at].gpa[2];
+                FA->opt_par[FA->npar]=atoms[FA->map_par[FA->npar].atm].dih;
+                FA->del_opt_par[FA->npar] = FA->delta_dihedral;
+                FA->min_opt_par[FA->npar] = -180.0;
+                FA->max_opt_par[FA->npar] = 180.0;
+                FA->map_opt_par[FA->npar] = 0;
 
-			/* cleft positioning optimization */
-			/* NEW : loccen also */
-		}else{
-			for (i=0;i<4;i++) {
-				FA->map_par[FA->npar].bnd=0;
-				if (i==0) {
-					cleftgrid[0].number = 0;
-					for (j=0;j<3;j++) cleftgrid[0].coor[i] = atoms[residue[at].gpa[0]].coor[i];
-					cleftgrid[0].dis = atoms[residue[at].gpa[0]].dis;
-					cleftgrid[0].ang = atoms[residue[at].gpa[0]].ang;
-					cleftgrid[0].dih = atoms[residue[at].gpa[0]].dih;
-					/*
-					  printf("INI dis: %8.3f ang: %8.3f dih: %8.3f\n",
-					  cleftgrid[0].dis,
-					  cleftgrid[0].ang,
-					  cleftgrid[0].dih);
-					*/
-					FA->map_par[FA->npar].typ = -1; //anchor point in space
-					FA->map_par[FA->npar].atm = residue[at].gpa[0];
-					FA->opt_par[FA->npar] = 0.0; //sets default position to sphere index 0
-					FA->del_opt_par[FA->npar] = FA->delta_index;
-					FA->min_opt_par[FA->npar] = FA->index_min;
-					FA->max_opt_par[FA->npar] = FA->index_max;
-					FA->map_opt_par[FA->npar] = 1;
+            }
+            printf("npar=%d map_par[%d].typ=%d map_par[%d].atm=%d opt_par[%d]=%f\n",FA->npar,
+                   FA->npar,FA->map_par[FA->npar].typ,
+                   FA->npar,atoms[FA->map_par[FA->npar].atm].number,
+                   FA->npar,FA->opt_par[FA->npar]);
+            //PAUSE;
 
-				}else if (i==1) {
-					FA->map_par[FA->npar].typ = 1;  //ang
-					FA->map_par[FA->npar].atm = residue[at].gpa[1];
-					FA->opt_par[FA->npar] = atoms[FA->map_par[FA->npar].atm].ang;
-					FA->del_opt_par[FA->npar] = FA->delta_angle;
-					FA->min_opt_par[FA->npar] = -180.0;
-					FA->max_opt_par[FA->npar] = 180.0;
-					FA->map_opt_par[FA->npar] = 0;
-
-				}else if (i==2) {
-					FA->map_par[FA->npar].typ = 2;  //dih
-					FA->map_par[FA->npar].atm=residue[at].gpa[1];
-					FA->opt_par[FA->npar]=atoms[FA->map_par[FA->npar].atm].dih;
-					FA->del_opt_par[FA->npar] = FA->delta_dihedral;
-					FA->min_opt_par[FA->npar] = -180.0;
-					FA->max_opt_par[FA->npar] = 180.0;
-					FA->map_opt_par[FA->npar] = 0;
-
-				}else if (i==3) {
-					FA->map_par[FA->npar].typ = 2;
-					FA->map_par[FA->npar].atm=residue[at].gpa[2];
-					FA->opt_par[FA->npar]=atoms[FA->map_par[FA->npar].atm].dih;
-					FA->del_opt_par[FA->npar] = FA->delta_dihedral;
-					FA->min_opt_par[FA->npar] = -180.0;
-					FA->max_opt_par[FA->npar] = 180.0;
-					FA->map_opt_par[FA->npar] = 0;
-
-				}
-				printf("npar=%d map_par[%d].typ=%d map_par[%d].atm=%d opt_par[%d]=%f\n",FA->npar,
-				       FA->npar,FA->map_par[FA->npar].typ,
-				       FA->npar,atoms[FA->map_par[FA->npar].atm].number,
-				       FA->npar,FA->opt_par[FA->npar]);
-				//PAUSE;
-	
-				FA->npar++;
-			}
-		}
-    
-
-		if (FA->normal_modes > 0){
-    
-			if(FA->npar==FA->MIN_PAR){ realloc_par(FA,&FA->MIN_PAR); }
-      
-			FA->map_par[FA->npar].typ = 3;
-			FA->opt_par[FA->npar] = 0.0;
-			FA->del_opt_par[FA->npar] = FA->delta_index;
-			FA->min_opt_par[FA->npar] = FA->normalindex_min;
-			FA->max_opt_par[FA->npar] = FA->normalindex_max;
-			FA->map_opt_par[FA->npar] = 1;
-
-			printf("npar=%d map_par[%d].typ=%d map_par[%d].atm=%d opt_par[%d]=%f\n",FA->npar,	   
-			       FA->npar,FA->map_par[FA->npar].typ,
-			       FA->npar,atoms[FA->map_par[FA->npar].atm].number,
-			       FA->npar,FA->opt_par[FA->npar]);
-			//      printf("min=%f max=%f del=%f\n",FA->min_opt_par[FA->npar],FA->max_opt_par[FA->npar],FA->del_opt_par[FA->npar]);
-      
-			FA->npar++;
-		}
-    
-    
-          
-		for(i=0;i<FA->nflxsc;i++){
-		
-			if(residue[FA->flex_res[i].inum].trot > 0){
-		    
-				printf("new par flex sc: %s %c %d\n", residue[FA->flex_res[i].inum].name,residue[FA->flex_res[i].inum].chn, residue[FA->flex_res[i].inum].number);
-		    
-				//printf("npar: %d - MIN_PAR: %d\n", FA->npar,FA->MIN_PAR);
-		    
-				if(FA->npar==FA->MIN_PAR){ realloc_par(FA,&FA->MIN_PAR); }
-		    
-				FA->map_par[FA->npar].atm = residue[FA->flex_res[i].inum].fatm[0];
-				FA->map_par[FA->npar].typ = 4;
-				FA->opt_par[FA->npar] = 0.0;
-				FA->del_opt_par[FA->npar] = FA->delta_index;
-				FA->min_opt_par[FA->npar] = 0.0;
-				FA->max_opt_par[FA->npar] = (double)residue[FA->flex_res[i].inum].trot;
-				FA->map_opt_par[FA->npar] = 1;
-
-				printf("npar=%d map_par[%d].typ=%d map_par[%d].atm=%d opt_par[%d]=%f\n",FA->npar,	   
-				       FA->npar,FA->map_par[FA->npar].typ,
-				       FA->npar,atoms[FA->map_par[FA->npar].atm].number,
-				       FA->npar,FA->opt_par[FA->npar]);
-				//	  printf("min=%f max=%f del=%f\n",FA->min_opt_par[FA->npar],FA->max_opt_par[FA->npar],FA->del_opt_par[FA->npar]);
-		    
-				FA->npar++;
-		    
-			}
-	    
-		}
-    
+            FA->npar++;
+        }
   
-	}else{ // val[1] != 0 (dihedral)
+	}else if(val[1] > 0){   // val[1] > 0 (dihedrals rotation)
+        
 		if(FA->npar==FA->MIN_PAR){ realloc_par(FA,&FA->MIN_PAR); }
 		
 		/* dihedral angle optimization */
-		//FA->intramolecular=1;
+		//FA->intramolecular = 1;
 		FA->map_par[FA->npar].typ = 2;
 		FA->map_par[FA->npar].bnd = val[1];
 		FA->map_par[FA->npar].atm = residue[at].bond[val[1]];
