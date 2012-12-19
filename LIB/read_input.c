@@ -277,12 +277,11 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 
 	//////////////////////////////////////////////
 
-	/*
-	if(!strcmp(rngopt,"GLOBAL")){
-		strcpy(FA->rngopt,"global");
+    if(strcmp(rngopt,"LOCCEN") && strcmp(rngopt,"LOCCLF")){
+        fprintf(stderr,"ERROR: the binding-site is not defined\n");
+        Terminate(2);
+    }
 
-	}else 
-	*/
 	if(!strcmp(rngopt,"LOCCEN")){
 		strcpy(FA->rngopt,"loccen");
 		
