@@ -67,7 +67,7 @@ double ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* c
 					cat=atoms[j].rec[3];
 				}
 			}
-      
+            
 		}else if(FA->map_par[i].typ==3) { //by index
 			grd_idx = (uint)icv[i];
 			//printf("icv(index): %d\n", grd_idx);

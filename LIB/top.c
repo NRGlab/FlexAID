@@ -101,6 +101,9 @@ int main(int argc, char **argv){
 	FA->res_cnt=0;
 	FA->nors=0;
 	//FA->natoms_rmsd=0;
+
+    FA->nrg_suite=0;
+	FA->translational=0;
 	FA->refstructure=0;
 
 	FA->is_protein=1;

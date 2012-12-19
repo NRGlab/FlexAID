@@ -97,7 +97,7 @@ void add2_optimiz_vec(FA_Global* FA,atom* atoms,resid* residue,gridpoint* cleftg
         FA->map_opt_par[FA->npar] = 1;
         
         FA->npar++;
-
+        FA->translational = 1;
         
     }else if(val[1] == 0){          // (3 degrees of freedom of rotation)
     

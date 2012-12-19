@@ -114,6 +114,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		if(strcmp(field,"SPACER") == 0){sscanf(buffer,"%s %f",field,&FA->spacer_length);}
 		if(strcmp(field,"DEPSPA") == 0){sscanf(buffer,"%s %s",field,FA->dependencies_path);}
 		if(strcmp(field,"STATEP") == 0){sscanf(buffer,"%s %s",field,FA->state_path);}
+		if(strcmp(field,"NRGSUI") == 0){FA->nrg_suite=1;}
 	}
 
 	CloseFile_B(&infile_ptr,"r");
@@ -315,13 +316,11 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		calc_cleftic(FA,*cleftgrid);
 	}
 
-	if(FA->output_range && 
-	   (!strcmp(FA->rngopt,"loccen") || !strcmp(FA->rngopt,"locclf"))) {
-		
+	if(FA->output_range){		
 		strcpy(gridfile,"grid.sta.pdb");
 		write_grid(FA,*cleftgrid,gridfile);
 	}
-	
+    	
 	//printf("IC bounds...\n");
 	ic_bounds(FA,FA->rngopt);
   
@@ -403,8 +402,17 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
     
 	// fill in optres pointer in atoms struct.
 	update_optres(*atoms,FA->atm_cnt,FA->optres,FA->num_optres);
-  
-	
+  	
+    if(FA->nrg_suite){
+        if(FA->translational){
+            printf("Grid[0]=%8.3f%8.3f%8.3f\n", (*cleftgrid)[0].coor[0], (*cleftgrid)[0].coor[1], (*cleftgrid)[0].coor[2]);
+        }else{
+            for(i=1; i<FA->num_grd; i++){
+                printf("Grid[%d]=%8.3f%8.3f%8.3f\n", i, (*cleftgrid)[i].coor[0], (*cleftgrid)[i].coor[1], (*cleftgrid)[i].coor[2]);                    
+            }
+        }
+    }
+    
 	/* FREE SPHERES LINKED-LIST */
 	while(spheres != NULL){
 		_sphere = spheres->prev;

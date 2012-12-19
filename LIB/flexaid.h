@@ -251,14 +251,14 @@ struct FA_Global_struct{
 	
 	int    npar;                         // number of parameters
 	int*  num_atm;                       // PDB num --> internal num mapping
-  
+    
 	//atom  ori_ligatm[100];               // array to carry original atomic coordinates of ligand
 	//int   num_ligatm;                    // number of atoms in original ligand
-  
+    
 	//atom  atoms[MAX_NUM_ATM];            // array of atom structure
 	int   atm_cnt;                       // total number of atoms including all rotamers
 	int   atm_cnt_real;                  // total number of atoms real 
-  
+    
 	int   is_protein;                    // PDBNAM is a protein molecule
 	int   is_nucleicacid;                // PDBNAM is a DNA/RNA molecule
 
@@ -311,6 +311,8 @@ struct FA_Global_struct{
 	//int   natoms_rmsd;                   // number of atoms in atoms_rmsd
 	//int   hrnum;
 
+    int   nrg_suite;                     // flag indicating if nrg_suite is enabled
+    int   translational;                 // flag indicating if translation degrees of freedom are enabled
 	int   refstructure;                  // reference structure for rmsd calculation
   
 	int* contacts;                       // matrix used for not calculating the same interaction twice
