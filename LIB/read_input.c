@@ -403,7 +403,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 	update_optres(*atoms,FA->atm_cnt,FA->optres,FA->num_optres);
   	
     if(FA->nrg_suite){
-        if(FA->translational){
+        if(!FA->translational){
             printf("Grid[0]=%8.3f%8.3f%8.3f\n", (*cleftgrid)[0].coor[0], (*cleftgrid)[0].coor[1], (*cleftgrid)[0].coor[2]);
         }else{
             for(i=1; i<FA->num_grd; i++){

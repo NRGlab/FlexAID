@@ -94,7 +94,6 @@ gridpoint* generate_grid(FA_Global* FA,sphere* spheres){
 			c[0] = min[0];
 			c[1] = min[1];
 			c[2] += FA->spacer_length;
-
 			
 		}
 		

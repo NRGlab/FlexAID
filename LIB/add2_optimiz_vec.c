@@ -96,7 +96,14 @@ void add2_optimiz_vec(FA_Global* FA,atom* atoms,resid* residue,gridpoint* cleftg
         FA->max_opt_par[FA->npar] = FA->index_max;
         FA->map_opt_par[FA->npar] = 1;
         
+        printf("npar=%d map_par[%d].typ=%d map_par[%d].atm=%d opt_par[%d]=%f\n",FA->npar,
+               FA->npar,FA->map_par[FA->npar].typ,
+               FA->npar,atoms[FA->map_par[FA->npar].atm].number,
+               FA->npar,FA->opt_par[FA->npar]);
+        //PAUSE;
+        
         FA->npar++;
+        
         FA->translational = 1;
         
     }else if(val[1] == 0){          // (3 degrees of freedom of rotation)
@@ -134,12 +141,13 @@ void add2_optimiz_vec(FA_Global* FA,atom* atoms,resid* residue,gridpoint* cleftg
                 FA->map_opt_par[FA->npar] = 0;
 
             }
+
             printf("npar=%d map_par[%d].typ=%d map_par[%d].atm=%d opt_par[%d]=%f\n",FA->npar,
                    FA->npar,FA->map_par[FA->npar].typ,
                    FA->npar,atoms[FA->map_par[FA->npar].atm].number,
                    FA->npar,FA->opt_par[FA->npar]);
             //PAUSE;
-
+            
             FA->npar++;
         }
   
@@ -163,6 +171,7 @@ void add2_optimiz_vec(FA_Global* FA,atom* atoms,resid* residue,gridpoint* cleftg
 		       FA->npar,atoms[FA->map_par[FA->npar].atm].number,
 		       FA->npar,FA->opt_par[FA->npar]);
 		//PAUSE;
+        
 		FA->npar++;
 	}
 	
