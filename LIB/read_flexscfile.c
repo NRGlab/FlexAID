@@ -48,7 +48,7 @@ void read_flexscfile(FA_Global* FA,resid* residue,rot** rotamer,char file[], cha
 
     if(strcmp(field,"RESIDU") == 0){
       for(i=14;i<17;i++){
-	residname[i-14]=buffer[i];
+          residname[i-14]=buffer[i];
       }
       residname[3]='\0';
       

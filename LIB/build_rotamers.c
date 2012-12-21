@@ -25,7 +25,6 @@ void build_rotamers(FA_Global* FA,atom** atoms,resid* residue,rot* rotamer){
 	int   bondlist[MAX_ATM_HET];
 	int   neighbours[MAX_ATM_HET];
   
-	int   index_list[1000];
 	int   nindex;
 
 	int   num_ref=0;       // builds a PDBnum to map rotamer atoms in num_atm
@@ -229,8 +228,6 @@ void build_rotamers(FA_Global* FA,atom** atoms,resid* residue,rot* rotamer){
 	  
 				}else{
 
-					index_list[nindex++] = n;
-
 					/*
 					printf("ACCEPTED\n\n");
 
@@ -239,6 +236,17 @@ void build_rotamers(FA_Global* FA,atom** atoms,resid* residue,rot* rotamer){
 					sprintf(conffile,"conf-%d.pdb",l);
 					write_pdb(FA,(*atoms),residue,conffile,conffile);
 					*/
+                    
+                    if(FA->nrg_suite){
+                        printf("Rotamer for %s%d%c with dihedrals", 
+                               residue[kres].name, residue[kres].number,
+                               residue[kres].chn == ' ' ? '-' : residue[kres].chn);
+                        
+                        for(j=0;j<residue[kres].fdih;j++){
+                            printf(" %8.3f", rotamer[l].chi[j]);
+                        }
+                        printf("\n");
+                    }
 				}
 	
 				residue[kres].rot = 0;
@@ -252,15 +260,10 @@ void build_rotamers(FA_Global* FA,atom** atoms,resid* residue,rot* rotamer){
 		}
     
 		if(FA->nrg_suite){
-            printf("%d possible rotamer(s) for residue %s %d %c :",
+            printf("%d possible rotamer(s) for residue %s %d %c\n",
                    residue[FA->flex_res[i].inum].trot, residue[FA->flex_res[i].inum].name,
                    residue[FA->flex_res[i].inum].number, 
                    residue[FA->flex_res[i].inum].chn == ' ' ? '-' : residue[FA->flex_res[i].inum].chn);
-
-            for(l=0; l<nindex; l++)
-                printf(" %d", index_list[l]);
-
-            printf("\n");
         }
 
 		// if no rotamers were accepted , set as rigid all atoms of side-chain
