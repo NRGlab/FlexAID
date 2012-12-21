@@ -544,6 +544,8 @@ int main(int argc, char **argv){
 	/////////////////  END   /////////////////
 	//////////////////////////////////////////
 
+    printf("Done.");
+    
 	Terminate(0);
 
 	return (0);
