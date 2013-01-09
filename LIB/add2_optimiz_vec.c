@@ -7,7 +7,7 @@
  * SUBROUTINE add2_optimiz_vec builds the vector with the values of the ic's
  * that are going to be optimized for one or more residues/ligands.
  *****************************************************************************/
-void add2_optimiz_vec(FA_Global* FA,atom* atoms,resid* residue,gridpoint* cleftgrid,int val[], char chain, char* extras){
+void add2_optimiz_vec(FA_Global* FA,atom* atoms,resid* residue,gridpoint* cleftgrid,int val[], char chain, const char* extras){
 	int i,j;
 	int at;
 	//int rot;
