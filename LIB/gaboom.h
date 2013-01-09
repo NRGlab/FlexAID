@@ -78,7 +78,7 @@ struct GB_Global_struct{
 
 	double        pbfrac;
 	int           ssnum;
-
+    
 	// adapt Genetic Algorithm operators (mutation,crossover)
 	int          adaptive_ga;
 	double       fit_avg;
@@ -97,7 +97,8 @@ struct GB_Global_struct{
 	char         pop_init_file[20];
 	char         fitness_model[9];
 	char         rep_model[9];
-	
+	int          duplicates;
+    
 };
 typedef struct GB_Global_struct GB_Global;
 
