@@ -40,7 +40,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 	//char num_char[7];        /* string to read integer */
 	//int  rec[3];             /* temporary array for atom reconstruction data */
 	int opt[2];              /* temporary array for reading optimization data*/
-	char chain;
+	char chain='-';
 	char a[7],b[7]; //,mol_name[4]; 
 
 	char flexscfile[MAX_PATH__];

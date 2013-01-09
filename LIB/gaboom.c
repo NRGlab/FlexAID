@@ -62,8 +62,9 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	GB->adaptive_ga=0;
 	GB->num_print=10;    
 	GB->print_int=1;
-
-
+    
+    GB->ssnum = 1000;
+    GB->pbfrac = 1.0;
   
 	printf("file in GA is <%s>\n",gainpfile);
   
@@ -84,13 +85,14 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	}
 
     double n_poss = set_bins((*gene_lim),GB->num_genes);
+    
     printf("%.1lf\n", n_poss);
     if(n_poss < GB->num_chrom && 
        (strcmp(GB->rep_model,"STEAWD")==0 || strcmp(GB->rep_model,"BOOMWD")==0)){
+        
         fprintf(stderr,"Too many chromosomes without duplicates for the number of possibilites.\n");
-        Terminate(2);
-        //fprintf(stderr,"Switching to non-duplicates (STEADS).\n");
-        //strcpy(GB->rep_model,"STEADS");
+        fprintf(stderr,"Switching to non-duplicates (STEADS).\n");
+        strcpy(GB->rep_model,"STEADS");
     }
     
 	(*memchrom) = GB->num_chrom;
