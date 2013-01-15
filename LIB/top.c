@@ -107,7 +107,7 @@ int main(int argc, char **argv){
 	FA->refstructure=0;
 
 	FA->is_protein=1;
-	FA->is_nucleicacid=0;
+	//FA->is_nucleicacid=0;
 
 	FA->delta_angstron=0.25;
 	FA->delta_angle=5.0;

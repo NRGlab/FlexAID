@@ -260,7 +260,7 @@ struct FA_Global_struct{
 	int   atm_cnt_real;                  // total number of atoms real 
     
 	int   is_protein;                    // PDBNAM is a protein molecule
-	int   is_nucleicacid;                // PDBNAM is a DNA/RNA molecule
+	//int   is_nucleicacid;                // PDBNAM is a DNA/RNA molecule
 
 	float ori[3];                        // coordinates of center of geometry of protein (PCG)
 	float maxdst;                        // max distance from a protein atom to PCG 
@@ -485,7 +485,9 @@ int  cmp_FlexDEE_Nodes(psFlexDEE_Node Node1, psFlexDEE_Node Node2, int num_rot);
 double GetValueFromGaussian(double x,double max,double zero);
 
 void modify_pdb(char* infile, char* outfile, int exclude_het, int remove_water, int is_protein); // reoder protein atoms in PDB file
+int rna_structure(char* infile);
 int get_NextLine(char lines[][100], int nlines);
+int is_rna_structure(char* infile);
 int is_natural_amino(char* res);
 int is_natural_nucleic(char* res);
 void rewrite_residue2(char lines[][100], int nlines, int* wrote, FILE* outfile_ptr); // rewrite ordered residue

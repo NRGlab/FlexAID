@@ -120,6 +120,7 @@ OBJ =	top.o			\
 	read_spheres.o		\
 	generate_grid.o		\
 	cluster.o		\
+	rna_structure.o		\
 	maps.o
 	
 all: a.out
@@ -326,6 +327,9 @@ generate_grid.o: $I/generate_grid.cpp $I/flexaid.h $I/boinc.h $I/maps.hpp
 
 cluster.o: $I/cluster.c $I/gaboom.h $I/boinc.h
 	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/cluster.c $(INCLUDES)
+
+rna_structure.o: $I/rna_structure.c $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/rna_structure.c $(INCLUDES)
 
 maps.o: $I/maps.cpp $I/maps.hpp
 	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/maps.cpp

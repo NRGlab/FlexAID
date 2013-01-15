@@ -78,7 +78,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 
 		for(i=0;i<6;++i) field[i]=buffer[i];
 		field[6]='\0';
-    
+        
 		if(strcmp(field,"PDBNAM") == 0){sscanf(buffer,"%s %s",a,pdb_name);}
 		if(strcmp(field,"INPLIG") == 0){sscanf(buffer,"%s %s",a,lig_file);}
 		if(strcmp(field,"METOPT") == 0){sscanf(buffer,"%s %s",a,FA->metopt);}
@@ -86,7 +86,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		if(strcmp(field,"COMPLF") == 0){sscanf(buffer,"%s %s",a,FA->complf);}
 		if(strcmp(field,"RNGOPT") == 0){strcpy(rngoptline,buffer);for(i=0;i<6;i++)rngopt[i]=buffer[7+i];rngopt[6]='\0';}
 		if(strcmp(field,"OPTIMZ") == 0){strcpy(optline[nopt++],buffer);}
-		if(strcmp(field,"NUCLEA") == 0){FA->is_protein=0;}
+		//if(strcmp(field,"NUCLEA") == 0){FA->is_protein=0;}
 		if(strcmp(field,"DEFTYP") == 0){sscanf(buffer,"%s %s",a,deftyp_forced);}
 		if(strcmp(field,"FLEXSC") == 0){sscanf(buffer,"%s %s",a,flexscfile);}
 		if(strcmp(field,"NMAMOD") == 0){sscanf(buffer,"%s %d",a,&FA->normal_modes);}
@@ -155,6 +155,10 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 	printf("interaction matrix is <%s>\n", emat);
 	read_emat(FA,emat);
 
+    if(rna_structure(pdb_name)){
+        printf("target molecule is a RNA structure\n");
+        FA->is_protein = 0;
+    }
 	
 	/************************************************************/
 	/********          DEFINITION OF TYPES             **********/
