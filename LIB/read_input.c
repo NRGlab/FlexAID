@@ -126,6 +126,8 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 	////////// read input files afterwards ///////////
 	//////////////////////////////////////////////////
   
+	printf("dependencies path=%s\n", FA->dependencies_path);
+
 	// default state path (controls pause-stop-abort)
 	if(!strcmp(FA->state_path,"")){
 		strcpy(FA->state_path,FA->base_path);
@@ -342,7 +344,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 
         //RNGOPT LOCCLF filename.pdb
 		strcpy(FA->rngopt,"locclf");
-        strcpy(clf_file,&buffer[14]);
+        strcpy(clf_file,&rngoptline[14]);
 
 		printf("read binding-site grid <%s>\n",clf_file);
 		spheres = read_spheres(clf_file);
