@@ -148,7 +148,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 			strcpy(emat,FA->dependencies_path);
 		}
 #ifdef _WIN32
-		strcat(emat,"\M6_cons_3.dat");
+		strcat(emat,"\\M6_cons_3.dat");
 #else
         strcat(emat,"/M6_cons_3.dat");
 #endif
@@ -181,13 +181,13 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		if(FA->ntypes == 8){
 			if(FA->is_protein){
 #ifdef _WIN32
-				strcat(deftyp,"\AMINO8.def");
+				strcat(deftyp,"\\AMINO8.def");
 #else
 				strcat(deftyp,"/AMINO8.def");
 #endif
 			}else{
 #ifdef _WIN32
-				strcat(deftyp,"\NUCLEOTIDES8.def");
+				strcat(deftyp,"\\NUCLEOTIDES8.def");
 #else
 				strcat(deftyp,"/NUCLEOTIDES8.def");
 #endif
@@ -196,14 +196,14 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		}else if(FA->ntypes == 12 || FA->ntypes == 13){ //      -/+ solvent term
 			if(FA->is_protein){
 #ifdef _WIN32
-				strcat(deftyp,"\AMINO12.def");
+				strcat(deftyp,"\\AMINO12.def");
 #else
 				strcat(deftyp,"/AMINO12.def");
 #endif
 			}else{
 
 #ifdef _WIN32
-				strcat(deftyp,"\NUCLEOTIDES12.def");
+				strcat(deftyp,"\\NUCLEOTIDES12.def");
 #else
 				strcat(deftyp,"/NUCLEOTIDES12.def");
 #endif
@@ -212,13 +212,13 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		}else if(FA->ntypes == 26 || FA->ntypes == 27){ //      -/+ solvent term
 			if(FA->is_protein){
 #ifdef _WIN32
-				strcat(deftyp,"\AMINO26.def");
+				strcat(deftyp,"\\AMINO26.def");
 #else
 				strcat(deftyp,"/AMINO26.def");
 #endif
 			}else{
 #ifdef _WIN32
-				strcat(deftyp,"\NUCLEOTIDES26.def");
+				strcat(deftyp,"\\NUCLEOTIDES26.def");
 #else
 				strcat(deftyp,"/NUCLEOTIDES26.def");
 #endif
@@ -377,7 +377,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 			}
             
 #ifdef _WIN32
-			strcat(rotobs_file,"\rotobs.lst");
+			strcat(rotobs_file,"\\rotobs.lst");
 #else
             strcat(rotobs_file,"/rotobs.lst");
 #endif
@@ -394,7 +394,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 			}
             
 #ifdef _WIN32
-			strcat(rotlib_file,"\Lovell_LIB.dat");
+			strcat(rotlib_file,"\\Lovell_LIB.dat");
 #else
             strcat(rotlib_file,"/Lovell_LIB.dat");
 #endif
