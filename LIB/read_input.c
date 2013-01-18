@@ -76,11 +76,13 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 
 	while (fgets(buffer, sizeof(buffer),infile_ptr)){
 
+        buffer[strlen(buffer)-1] = '\0';
+        
 		for(i=0;i<6;++i) field[i]=buffer[i];
 		field[6]='\0';
         
-		if(strcmp(field,"PDBNAM") == 0){sscanf(buffer,"%s %s",a,pdb_name);}
-		if(strcmp(field,"INPLIG") == 0){sscanf(buffer,"%s %s",a,lig_file);}
+		if(strcmp(field,"PDBNAM") == 0){strcpy(pdb_name,&buffer[7]);}
+		if(strcmp(field,"INPLIG") == 0){strcpy(lig_file,&buffer[7]);}
 		if(strcmp(field,"METOPT") == 0){sscanf(buffer,"%s %s",a,FA->metopt);}
 		if(strcmp(field,"BPKENM") == 0){sscanf(buffer,"%s %s",a,FA->bpkenm);}
 		if(strcmp(field,"COMPLF") == 0){sscanf(buffer,"%s %s",a,FA->complf);}
@@ -88,11 +90,11 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		if(strcmp(field,"OPTIMZ") == 0){strcpy(optline[nopt++],buffer);}
 		//if(strcmp(field,"NUCLEA") == 0){FA->is_protein=0;}
 		if(strcmp(field,"DEFTYP") == 0){sscanf(buffer,"%s %s",a,deftyp_forced);}
-		if(strcmp(field,"FLEXSC") == 0){sscanf(buffer,"%s %s",a,flexscfile);}
+		if(strcmp(field,"FLEXSC") == 0){strcpy(flexscfile,&buffer[7]);}
 		if(strcmp(field,"NMAMOD") == 0){sscanf(buffer,"%s %d",a,&FA->normal_modes);}
-		if(strcmp(field,"NMAAMP") == 0){sscanf(buffer,"%s %s",a,normal_file);}
-		if(strcmp(field,"NMAEIG") == 0){sscanf(buffer,"%s %s",a,eigen_file);}
-		if(strcmp(field,"RMSDST") == 0){sscanf(buffer,"%s %s",a,rmsd_file);}
+		if(strcmp(field,"NMAAMP") == 0){strcpy(normal_file,&buffer[7]);}
+		if(strcmp(field,"NMAEIG") == 0){strcpy(eigen_file,&buffer[7]);}
+		if(strcmp(field,"RMSDST") == 0){strcpy(rmsd_file,&buffer[7]);}
 		if(strcmp(field,"CLRMSD") == 0){sscanf(buffer,"%s %f",a,&FA->cluster_rmsd);}
 		if(strcmp(field,"INCHET") == 0){FA->exclude_het=0;}
 		if(strcmp(field,"RMVHOH") == 0){FA->remove_water=1;}
@@ -109,11 +111,11 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		if(strcmp(field,"USEDEE") == 0){FA->useflexdee=1;}
 		if(strcmp(field,"IMATRX") == 0){sscanf(buffer,"%s %s",field,emat_forced);}
 		if(strcmp(field,"DEECLA") == 0){sscanf(buffer,"%s %f",field,&FA->dee_clash);}
-		if(strcmp(field,"CONSTR") == 0){sscanf(buffer,"%s %s",field,constraint_file);}
+		if(strcmp(field,"CONSTR") == 0){strcpy(constraint_file,&buffer[7]);}
 		if(strcmp(field,"MAXRES") == 0){sscanf(buffer,"%s %d",field,&FA->max_results);}
 		if(strcmp(field,"SPACER") == 0){sscanf(buffer,"%s %f",field,&FA->spacer_length);}
-		if(strcmp(field,"DEPSPA") == 0){sscanf(buffer,"%s %s",field,FA->dependencies_path);}
-		if(strcmp(field,"STATEP") == 0){sscanf(buffer,"%s %s",field,FA->state_path);}
+		if(strcmp(field,"DEPSPA") == 0){strcpy(FA->dependencies_path,&buffer[7]);}
+		if(strcmp(field,"STATEP") == 0){strcpy(FA->state_path,&buffer[7]);}
 		if(strcmp(field,"NRGSUI") == 0){FA->nrg_suite=1;}
 	}
 
