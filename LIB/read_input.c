@@ -89,7 +89,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		if(strcmp(field,"RNGOPT") == 0){strcpy(rngoptline,buffer);for(i=0;i<6;i++)rngopt[i]=buffer[7+i];rngopt[6]='\0';}
 		if(strcmp(field,"OPTIMZ") == 0){strcpy(optline[nopt++],buffer);}
 		//if(strcmp(field,"NUCLEA") == 0){FA->is_protein=0;}
-		if(strcmp(field,"DEFTYP") == 0){sscanf(buffer,"%s %s",a,deftyp_forced);}
+		if(strcmp(field,"DEFTYP") == 0){strcpy(deftyp_forced,&buffer[7]);}
 		if(strcmp(field,"FLEXSC") == 0){strcpy(flexscfile,&buffer[7]);}
 		if(strcmp(field,"NMAMOD") == 0){sscanf(buffer,"%s %d",a,&FA->normal_modes);}
 		if(strcmp(field,"NMAAMP") == 0){strcpy(normal_file,&buffer[7]);}
@@ -109,7 +109,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		if(strcmp(field,"METTYP") == 0){sscanf(buffer,"%s %d",field,&metaltype);}
 		if(strcmp(field,"OUTRNG") == 0){FA->output_range=1;}
 		if(strcmp(field,"USEDEE") == 0){FA->useflexdee=1;}
-		if(strcmp(field,"IMATRX") == 0){sscanf(buffer,"%s %s",field,emat_forced);}
+		if(strcmp(field,"IMATRX") == 0){strcpy(emat_forced,&buffer[7]);}
 		if(strcmp(field,"DEECLA") == 0){sscanf(buffer,"%s %f",field,&FA->dee_clash);}
 		if(strcmp(field,"CONSTR") == 0){strcpy(constraint_file,&buffer[7]);}
 		if(strcmp(field,"MAXRES") == 0){sscanf(buffer,"%s %d",field,&FA->max_results);}
