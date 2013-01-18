@@ -147,8 +147,12 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 			// use new dependencies path
 			strcpy(emat,FA->dependencies_path);
 		}
-		strcat(emat,"/M6_cons_3.dat");
-	}else{
+#ifdef _WIN32
+		strcat(emat,"\M6_cons_3.dat");
+#else
+        strcat(emat,"/M6_cons_3.dat");
+#endif
+    }else{
 		// use forced matrix
 		strcpy(emat,emat_forced);
 	}
@@ -176,23 +180,48 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		
 		if(FA->ntypes == 8){
 			if(FA->is_protein){
+#ifdef _WIN32
+				strcat(deftyp,"\AMINO8.def");
+#else
 				strcat(deftyp,"/AMINO8.def");
+#endif
 			}else{
+#ifdef _WIN32
+				strcat(deftyp,"\NUCLEOTIDES8.def");
+#else
 				strcat(deftyp,"/NUCLEOTIDES8.def");
+#endif
 			}
 			
 		}else if(FA->ntypes == 12 || FA->ntypes == 13){ //      -/+ solvent term
 			if(FA->is_protein){
+#ifdef _WIN32
+				strcat(deftyp,"\AMINO12.def");
+#else
 				strcat(deftyp,"/AMINO12.def");
+#endif
 			}else{
+
+#ifdef _WIN32
+				strcat(deftyp,"\NUCLEOTIDES12.def");
+#else
 				strcat(deftyp,"/NUCLEOTIDES12.def");
+#endif
 			}
 		
 		}else if(FA->ntypes == 26 || FA->ntypes == 27){ //      -/+ solvent term
 			if(FA->is_protein){
+#ifdef _WIN32
+				strcat(deftyp,"\AMINO26.def");
+#else
 				strcat(deftyp,"/AMINO26.def");
+#endif
 			}else{
+#ifdef _WIN32
+				strcat(deftyp,"\NUCLEOTIDES26.def");
+#else
 				strcat(deftyp,"/NUCLEOTIDES26.def");
+#endif
 			}
 		
 		}else{
@@ -311,8 +340,9 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 
 	}else if(!strcmp(rngopt,"LOCCLF")){
 
+        //RNGOPT LOCCLF filename.pdb
 		strcpy(FA->rngopt,"locclf");
-		sscanf(rngoptline, "%s %s %s",a,b,clf_file);
+        strcpy(clf_file,&buffer[14]);
 
 		printf("read binding-site grid <%s>\n",clf_file);
 		spheres = read_spheres(clf_file);
@@ -345,8 +375,13 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 			}else{
 				strcpy(rotobs_file,FA->dependencies_path);
 			}
-			strcat(rotobs_file,"/rotobs.lst");
-			
+            
+#ifdef _WIN32
+			strcat(rotobs_file,"\rotobs.lst");
+#else
+            strcat(rotobs_file,"/rotobs.lst");
+#endif
+            
 			printf("read rotamer observations <%s>\n",rotobs_file);
 			read_rotobs(FA,rotamer,rotobs_file);
 		}else{
@@ -357,8 +392,13 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 			}else{
 				strcpy(rotlib_file,FA->dependencies_path);
 			}
-			strcat(rotlib_file,"/Lovell_LIB.dat");
-
+            
+#ifdef _WIN32
+			strcat(rotlib_file,"\Lovell_LIB.dat");
+#else
+            strcat(rotlib_file,"/Lovell_LIB.dat");
+#endif
+            
 			printf("read rotamer library <%s>\n",rotlib_file);
 			read_rotlib(FA,rotamer,rotlib_file);
 		}
