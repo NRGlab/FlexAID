@@ -163,6 +163,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 	printf("interaction matrix is <%s>\n", emat);
 	read_emat(FA,emat);
 
+    printf("pdb target is <%s>\n", pdb_name);
     if(rna_structure(pdb_name)){
         printf("target molecule is a RNA structure\n");
         FA->is_protein = 0;
