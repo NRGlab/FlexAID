@@ -7,10 +7,10 @@
 	objects = {
 
 /* Begin PBXFileReference section */
+		158C865E16A5D7D400E07CFF /* rna_structure.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = rna_structure.c; sourceTree = "<group>"; };
 		15F4C046166813B3009AE1F6 /* add2_optimiz_vec.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = add2_optimiz_vec.c; sourceTree = "<group>"; };
 		15F4C047166813B3009AE1F6 /* alter_mode.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = alter_mode.c; sourceTree = "<group>"; };
 		15F4C048166813B3009AE1F6 /* assign_constraint.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = assign_constraint.c; sourceTree = "<group>"; };
-		15F4C049166813B3009AE1F6 /* assign_constraint_threshold.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = assign_constraint_threshold.c; sourceTree = "<group>"; };
 		15F4C04A166813B3009AE1F6 /* assign_eigen.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = assign_eigen.c; sourceTree = "<group>"; };
 		15F4C04B166813B3009AE1F6 /* assign_radii.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = assign_radii.c; sourceTree = "<group>"; };
 		15F4C04C166813B3009AE1F6 /* assign_radius.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = assign_radius.c; sourceTree = "<group>"; };
@@ -70,7 +70,6 @@
 		15F4C082166813B3009AE1F6 /* slice_grid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = slice_grid.cpp; sourceTree = "<group>"; };
 		15F4C083166813B3009AE1F6 /* spfunction.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = spfunction.c; sourceTree = "<group>"; };
 		15F4C084166813B3009AE1F6 /* top.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = top.c; sourceTree = "<group>"; };
-		15F4C085166813B3009AE1F6 /* types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = types.h; sourceTree = "<group>"; };
 		15F4C086166813B3009AE1F6 /* update_bonded.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = update_bonded.c; sourceTree = "<group>"; };
 		15F4C087166813B3009AE1F6 /* update_constraint.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = update_constraint.c; sourceTree = "<group>"; };
 		15F4C088166813B3009AE1F6 /* update_optres.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = update_optres.c; sourceTree = "<group>"; };
@@ -143,7 +142,6 @@
 				15F4C046166813B3009AE1F6 /* add2_optimiz_vec.c */,
 				15F4C047166813B3009AE1F6 /* alter_mode.c */,
 				15F4C048166813B3009AE1F6 /* assign_constraint.c */,
-				15F4C049166813B3009AE1F6 /* assign_constraint_threshold.c */,
 				15F4C04A166813B3009AE1F6 /* assign_eigen.c */,
 				15F4C04B166813B3009AE1F6 /* assign_radii.c */,
 				15F4C04C166813B3009AE1F6 /* assign_radius.c */,
@@ -199,11 +197,11 @@
 				15F4C07E166813B3009AE1F6 /* read_rotobs.c */,
 				15F4C07F166813B3009AE1F6 /* read_spheres.c */,
 				15F4C080166813B3009AE1F6 /* residue_conect.c */,
+				158C865E16A5D7D400E07CFF /* rna_structure.c */,
 				15F4C081166813B3009AE1F6 /* set_intprob.c */,
 				15F4C082166813B3009AE1F6 /* slice_grid.cpp */,
 				15F4C083166813B3009AE1F6 /* spfunction.c */,
 				15F4C084166813B3009AE1F6 /* top.c */,
-				15F4C085166813B3009AE1F6 /* types.h */,
 				15F4C086166813B3009AE1F6 /* update_bonded.c */,
 				15F4C087166813B3009AE1F6 /* update_constraint.c */,
 				15F4C088166813B3009AE1F6 /* update_optres.c */,

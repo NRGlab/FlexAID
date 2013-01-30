@@ -39,6 +39,7 @@ struct genelimits_struct{
 	double min;
 	double del;
 	double bin;
+    double nbin;
 	int map;              // mapping gene (maps into an array)
 };
 typedef struct genelimits_struct genlim;

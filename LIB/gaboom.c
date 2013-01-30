@@ -986,9 +986,9 @@ int cmp_chrom2pop_int(const chromosome* chrom,const gene* genes, int num_genes,i
 void validate_dups(GB_Global* GB, genlim* gene_lim, int num_genes){	
     
     double n_poss = calc_poss(gene_lim, num_genes);
-
+    
     if(n_poss < (double)GB->num_chrom && !GB->duplicates){
-        fprintf(stderr,"Too many chromosomes for the number of possibilites (no duplicates allowed).\n");
+        fprintf(stderr,"Too many chromosomes for the number of possibilites (%.1lf) when no duplicates allowed.\n", n_poss);
         fprintf(stderr,"Duplicates are then allowed.\n");
         GB->duplicates = 1;
     }
@@ -1002,9 +1002,9 @@ double calc_poss(genlim* gene_lim, int num_genes){
 
 	for(int i=0; i<num_genes; i++){
         if(n_poss > 0.0){
-            n_poss *= gene_lim[i].bin;
+            n_poss *= gene_lim[i].nbin;
         }else{
-            n_poss = gene_lim[i].bin;
+            n_poss = gene_lim[i].nbin;
         }
     }
     
@@ -1019,6 +1019,7 @@ void set_bins(genlim* gene_lim, int num_genes){
 		if(gene_lim[i].map){ nbin += 1.0; }
 		
 		gene_lim[i].bin = 1.0/nbin;
+        gene_lim[i].nbin = nbin;
     }
 
 	return;
@@ -1444,10 +1445,6 @@ void write_par(const chromosome* chrom,const genlim* gene_lim,int ger,char* outf
             }
 		}
 
-        /*
-        char end_tag[3] = { 'e' , 'n' , 'd' };
-        fwrite(&end_tag[0], 1, sizeof(end_tag), outfile_ptr);
-        */
     }
 
 	CloseFile_B(&outfile_ptr,"w");
