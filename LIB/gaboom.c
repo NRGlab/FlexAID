@@ -58,6 +58,11 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	strcat(STOPFILE,"/.stop");
 
 	GB->num_genes=FA->npar;
+    if(GB->num_genes == 0){
+		fprintf(stderr,"ERROR: no parameters to optimize.\n");
+		Terminate(1);
+    }
+    
 	printf("num_genes=%d\n",GB->num_genes);
   
 	//GB->rrg_skip=0;
