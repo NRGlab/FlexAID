@@ -27,6 +27,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	char outfile[MAX_PATH__];
 	int n_chrom_snapshot=0;
 	char gridfile[MAX_PATH__];
+	char gridfilename[MAX_PATH__];
 
 	int geninterval=50;
 	int popszpartition=100;
@@ -233,14 +234,32 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 			partition_grid(FA,(*chrom),(*gene_lim),atoms,residue,cleftgrid,popszpartition,1);
       
 			if(FA->output_range){
-				sprintf(gridfile,"grid.%d.prt.pdb",i+1);
+                
+#ifdef _WIN32
+				sprintf(gridfilename,"\\grid.%d.prt.pdb",i+1);
+#else
+				sprintf(gridfilename,"/grid.%d.prt.pdb",i+1);
+#endif
+                
+                strcpy(gridfile,FA->temp_path);
+                strcat(gridfile,gridfilename);
+
 				write_grid(FA,(*cleftgrid),gridfile);
 			}
       
 			slice_grid(FA,(*gene_lim),atoms,residue,cleftgrid);
       
 			if(FA->output_range){
-				sprintf(gridfile,"grid.%d.slc.pdb",i+1);
+                
+#ifdef _WIN32
+				sprintf(gridfilename,"\\grid.%d.slc.pdb",i+1);
+#else
+				sprintf(gridfilename,"/grid.%d.slc.pdb",i+1);
+#endif
+                
+                strcpy(gridfile,FA->temp_path);
+                strcat(gridfile,gridfilename);
+                
 				write_grid(FA,(*cleftgrid),gridfile);
 			}
       

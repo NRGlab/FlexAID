@@ -384,6 +384,7 @@ struct FA_Global_struct{
 	// if dependencies path is not set, dependencies will be searched in base_path unless forced
 
 	char  state_path[MAX_PATH__];          // path leading to files .pause, .stop, .abort
+	char  temp_path[MAX_PATH__];           // path where target.pdb is written, range files (grid/sphere), defaults to working dir
 
 	// minimums used for dynamic allocation  
 	int    MIN_NUM_ATOM;

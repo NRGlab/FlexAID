@@ -45,6 +45,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 
 	char flexscfile[MAX_PATH__];
 	char gridfile[MAX_PATH__];
+	char gridfilename[MAX_PATH__];
 	//char sphfile[MAX_PATH__];
 	char tmpprotname[MAX_PATH__];
 
@@ -60,6 +61,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 	flexscfile[0]='\0';
 	rmsd_file[0]='\0';
 	FA->state_path[0]='\0';
+	FA->temp_path[0]='\0';
 	constraint_file[0] = '\0';
 
 	deftyp_forced[0] = '\0';
@@ -116,6 +118,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		if(strcmp(field,"SPACER") == 0){sscanf(buffer,"%s %f",field,&FA->spacer_length);}
 		if(strcmp(field,"DEPSPA") == 0){strcpy(FA->dependencies_path,&buffer[7]);}
 		if(strcmp(field,"STATEP") == 0){strcpy(FA->state_path,&buffer[7]);}
+		if(strcmp(field,"TEMPOP") == 0){strcpy(FA->temp_path,&buffer[7]);}
 		if(strcmp(field,"NRGSUI") == 0){FA->nrg_suite=1;}
 	}
 
@@ -133,8 +136,18 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		strcpy(FA->state_path,FA->base_path);
 	}
 
+	if(!strcmp(FA->temp_path,"")){
+		strcpy(FA->temp_path,FA->base_path);
+	}
+    
 	// temporary pdb name
-	strcpy(tmpprotname,"target.pdb");
+    strcpy(tmpprotname,FA->temp_path);
+    
+#ifdef _WIN32
+    strcat(tmpprotname,"\\target.pdb");
+#else
+    strcat(tmpprotname,"/target.pdb");
+#endif
 
 
 	/************************************************************/
@@ -355,7 +368,16 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 	}
 
 	if(FA->output_range){		
-		strcpy(gridfile,"grid.sta.pdb");
+        
+#ifdef _WIN32
+		strcpy(gridfilename,"\\grid.sta.pdb");
+#else
+		strcpy(gridfilename,"/grid.sta.pdb");
+#endif
+        
+        strcpy(gridfile,FA->temp_path);
+        strcat(gridfile,gridfilename);
+
 		write_grid(FA,*cleftgrid,gridfile);
 	}
     	
