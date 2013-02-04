@@ -346,13 +346,13 @@ int check_state(char* pausefile, char* abortfile, char* stopfile, int interval){
 	if(STATE != NULL) {
 		do {
 			fclose(STATE);
-			STATE = fopen(pausefile,"r");
 
 # ifdef _WIN32
-			Sleep(1000);
+			Sleep(500);
 # else
-			sleep(1);
+			sleep(0.5);
 # endif
+			STATE = fopen(pausefile,"r");
 
 		}while(STATE != NULL);
 	}
