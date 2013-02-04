@@ -328,11 +328,11 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 
 	//////////////////////////////////////////////
 
-    if(strcmp(rngopt,"LOCCEN") && strcmp(rngopt,"LOCCLF")){
+    if(FA->translational && strcmp(rngopt,"LOCCEN") && strcmp(rngopt,"LOCCLF")){
         fprintf(stderr,"ERROR: the binding-site is not defined\n");
         Terminate(2);
     }
-
+    
 	if(!strcmp(rngopt,"LOCCEN")){
 		strcpy(FA->rngopt,"loccen");
 		
@@ -366,7 +366,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		(*cleftgrid) = generate_grid(FA,spheres);
 		calc_cleftic(FA,*cleftgrid);
 	}
-
+        
 	if(FA->output_range){		
         
 #ifdef _WIN32
@@ -468,6 +468,12 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 
     add2_optimiz_vec(FA,*atoms,*residue,*cleftgrid,opt,chain,"SC");
     add2_optimiz_vec(FA,*atoms,*residue,*cleftgrid,opt,chain,"NM");
+    
+
+    if(FA->translational && FA->num_grd==1){
+        fprintf(stderr,"ERROR: the binding-site has no anchor points\n");
+        Terminate(2);
+    }
     
     
 	// fill in optres pointer in atoms struct.
