@@ -380,9 +380,9 @@ int check_state(char* pausefile, char* abortfile, char* stopfile, int interval){
 			fclose(STATE);
 
 # ifdef _WIN32
-			Sleep(100);
+			Sleep(25);
 # else
-			sleep(0.10);
+			usleep(25000);
 # endif
 			STATE = fopen(pausefile,"r");
 
@@ -850,9 +850,9 @@ FILE* get_update_file_ptr(FA_Global* FA)
 			fclose(outfile_ptr);
             
 # ifdef _WIN32
-			Sleep(250);
+			Sleep(25);
 # else
-			sleep(0.25);
+			usleep(25000);
 # endif
 			outfile_ptr = fopen(UPDATEFILE,"r");
             
