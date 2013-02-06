@@ -365,6 +365,8 @@ int main(int argc, char **argv){
 			/******************************************************************/
       
 			printf("clustering all individuals in GA...\n");
+            fflush(stdout);
+            
 			cluster(FA,GB,VC,chrom_snapshot,gene_lim,atoms,residue,cleftgrid,n_chrom_snapshot,end_strfile,tmp_end_strfile,dockinp,gainp);
 		}
 	}
@@ -544,7 +546,7 @@ int main(int argc, char **argv){
 	/////////////////  END   /////////////////
 	//////////////////////////////////////////
 
-    printf("Done.");
+    printf("Done.\n");
     
 	Terminate(0);
 

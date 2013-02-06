@@ -50,13 +50,26 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	srand((unsigned)time(0));
 
 	strcpy(PAUSEFILE,FA->state_path);
-	strcat(PAUSEFILE,"/.pause");
+#ifdef _WIN32
+	strcat(PAUSEFILE,"\\.pause");
+#else
+    strcat(PAUSEFILE,"/.pause");
+#endif
+    
   
 	strcpy(ABORTFILE,FA->state_path);
+#ifdef _WIN32
+	strcat(ABORTFILE,"\\.abort");
+#else
 	strcat(ABORTFILE,"/.abort");
+#endif
 
 	strcpy(STOPFILE,FA->state_path);
+#ifdef _WIN32
+	strcat(STOPFILE,"\\.stop");
+#else
 	strcat(STOPFILE,"/.stop");
+#endif
 
 	GB->num_genes=FA->npar;
     if(GB->num_genes == 0){
@@ -176,7 +189,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	GB->sig_share = sqrt(GB->sig_share/(double)GB->num_genes)/(2.0*pow(GB->peaks,(1.0/(double)GB->num_genes)));
 	GB->sig_share /= GB->scale;
 	printf("SIGMA_SHARE=%f\n",GB->sig_share);
-  
+    fflush(stdout);
   
 	// for(i=0;i<GB->num_genes;i++) {
 	//printf("GENE(%d)=[%8.3f,%8.3f,%8.3f,%d]\n",
@@ -270,7 +283,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 		}
     
 		print = ( (i+1) % GB->print_int == 0 ) ? 1 : 0;
-		if(print) { printf("Generation: %5d\n",i+1); }
+		//if(print) { printf("Generation: %5d\n",i+1); }
 
 		//print_par(chrom,gene_lim,20,GB->num_genes);
 		//PAUSE;
@@ -299,7 +312,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 			
 			if(print){
 				printf("best by fitnes\n");
-				print_par((*chrom),(*gene_lim),GB->num_print,GB->num_genes);
+				print_par((*chrom),(*gene_lim),GB->num_print,GB->num_genes, stdout);
 			}
 		}
 	}
@@ -367,9 +380,9 @@ int check_state(char* pausefile, char* abortfile, char* stopfile, int interval){
 			fclose(STATE);
 
 # ifdef _WIN32
-			Sleep(500);
+			Sleep(100);
 # else
-			sleep(0.5);
+			sleep(0.10);
 # endif
 			STATE = fopen(pausefile,"r");
 
@@ -464,7 +477,7 @@ void adapt_prob(GB_Global* GB,double fit1, double fit2, double* mutp, double* cr
 /***********************************************************************/
 void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,const genlim* gene_lim,
                atom* atoms,resid* residue,gridpoint* cleftgrid,char* repmodel, 
-               double mutprob, double crossprob, int print, 
+               double mutprob, double crossprob, int print,
                boost::variate_generator< RNGType, boost::uniform_int<> > &, 
                double (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*)){
 
@@ -776,12 +789,86 @@ void calculate_fitness(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chr
 	}
 
 	if(print){
-		printf("best by energy\n");
-		print_par(chrom,gene_lim,GB->num_print,GB->num_genes);
+        
+        static int gen_id = 1;
+        FILE* outfile_ptr = get_update_file_ptr(FA);
+
+        fprintf(outfile_ptr, "Generation: %5d\n", gen_id);
+		fprintf(outfile_ptr, "best by energy\n");
+        
+		print_par(chrom,gene_lim,GB->num_print,GB->num_genes, outfile_ptr);
+        
+        fflush(outfile_ptr);
+
+        close_update_file_ptr(FA, outfile_ptr);
+
+        gen_id++;
+        
 	}
 
 	return;
 }
+
+/***********************************************************************/
+/*        1         2         3         4         5         6          */
+/*234567890123456789012345678901234567890123456789012345678901234567890*/
+/*        1         2         3         4         5         6         7*/
+/***********************************************************************/
+void close_update_file_ptr(FA_Global* FA, FILE* outfile_ptr)
+{
+
+    if(FA->nrg_suite){
+        fclose(outfile_ptr);
+    }
+    
+}
+/***********************************************************************/
+/*        1         2         3         4         5         6          */
+/*234567890123456789012345678901234567890123456789012345678901234567890*/
+/*        1         2         3         4         5         6         7*/
+/***********************************************************************/
+FILE* get_update_file_ptr(FA_Global* FA)
+{
+    
+    if(!FA->nrg_suite){
+        return stdout;
+    }
+    
+    FILE* outfile_ptr = NULL;
+    char UPDATEFILE[MAX_PATH__];
+    
+    strcpy(UPDATEFILE,FA->state_path);
+#ifdef _WIN32
+    strcat(UPDATEFILE,"\\.update");
+#else
+    strcat(UPDATEFILE,"/.update");
+#endif
+    
+    outfile_ptr = fopen(UPDATEFILE,"r");
+	if(outfile_ptr != NULL) {
+		do {
+			fclose(outfile_ptr);
+            
+# ifdef _WIN32
+			Sleep(250);
+# else
+			sleep(0.25);
+# endif
+			outfile_ptr = fopen(UPDATEFILE,"r");
+            
+		}while(outfile_ptr != NULL);
+	}
+    
+    outfile_ptr = fopen(UPDATEFILE,"w");
+    if(outfile_ptr == NULL){
+        fprintf(stderr,"ERROR: Cannot open update file '%s' for reading.\n", UPDATEFILE);
+        Terminate(10);
+    }
+    
+    return outfile_ptr;
+    
+}
+
 /***********************************************************************/
 /*        1         2         3         4         5         6          */
 /*234567890123456789012345678901234567890123456789012345678901234567890*/
@@ -813,7 +900,7 @@ double eval_chromosome(FA_Global* FA,GB_Global* GB,VC_Global* VC,const genlim* g
 void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chrom, const genlim* gene_lim, 
                           atom* atoms,resid* residue,gridpoint* cleftgrid,char method[],
                           double (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*), 
-                          char file[], long int at, int popoffset, int print, 
+                          char file[], long int at, int popoffset, int print,
                           boost::variate_generator< RNGType, boost::uniform_int<> > &){
   
 	int i,j,l;
@@ -1426,16 +1513,15 @@ int remove_dups(chromosome* list, int num_chrom, int num_genes){
 /*234567890123456789012345678901234567890123456789012345678901234567890*/
 /*        1         2         3         4         5         6         7*/
 /***********************************************************************/
-void print_par(const chromosome* chrom,const genlim* gene_lim,int num_chrom,int num_genes){
-
-	for(int i=0;i<num_chrom;i++){
-		printf("%4d (",i);
-		for(int j=0;j<num_genes;j++) printf("%10.2f ", chrom[i].genes[j].to_ic);
-		printf(") ");
-		printf(" value=%9.3f fitnes=%9.3f\n",chrom[i].evalue,chrom[i].fitnes);
+void print_par(const chromosome* chrom,const genlim* gene_lim,int num_chrom,int num_genes, FILE* outfile_ptr){
     
-		fflush(stdout);
-	}
+	for(int i=0;i<num_chrom;i++){
+		fprintf(outfile_ptr, "%4d (",i);
+		for(int j=0;j<num_genes;j++) fprintf(outfile_ptr, "%10.2f ", chrom[i].genes[j].to_ic);
+		fprintf(outfile_ptr, ") ");
+		fprintf(outfile_ptr, " value=%9.3f fitnes=%9.3f\n",chrom[i].evalue,chrom[i].fitnes);
+    }
+    
 	return;
 }
 

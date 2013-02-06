@@ -133,14 +133,17 @@ void  quicksort_evalue(chromosome* list, int m, int n);
 void  quicksort_fitnes(chromosome* list, int m, int n);
 int   remove_dups(chromosome* list, int num_chrom, int num_genes);
 
+FILE* get_update_file_ptr(FA_Global* FA);
+void close_update_file_ptr(FA_Global* FA, FILE* outfile_ptr);
+
 void  populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chrom, const genlim* gene_lim, atom* atoms,resid* residue,gridpoint* cleftgrid,char method[], double (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*), char file[], long int at, int offset, int print, boost::variate_generator< RNGType, boost::uniform_int<> > &);
 double eval_chromosome(FA_Global* FA,GB_Global* GB,VC_Global* VC,const genlim* gene_lim,atom* atoms,resid* residue,gridpoint* cleftgrid,gene* john, double (*function)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*));
-void  calculate_fitness(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chrom, const genlim* gene_lim,atom* atoms,resid* residue,gridpoint* cleftgrid,char method[],int pop_size, int print,double (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int, double*));
+void  calculate_fitness(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chrom, const genlim* gene_lim,atom* atoms,resid* residue,gridpoint* cleftgrid,char method[],int pop_size, int print, double (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int, double*));
 void  reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,const genlim* gene_lim,atom* atoms,resid* residue,gridpoint* cleftgrid,char rmodel[], double mutprob, double crossprob, int print, boost::variate_generator< RNGType, boost::uniform_int<> > &,double (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*));
 void  print_pop(const chromosome* chrom,const genlim* gene_lim,int numc, int numg);
 void  print_chrom(const chromosome* chrom, int num_genes, int real_flag);
 void  print_chrom(const gene* genes, int num_genes, int real_flag);
-void  print_par(const chromosome* chrom,const genlim* gene_lim,int num_chrom,int num_genes);
+void  print_par(const chromosome* chrom,const genlim* gene_lim,int num_chrom,int num_genes, FILE* outfile_ptr);
 int   roullete_wheel(const chromosome* chrom,int n);
 int   cmp_chrom2pop(chromosome* chrom,chromosome* c, int num_genes,int start, int last);
 int   cmp_chrom2pop_int(const chromosome* chrom,const gene* genes, int num_genes,int start, int last);

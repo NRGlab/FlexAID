@@ -485,6 +485,9 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
         }else{
             for(i=1; i<FA->num_grd; i++){
                 printf("Grid[%d]=%8.3f%8.3f%8.3f\n", i, (*cleftgrid)[i].coor[0], (*cleftgrid)[i].coor[1], (*cleftgrid)[i].coor[2]);
+                if(i % 1000 == 0){
+                    fflush(stdout);
+                }
                 fflush(stdout);
             }
         }

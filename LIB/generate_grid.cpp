@@ -28,10 +28,11 @@ gridpoint* generate_grid(FA_Global* FA,sphere* spheres){
 	FA->num_grd = 1; // set counter to 1 because 0 is the INI conformation of the ligand
 	while(spheres != NULL){
 		
-		//cout << spheres->center[0] << " " << spheres->center[1] << " " << spheres->center[2] << endl;
-		//cout << spheres->radius << endl;
-		//printf("rasterizing sphere[%d]\n", ++index);
-		
+        /*
+		cout << "CENTER=" << spheres->center[0] << " " << spheres->center[1] << " " << spheres->center[2] << endl;
+		cout << "RADIUS=" << spheres->radius << endl;
+		*/
+        
 		if ( (float)( 1.0 / FA->spacer_length ) - (float)((int)( 1.0 / FA->spacer_length )) > 0.001 ){
 			min[0] = (float)((int)( (spheres->center[0] - spheres->radius) / FA->spacer_length )) * FA->spacer_length;
 			min[1] = (float)((int)( (spheres->center[1] - spheres->radius) / FA->spacer_length )) * FA->spacer_length;
