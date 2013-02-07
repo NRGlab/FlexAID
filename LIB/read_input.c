@@ -172,7 +172,6 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		strcpy(emat,emat_forced);
 	}
 	
-	
 	printf("interaction matrix is <%s>\n", emat);
 	read_emat(FA,emat);
 
@@ -272,7 +271,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 			printf("invalid metal type entered. solvent type is set to default (neutral=9)\n");
 		}
 	}
-  
+    
 	///////////////////////////////////////////////
 
 	printf("read PDB file <%s>\n",pdb_name);
@@ -325,64 +324,6 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 	// overrides FlexAID radii by Vcontacts'
 	assign_radii(*atoms,*residue,FA->atm_cnt);
 	printf("radii are now assigned\n");
-
-	//////////////////////////////////////////////
-
-    if(FA->translational && strcmp(rngopt,"LOCCEN") && strcmp(rngopt,"LOCCLF")){
-        fprintf(stderr,"ERROR: the binding-site is not defined\n");
-        Terminate(2);
-    }
-    
-	if(!strcmp(rngopt,"LOCCEN")){
-		strcpy(FA->rngopt,"loccen");
-		
-		_sphere = (sphere*)malloc(sizeof(sphere));
-		if(_sphere == NULL){
-			fprintf(stderr,"ERROR: memory allocation error for spheres (LOCCEN)\n");
-			Terminate(2);
-		}
-
-		sscanf(rngoptline,"%s %s %f %f %f %f",
-		       a,b,
-		       &_sphere->center[0],&_sphere->center[1],&_sphere->center[2],
-		       &_sphere->radius);
-		_sphere->prev = NULL;
-		
-		// point to the new sphere created
-		spheres = _sphere;
-		
-		(*cleftgrid) = generate_grid(FA,spheres);
-		calc_cleftic(FA,*cleftgrid);
-
-	}else if(!strcmp(rngopt,"LOCCLF")){
-
-        //RNGOPT LOCCLF filename.pdb
-		strcpy(FA->rngopt,"locclf");
-        strcpy(clf_file,&rngoptline[14]);
-
-		printf("read binding-site grid <%s>\n",clf_file);
-		spheres = read_spheres(clf_file);
-
-		(*cleftgrid) = generate_grid(FA,spheres);
-		calc_cleftic(FA,*cleftgrid);
-	}
-        
-	if(FA->output_range){		
-        
-#ifdef _WIN32
-		strcpy(gridfilename,"\\grid.sta.pdb");
-#else
-		strcpy(gridfilename,"/grid.sta.pdb");
-#endif
-        
-        strcpy(gridfile,FA->temp_path);
-        strcat(gridfile,gridfilename);
-
-		write_grid(FA,*cleftgrid,gridfile);
-	}
-    	
-	//printf("IC bounds...\n");
-	ic_bounds(FA,FA->rngopt);
   
 	//////////////////////////////////////////////
 
@@ -438,7 +379,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 	//////////////////////////////////////////////
 
 	if(strcmp(constraint_file,"")){
-
+        printf("read constraint_file <%s>\n", constraint_file);
 		read_constraints(FA,*atoms,*residue,constraint_file);
 		assign_constraint_threshold(FA,*atoms,FA->constraints,FA->num_constraints);
 
@@ -448,6 +389,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 	///////////////////////////////////////////////
 
 	for(i=0;i<nopt;i++){
+        //printf("%s\n", optline[i]);
 		if(i==MAX_PAR){
 			printf("WARNING: number of params allowed was reached (100). other params will be skipped.\n");
 			break;
@@ -462,14 +404,71 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		chain=a[0];
 		if(chain == '-'){chain = ' ';}
 		//printf("Add2 optimiz vector...\n");
-		add2_optimiz_vec(FA,*atoms,*residue,*cleftgrid,opt,chain,"");
+		add2_optimiz_vec(FA,*atoms,*residue,opt,chain,"");
 
 	}
 
-    add2_optimiz_vec(FA,*atoms,*residue,*cleftgrid,opt,chain,"SC");
-    add2_optimiz_vec(FA,*atoms,*residue,*cleftgrid,opt,chain,"NM");
+    add2_optimiz_vec(FA,*atoms,*residue,opt,chain,"SC");
+    add2_optimiz_vec(FA,*atoms,*residue,opt,chain,"NM");
     
-
+	//////////////////////////////////////////////
+    
+    if(FA->translational && strcmp(rngopt,"LOCCEN") && strcmp(rngopt,"LOCCLF")){
+        fprintf(stderr,"ERROR: the binding-site is not defined\n");
+        Terminate(2);
+    }
+    
+	if(!strcmp(rngopt,"LOCCEN")){
+		strcpy(FA->rngopt,"loccen");
+		
+		_sphere = (sphere*)malloc(sizeof(sphere));
+		if(_sphere == NULL){
+			fprintf(stderr,"ERROR: memory allocation error for spheres (LOCCEN)\n");
+			Terminate(2);
+		}
+        
+		sscanf(rngoptline,"%s %s %f %f %f %f",
+		       a,b,
+		       &_sphere->center[0],&_sphere->center[1],&_sphere->center[2],
+		       &_sphere->radius);
+		_sphere->prev = NULL;
+		
+		// point to the new sphere created
+		spheres = _sphere;
+		
+		(*cleftgrid) = generate_grid(FA,spheres,(*atoms),(*residue));
+		calc_cleftic(FA,*cleftgrid);
+        
+	}else if(!strcmp(rngopt,"LOCCLF")){
+        
+        //RNGOPT LOCCLF filename.pdb
+		strcpy(FA->rngopt,"locclf");
+        strcpy(clf_file,&rngoptline[14]);
+        
+		printf("read binding-site grid <%s>\n",clf_file);
+		spheres = read_spheres(clf_file);
+        
+		(*cleftgrid) = generate_grid(FA,spheres,(*atoms),(*residue));
+		calc_cleftic(FA,*cleftgrid);
+	}
+    
+	if(FA->output_range){		
+        
+#ifdef _WIN32
+		strcpy(gridfilename,"\\grid.sta.pdb");
+#else
+		strcpy(gridfilename,"/grid.sta.pdb");
+#endif
+        
+        strcpy(gridfile,FA->temp_path);
+        strcat(gridfile,gridfilename);
+        
+		write_grid(FA,*cleftgrid,gridfile);
+	}
+    
+	//printf("IC bounds...\n");
+	ic_bounds(FA,FA->rngopt);
+    
     if(FA->translational && FA->num_grd==1){
         fprintf(stderr,"ERROR: the binding-site has no anchor points\n");
         Terminate(2);
@@ -480,9 +479,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 	update_optres(*atoms,FA->atm_cnt,FA->optres,FA->num_optres);
   	
     if(FA->nrg_suite){
-        if(!FA->translational){
-            printf("Grid[0]=%8.3f%8.3f%8.3f\n", (*cleftgrid)[0].coor[0], (*cleftgrid)[0].coor[1], (*cleftgrid)[0].coor[2]);
-        }else{
+        if(FA->translational){
             for(i=1; i<FA->num_grd; i++){
                 printf("Grid[%d]=%8.3f%8.3f%8.3f\n", i, (*cleftgrid)[i].coor[0], (*cleftgrid)[i].coor[1], (*cleftgrid)[i].coor[2]);
                 if(i % 1000 == 0){

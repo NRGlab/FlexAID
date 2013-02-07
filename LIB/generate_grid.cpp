@@ -10,7 +10,7 @@ using namespace std;
     locclf (using a cleft)                 */
 /*******************************************/
 
-gridpoint* generate_grid(FA_Global* FA,sphere* spheres){
+gridpoint* generate_grid(FA_Global* FA,sphere* spheres, atom* atoms, resid* residue){
 	
 	float sqrrad;
 	float c[3], min[3], max[3];
@@ -22,7 +22,13 @@ gridpoint* generate_grid(FA_Global* FA,sphere* spheres){
 		fprintf(stderr,"ERROR: memory allocation error for cleftgrid\n");
 		Terminate(2);
 	}
-	
+
+    cleftgrid[0].number = 0;
+    for (int j=0;j<3;j++) cleftgrid[0].coor[j] = atoms[residue[FA->res_cnt].gpa[0]].coor[j];
+    cleftgrid[0].dis = atoms[residue[FA->res_cnt].gpa[0]].dis;
+    cleftgrid[0].ang = atoms[residue[FA->res_cnt].gpa[0]].ang;
+    cleftgrid[0].dih = atoms[residue[FA->res_cnt].gpa[0]].dih;
+    
 	printf("will build a grid with spacing %.3f\n", FA->spacer_length);
 
 	FA->num_grd = 1; // set counter to 1 because 0 is the INI conformation of the ligand
@@ -90,7 +96,7 @@ gridpoint* generate_grid(FA_Global* FA,sphere* spheres){
 
 				c[0] = min[0];
 				c[1] += FA->spacer_length;
-			}			
+			}
 			
 			c[0] = min[0];
 			c[1] = min[1];

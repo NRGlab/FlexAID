@@ -7,8 +7,8 @@
  * SUBROUTINE add2_optimiz_vec builds the vector with the values of the ic's
  * that are going to be optimized for one or more residues/ligands.
  *****************************************************************************/
-void add2_optimiz_vec(FA_Global* FA,atom* atoms,resid* residue,gridpoint* cleftgrid,int val[], char chain, const char* extras){
-	int i,j;
+void add2_optimiz_vec(FA_Global* FA,atom* atoms,resid* residue,int val[], char chain, const char* extras){
+	int i;
 	int at;
 	//int rot;
 	
@@ -81,12 +81,6 @@ void add2_optimiz_vec(FA_Global* FA,atom* atoms,resid* residue,gridpoint* cleftg
     }else if(val[1] == -1){    // (3 degrees of freedom of translation)
 
 		if(FA->npar==FA->MIN_PAR){ realloc_par(FA,&FA->MIN_PAR); }
-
-        cleftgrid[0].number = 0;
-        for (j=0;j<3;j++) cleftgrid[0].coor[j] = atoms[residue[at].gpa[0]].coor[j];
-        cleftgrid[0].dis = atoms[residue[at].gpa[0]].dis;
-        cleftgrid[0].ang = atoms[residue[at].gpa[0]].ang;
-        cleftgrid[0].dih = atoms[residue[at].gpa[0]].dih;
 
         FA->map_par[FA->npar].typ = -1; //anchor point in space (3 degrees of freedom of translation)
         FA->map_par[FA->npar].atm = residue[at].gpa[0];

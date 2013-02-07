@@ -442,7 +442,7 @@ void   calc_cleftic(FA_Global* FA,gridpoint* cleftgrid);                        
 void   buildlist(FA_Global* FA,atom* atoms,resid* residue,int rnum, int bnum, int *tot, int lout[]);// creates list of atoms that need to be rebuilt
 void   buildcc(FA_Global* FA,atom* atoms,int tot,int list[]);                        // creates cartesian coordinates from internal coords.
 void   buildic(FA_Global* FA,atom* atoms,resid* residue,int rnum);                   // creates internal coordinates from cartesian.
-void   add2_optimiz_vec(FA_Global* FA,atom* atoms,resid* residue,gridpoint* cleftgrid,int val[], char chain, const char* extras);            // adds atoms that need to be optimized
+void   add2_optimiz_vec(FA_Global* FA,atom* atoms,resid* residue,int val[], char chain, const char* extras);            // adds atoms that need to be optimized
 void   realloc_par(FA_Global* FA, int* MIN_PAR); // reallocs memory for par in add2 function
 void   read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]);                           // reads ligands
 void   read_input(FA_Global* FA,atom** atoms,resid** residue,rot** rotamer,gridpoint** cleftgrid,char input_file[]);                      // reads input file
@@ -464,7 +464,7 @@ void   read_rotobs(FA_Global* FA,rot** rotamer,char* rotobsfile);               
 void   read_constraints(FA_Global* FA,atom* atoms, resid* residue, char* constfile);                         // reads constraints file
 void   read_emat(FA_Global* FA, char* scr_bin_file);                 // reads interaction matrix
 sphere* read_spheres(char filename[]);                               // reads the list of spheres from a cleft
-gridpoint* generate_grid(FA_Global* FA, sphere* spheres);            // builds the grid from loccen/locclf
+gridpoint* generate_grid(FA_Global* FA, sphere* spheres, atom* atoms, resid* residue);            // builds the grid from loccen/locclf
 void   assign_constraint_threshold(FA_Global* FA,atom* atoms,constraint* cons,int ncons);      // pre-calculate critical values
 
 int    assign_constraint(FA_Global* FA,atom* atoms, resid* residue,constraint* cons);                         // assign constraint to atoms structure
