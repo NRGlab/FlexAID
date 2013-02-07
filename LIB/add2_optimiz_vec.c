@@ -78,7 +78,7 @@ void add2_optimiz_vec(FA_Global* FA,atom* atoms,resid* residue,int val[], char c
             FA->npar++;
         }
         
-    }else if(val[1] == -1){    // (3 degrees of freedom of translation)
+    }else if(val[1] == -1){    // (1 degree of freedom of translation)
 
 		if(FA->npar==FA->MIN_PAR){ realloc_par(FA,&FA->MIN_PAR); }
 
