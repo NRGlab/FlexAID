@@ -52,7 +52,9 @@ typedef struct gene_struct gene;
 
 struct chromosome_struct{
 	gene*  genes;    // pointer to genes array
-	double evalue;   // function evaluation of chromosome
+	cfstr  cf;       // function evaluation of chromosome
+    double evalue;   // NOT the apparent cf
+    double app_evalue;   // THE apparent cf
 	double fitnes;   // fitness score of chromosome
 	char   status;   /* status, n -> eval is correct 
 			    o -> need to recalculate eval
@@ -92,7 +94,7 @@ struct GB_Global_struct{
 	int          rrg_skip;
 
 	int          num_print;
-	int	     print_int;
+	int	         print_int;
 
 	char         pop_init_method[9];
 	char         pop_init_file[MAX_PATH__];
@@ -108,7 +110,7 @@ typedef struct GB_Global_struct GB_Global;
 /*234567890123456789012345678901234567890123456789012345678901234567890*/
 /*        1         2         3         4         5         6         7*/
 /***********************************************************************/
-int   GA(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome** chrom_snapshot,genlim** gene_lim,atom* atoms,resid* residue,gridpoint** cleftgrid,char gainpfile[], int* memchrom, double (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int, double*));
+int   GA(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome** chrom_snapshot,genlim** gene_lim,atom* atoms,resid* residue,gridpoint** cleftgrid,char gainpfile[], int* memchrom, cfstr (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int, double*));
 int   check_state(char* pausefile, char* abortfile, char* stopfile, int interval);
 void  crossover(gene *john,gene *mary,int num_genes);
 void  mutate(gene *john,int num_genes,double mut_rate);
@@ -136,10 +138,10 @@ int   remove_dups(chromosome* list, int num_chrom, int num_genes);
 FILE* get_update_file_ptr(FA_Global* FA);
 void close_update_file_ptr(FA_Global* FA, FILE* outfile_ptr);
 
-void  populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chrom, const genlim* gene_lim, atom* atoms,resid* residue,gridpoint* cleftgrid,char method[], double (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*), char file[], long int at, int offset, int print, boost::variate_generator< RNGType, boost::uniform_int<> > &);
-double eval_chromosome(FA_Global* FA,GB_Global* GB,VC_Global* VC,const genlim* gene_lim,atom* atoms,resid* residue,gridpoint* cleftgrid,gene* john, double (*function)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*));
-void  calculate_fitness(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chrom, const genlim* gene_lim,atom* atoms,resid* residue,gridpoint* cleftgrid,char method[],int pop_size, int print, double (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int, double*));
-void  reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,const genlim* gene_lim,atom* atoms,resid* residue,gridpoint* cleftgrid,char rmodel[], double mutprob, double crossprob, int print, boost::variate_generator< RNGType, boost::uniform_int<> > &,double (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*));
+void  populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chrom, const genlim* gene_lim, atom* atoms,resid* residue,gridpoint* cleftgrid,char method[], cfstr (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*), char file[], long int at, int offset, int print, boost::variate_generator< RNGType, boost::uniform_int<> > &);
+cfstr eval_chromosome(FA_Global* FA,GB_Global* GB,VC_Global* VC,const genlim* gene_lim,atom* atoms,resid* residue,gridpoint* cleftgrid,gene* john, cfstr (*function)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*));
+void  calculate_fitness(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chrom, const genlim* gene_lim,atom* atoms,resid* residue,gridpoint* cleftgrid,char method[],int pop_size, int print, cfstr (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int, double*));
+void  reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,const genlim* gene_lim,atom* atoms,resid* residue,gridpoint* cleftgrid,char rmodel[], double mutprob, double crossprob, int print, boost::variate_generator< RNGType, boost::uniform_int<> > &,cfstr (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*));
 void  print_pop(const chromosome* chrom,const genlim* gene_lim,int numc, int numg);
 void  print_chrom(const chromosome* chrom, int num_genes, int real_flag);
 void  print_chrom(const gene* genes, int num_genes, int real_flag);

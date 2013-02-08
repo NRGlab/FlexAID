@@ -10,12 +10,14 @@
 
 //THE PROCEDURE SHOULD RECEIVE A 2ND SET OF GENES THAT ENCODES FOR THE ROTAMER DISTRIBUTION IN THE BPK
 
-double ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cleftgrid,int npar, double* icv){
+cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cleftgrid,int npar, double* icv){
   
 	int i,j,k;
 	int cat;    /* atom number constrained to the one considered */
 
-	double sum=0.0;
+    cfstr cf;
+    static cfstr cf_clash = { 0.0, 0.0, CLASH_PENALTY_VALUE, 0.0, 1 };
+    
 	int rclash=0;
 
 	psFlexDEE_Node psFlexDEENode;
@@ -113,15 +115,20 @@ double ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* c
   
 	if (strcmp(FA->complf,"VCT")==0){
 		if(vcfunction(FA,VC,atoms,residue)){
-			return CLASH_PENALTY_VALUE;
+			return cf_clash;
 		}
 	}else if (strcmp(FA->complf,"SPH")==0){
 		if(spfunction(FA,atoms,residue)){
-			return CLASH_PENALTY_VALUE;
+			return cf_clash;
 		}
 	}
   
-
+    cf.com = 0.0;
+    cf.wal = 0.0;
+    cf.sas = 0.0;
+    cf.con = 0.0;
+    cf.rclash = 0;
+    
 	for(i=0;i<FA->num_optres;i++){
     
 		// flexible side-chain optimization
@@ -146,9 +153,14 @@ double ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* c
 		  printf("optres[%2d].cf  .wal = %.3f\n               .com = %.3f\n               .sas = %.3f\n               .con = %.3f\n",
 		  i,FA->optres[i].cf.wal,FA->optres[i].cf.com,FA->optres[i].cf.sas,FA->optres[i].cf.con);
 		*/
-
-		sum += (FA->optres[i].cf.com - FA->optres[i].cf.wal + FA->optres[i].cf.sas - FA->optres[i].cf.con);
+        
+		//sum += (FA->optres[i].cf.com - FA->optres[i].cf.wal + FA->optres[i].cf.sas - FA->optres[i].cf.con);
     
+        cf.com += FA->optres[i].cf.com;
+        cf.wal += FA->optres[i].cf.wal;
+        cf.sas += FA->optres[i].cf.sas;
+        cf.con += FA->optres[i].cf.con;
+
 	}
 
   
@@ -272,11 +284,29 @@ double ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* c
 	
 			}
       
-		} 
+		}
     
 	}
 
  
-	return sum;
+	return cf;
 
 }
+
+
+#ifdef _WIN32
+double get_apparent_cf_evalue(cfstr* cf) {
+#else
+double get_apparent_cf_evalue(cfstr* cf) {
+#endif
+    return cf->com - cf->wal + cf->sas;
+}
+    
+#ifdef _WIN32
+double get_cf_evalue(cfstr* cf) {
+#else
+double get_cf_evalue(cfstr* cf) {
+#endif
+    return cf->com - cf->wal + cf->sas - cf->con;
+}
+        

@@ -15,7 +15,9 @@ using namespace std;
 /*234567890123456789012345678901234567890123456789012345678901234567890*/
 /*        1         2         3         4         5         6         7*/
 /***********************************************************************/
-int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome** chrom_snapshot,genlim** gene_lim,atom* atoms,resid* residue,gridpoint** cleftgrid,char gainpfile[], int* memchrom, double (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*)){
+int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome** chrom_snapshot,
+       genlim** gene_lim,atom* atoms,resid* residue,gridpoint** cleftgrid,char gainpfile[], 
+       int* memchrom, cfstr (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*)){
   
 	int i;
 	int print=0;
@@ -152,6 +154,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 			Terminate(2);
 		}
 
+		(*chrom)[i].app_evalue = 0.0;
 		(*chrom)[i].evalue = 0.0;
 		(*chrom)[i].fitnes = 0.0;
 		(*chrom)[i].status = ' ';
@@ -172,6 +175,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 			Terminate(2);
 		}
 
+		(*chrom_snapshot)[i].app_evalue = 0.0;            
 		(*chrom_snapshot)[i].evalue = 0.0;
 		(*chrom_snapshot)[i].fitnes = 0.0;
 		(*chrom_snapshot)[i].status = ' ';
@@ -348,7 +352,10 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 void save_snapshot(chromosome* chrom_snapshot, const chromosome* chrom, int num_chrom, int num_genes){
 	
 	for(int i=0; i<num_chrom; i++){
+        
+		chrom_snapshot[i].cf = chrom[i].cf;
 		chrom_snapshot[i].evalue = chrom[i].evalue;
+		chrom_snapshot[i].app_evalue = chrom[i].app_evalue;
 		chrom_snapshot[i].fitnes = chrom[i].fitnes;
 		chrom_snapshot[i].status = chrom[i].status;
 		
@@ -479,7 +486,7 @@ void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,cons
                atom* atoms,resid* residue,gridpoint* cleftgrid,char* repmodel, 
                double mutprob, double crossprob, int print,
                boost::variate_generator< RNGType, boost::uniform_int<> > &, 
-               double (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*)){
+               cfstr (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*)){
 
 	int i,j,k;
 	int nnew,p1,p2;
@@ -568,13 +575,15 @@ void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,cons
 				if(!FA->useflexdee || cmp_chrom2rotlist(FA->psFlexDEENode,chrom,gene_lim,num_genes_wo_sc,FA->nflxsc_real,GB->num_chrom,FA->FlexDEE_Nodes)==0){
 	  
 					memcpy(chrom[GB->num_chrom+i].genes,chrop1_gen,GB->num_genes*sizeof(gene));
-					chrom[GB->num_chrom+i].evalue=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[GB->num_chrom+i].genes,target);
+					chrom[GB->num_chrom+i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[GB->num_chrom+i].genes,target);
+                    chrom[GB->num_chrom+i].evalue=get_cf_evalue(&chrom[GB->num_chrom+i].cf);
+                    chrom[GB->num_chrom+i].app_evalue=get_apparent_cf_evalue(&chrom[GB->num_chrom+i].cf);
 					chrom[GB->num_chrom+i].status='n';
 					i++;
 	  
 				}
 			}
-      
+            
 			if(i==GB->ssnum) break;
       
 			if(GB->duplicates || cmp_chrom2pop(chrom,chrop2_gen,GB->num_genes,0,GB->num_chrom+i)==0){
@@ -582,7 +591,9 @@ void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,cons
 				if(!FA->useflexdee || cmp_chrom2rotlist(FA->psFlexDEENode,chrom,gene_lim,num_genes_wo_sc,FA->nflxsc_real,GB->num_chrom,FA->FlexDEE_Nodes)==0){
 	  
 					memcpy(chrom[GB->num_chrom+i].genes,chrop2_gen,GB->num_genes*sizeof(gene));
-					chrom[GB->num_chrom+i].evalue=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[GB->num_chrom+i+1].genes,target);
+					chrom[GB->num_chrom+i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[GB->num_chrom+i+1].genes,target);
+                    chrom[GB->num_chrom+i].evalue=get_cf_evalue(&chrom[GB->num_chrom+i].cf);
+                    chrom[GB->num_chrom+i].app_evalue=get_apparent_cf_evalue(&chrom[GB->num_chrom+i].cf);
 					chrom[GB->num_chrom+i].status='n';
 					i++;
 	  
@@ -669,8 +680,11 @@ void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,cons
 
 					memcpy(chrom[GB->num_chrom+i].genes,chrop1_gen,GB->num_genes*sizeof(gene));
 	  
-					chrom[GB->num_chrom+i].evalue=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[GB->num_chrom+i].genes,target);
+					chrom[GB->num_chrom+i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[GB->num_chrom+i].genes,target);
+                    chrom[GB->num_chrom+i].evalue=get_cf_evalue(&chrom[GB->num_chrom+i].cf);
+                    chrom[GB->num_chrom+i].app_evalue=get_apparent_cf_evalue(&chrom[GB->num_chrom+i].cf);
 					chrom[GB->num_chrom+i].status='n';
+                    
 					i++;
 	  
 				}
@@ -684,7 +698,9 @@ void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,cons
 	  
 					memcpy(chrom[GB->num_chrom+i].genes,chrop2_gen,GB->num_genes*sizeof(gene));
 	  
-					chrom[GB->num_chrom+i].evalue=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[GB->num_chrom+i].genes,target);
+					chrom[GB->num_chrom+i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[GB->num_chrom+i].genes,target);
+                    chrom[GB->num_chrom+i].evalue=get_cf_evalue(&chrom[GB->num_chrom+i].cf);
+                    chrom[GB->num_chrom+i].app_evalue=get_apparent_cf_evalue(&chrom[GB->num_chrom+i].cf);
 					chrom[GB->num_chrom+i].status='n';
 					i++;
 
@@ -733,7 +749,7 @@ int roullete_wheel(const chromosome* chrom,int n){
 /***********************************************************************/
 void calculate_fitness(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chrom, const genlim* gene_lim,
                        atom* atoms,resid* residue,gridpoint* cleftgrid,char method[], int pop_size, int print,
-                       double (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*)){
+                       cfstr (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*)){
 
 	int i,j;
 	//float tot=0.0;
@@ -741,7 +757,9 @@ void calculate_fitness(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chr
 
 	for(i=0;i<pop_size;i++){
 		if(chrom[i].status != 'n'){
-			chrom[i].evalue=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[i].genes,target);
+			chrom[i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[i].genes,target);
+            chrom[i].evalue=get_cf_evalue(&chrom[i].cf);
+            chrom[i].app_evalue=get_apparent_cf_evalue(&chrom[i].cf);
 			chrom[i].status='n';
 		}
 	}
@@ -874,7 +892,9 @@ FILE* get_update_file_ptr(FA_Global* FA)
 /*234567890123456789012345678901234567890123456789012345678901234567890*/
 /*        1         2         3         4         5         6         7*/
 /***********************************************************************/
-double eval_chromosome(FA_Global* FA,GB_Global* GB,VC_Global* VC,const genlim* gene_lim,atom* atoms,resid* residue,gridpoint* cleftgrid,gene* john, double (*function)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*)){
+cfstr eval_chromosome(FA_Global* FA,GB_Global* GB,VC_Global* VC,const genlim* gene_lim,
+                       atom* atoms,resid* residue,gridpoint* cleftgrid,gene* john, 
+                       cfstr (*function)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*)){
 	
 	double icv[MAX_NUM_GENES] = {0};
 	
@@ -899,7 +919,7 @@ double eval_chromosome(FA_Global* FA,GB_Global* GB,VC_Global* VC,const genlim* g
 /***********************************************************************/
 void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chrom, const genlim* gene_lim, 
                           atom* atoms,resid* residue,gridpoint* cleftgrid,char method[],
-                          double (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*), 
+                          cfstr (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*), 
                           char file[], long int at, int popoffset, int print,
                           boost::variate_generator< RNGType, boost::uniform_int<> > &){
   
@@ -1007,7 +1027,9 @@ void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* 
 
 	// calculate evalue for each chromosome
 	for(i=popoffset;i<GB->num_chrom;i++){
-		chrom[i].evalue=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[i].genes,target);
+		chrom[i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[i].genes,target);
+        chrom[i].evalue=get_cf_evalue(&chrom[i].cf);
+        chrom[i].app_evalue=get_apparent_cf_evalue(&chrom[i].cf);
 		chrom[i].status='n';
 		//PAUSE;
 		//printf("evalue(%d)=%6.3f\n",i,chrom[i].evalue);
@@ -1023,7 +1045,8 @@ void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* 
 /*234567890123456789012345678901234567890123456789012345678901234567890*/
 /*        1         2         3         4         5         6         7*/
 /***********************************************************************/
-int cmp_chrom2rotlist(psFlexDEE_Node psFlexDEE_INI_Node, const chromosome* chrom, const genlim* gene_lim,int gene_offset, int num_genes, int tot, int num_nodes){
+int cmp_chrom2rotlist(psFlexDEE_Node psFlexDEE_INI_Node, const chromosome* chrom, const genlim* gene_lim,
+                      int gene_offset, int num_genes, int tot, int num_nodes){
 
 	int   par[100];  
 	//int* genes = NULL;
@@ -1519,7 +1542,7 @@ void print_par(const chromosome* chrom,const genlim* gene_lim,int num_chrom,int 
 		fprintf(outfile_ptr, "%4d (",i);
 		for(int j=0;j<num_genes;j++) fprintf(outfile_ptr, "%10.2f ", chrom[i].genes[j].to_ic);
 		fprintf(outfile_ptr, ") ");
-		fprintf(outfile_ptr, " value=%9.3f fitnes=%9.3f\n",chrom[i].evalue,chrom[i].fitnes);
+		fprintf(outfile_ptr, " value=%9.3f fitnes=%9.3f\n",chrom[i].app_evalue,chrom[i].fitnes);
     }
     
 	return;
@@ -1575,7 +1598,6 @@ void print_pop(const chromosome* chrom,const genlim* gene_lim,int numc, int numg
 		for(j=0;j<numg;j++){printf(" %10d",chrom[i].genes[j].to_int32);}
 		printf(") ");
 		for(j=0;j<numg;j++){printf(" "),bin_print(chrom[i].genes[j].to_int32,(MAX_GEN_LENGTH));}
-		//printf(" value=%10.3f fitnes=%5.3f\n",chrom[i].evalue,chrom[i].fitnes);
 		printf("\n");
 	}
 	return;

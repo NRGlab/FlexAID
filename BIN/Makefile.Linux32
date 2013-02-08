@@ -7,6 +7,7 @@
 
 BOINC = 0
 DEBUG = 0
+DEBUG_LEVEL = 0
 
 # Include path
 I = ../LIB
@@ -32,7 +33,7 @@ LIBDIRS =
 LIBS = 
 INCLUDES = -I$(BOOST_INCLUDES)
 LDFLAGS = 
-DEFS =
+DEFS = -DDEBUG_LEVEL=$(DEBUG_LEVEL)
 
 ifeq ($(BOINC),1)
 

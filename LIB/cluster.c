@@ -5,7 +5,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 	     gridpoint* cleftgrid, int num_chrom, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp){
 
 	int i,j;
-	double cf;                                /* complementarity function value */
+	cfstr cf;                                /* complementarity function value */
 	resid *res_ptr = NULL;
 	cfstr* cf_ptr = NULL;
 
@@ -148,7 +148,8 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 
 		strcpy(remark,"REMARK optimized structure\n");
 
-		sprintf(tmpremark,"REMARK CF=%8.5f\n",cf);
+		sprintf(tmpremark,"REMARK CF=%8.5f\n",get_cf_evalue(&cf));
+		sprintf(tmpremark,"REMARK CF.app=%8.5f\n",get_apparent_cf_evalue(&cf));
 		strcat(remark,tmpremark);
 
 		for(i=0;i<FA->num_optres;i++){

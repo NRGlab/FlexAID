@@ -38,9 +38,6 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue)
 #if DEBUG_LEVEL > 0
 	cfstr cf_atom;
 #endif
-
-	//int atmi,atmj;
-	//int resi,resj;
   
 	//float  matrix[NTYPES+1][NTYPES+1];
 
@@ -55,7 +52,6 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue)
 	// reset CF values
 	for(j=0; j<FA->num_optres; ++j) {
 		FA->optres[j].cf.rclash=0;
-		FA->optres[j].cf.nor=0.0;
 		FA->optres[j].cf.wal=0.0;
 		FA->optres[j].cf.com=0.0;
 		FA->optres[j].cf.con=0.0;
@@ -326,20 +322,29 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue)
 			//	coorB = VC->Calc[VC->ca_rec[currindex].atom].coor;
 
 			// CHECK IF CLASH
-			if (!covalent && VC->ca_rec[currindex].dist < permea*rAB){
-	
-				/*
-				  atmi=FA->num_atm[VC->Calc[i].atomnum];
-				  atmj=FA->num_atm[VC->Calc[VC->ca_rec[currindex].atom].atomnum];
-				  resi=atoms[atmi].ofres;
-				  resj=atoms[atmj].ofres;
-				*/
-	
-
-				//printf("((Atom overlap between %s%d%c[%d](%s)-%s%d%c[%d](%s))) with DIST=%.3f\n",residue[resi].name,residue[resi].number,residue[resi].chn,atoms[atmi].number,atoms[atmi].name,residue[resj].name,residue[resj].number,residue[resj].chn,atoms[atmj].number,atoms[atmj].name,VC->ca_rec[currindex].dist);
-	
-	
-	
+            float clash_distance = permea*rAB;
+            if(covalent && permea*dist_opt < permea*rAB){
+                clash_distance = permea*dist_opt;
+            }
+                        
+			if (VC->ca_rec[currindex].dist < clash_distance){
+                
+                /*
+				if(covalent){
+                    int atmi=FA->num_atm[VC->Calc[i].atomnum];
+                    int atmj=FA->num_atm[VC->Calc[VC->ca_rec[currindex].atom].atomnum];
+                    int resi=atoms[atmi].ofres;
+                    int resj=atoms[atmj].ofres;
+                    
+                    printf("((Atom overlap between %s%d%c[%d](%s)-%s%d%c[%d](%s))) with DIST=%.3f with CLASH_DIST=%.3f\n",
+                           residue[resi].name,residue[resi].number,residue[resi].chn,
+                           atoms[atmi].number,atoms[atmi].name,
+                           residue[resj].name,residue[resj].number,residue[resj].chn,
+                           atoms[atmj].number,atoms[atmj].name,
+                           VC->ca_rec[currindex].dist,clash_distance);
+                }
+                */
+                
 				//Ewall_atm += KWALL*(pow(VC->ca_rec[currindex].dist*VC->ca_rec[currindex].dist,-6.0)-pow(0.9*rAB,-12.0));
 				cfs->wal += KWALL*(pow(VC->ca_rec[currindex].dist,-12.0)-pow(permea*rAB,-12.0));
 
@@ -350,16 +355,8 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue)
 				// Treat everything as rigid
 				if ( VC->ca_rec[currindex].dist <= dee_clash*rAB ) { cfs->rclash=1; }
 
-			}else if (covalent && VC->ca_rec[currindex].dist < permea*dist_opt) {
-	
-				cfs->wal += KWALL*(pow(VC->ca_rec[currindex].dist,-12.0)-pow(permea*dist_opt,-12.0));
-
-#if DEBUG_LEVEL > 0
-				cf_atom.wal += KWALL*(pow(VC->ca_rec[currindex].dist,-12.0)-pow(permea*rAB,-12.0));
-#endif
-				
 			}
-      
+            
 			// ATOM COMPLEMENTARITY
 			//com_atm += (double)FA->energy[VC->Calc[i].type][VC->Calc[VC->ca_rec[currindex].atom].type]*area;
 			//cfs->com += intraf*complementarity*area;

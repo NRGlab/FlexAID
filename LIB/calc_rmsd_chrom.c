@@ -109,7 +109,7 @@ float calc_rmsd_chrom(FA_Global* FA, GB_Global* GB, const chromosome* chrom, con
 
 		m=0;
 		rot=residue[l].rot;
-		for(i=residue[l].fatm[rot];i<=residue[l].latm[rot];i++){      
+		for(i=residue[l].fatm[rot];i<=residue[l].latm[rot];i++){
 			//printf("i:%d %f %f %f\n",i,atoms[i].coor[0],
 			//     atoms[i].coor[1],
 			//     atoms[i].coor[2]);

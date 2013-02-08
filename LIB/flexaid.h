@@ -36,7 +36,7 @@
 #define MAX_NORMAL_GRID 5000        // max number of grid points in normal grid
 #define MAX_SPHERE_POINTS 610       // Total number of points in atom surface sphere 
 #define MAX_OPT_RES 1               // max number of residues to be optimized 
-#define CLASH_PENALTY_VALUE -1e9f   // skipped individuals WAL term penaly
+#define CLASH_PENALTY_VALUE 1e9f    // skipped individuals WAL term penaly
 #define NTYPES 10                   // number of atom types 
 #define MBNDS 4                     // max number of cov bonds an atom can have 
 #define MAX_BONDED 20               // max number of bonded atom list
@@ -90,7 +90,6 @@ typedef unsigned int uint;
 struct cf_str{  // Complementarity Function value structure
 	double com;    // complementarity value
 	double con;    // constraint value
-	double nor;    // normalized complementarity
 	double wal;    // wall term
 	double sas;    // solvent accessibility surface
 	int   rclash; // flag that shows whether the residue is making steric clashes
@@ -482,10 +481,13 @@ void dee_first(psFlexDEE_Node Node, psFlexDEE_Node FirstNode);       // sets fir
 void dee_last(psFlexDEE_Node Node, psFlexDEE_Node LastNode);         // sets last record for all items
 void dee_print(psFlexDEE_Node psFlexDEENode, int num_rot);           // prints DEE sorted list
 int  cmp_FlexDEE_Nodes(psFlexDEE_Node Node1, psFlexDEE_Node Node2, int num_rot); // compares the DEE list between items
- 
+
+double get_apparent_cf_evalue(cfstr* cf);
+double get_cf_evalue(cfstr* cf);
+
 double GetValueFromGaussian(double x,double max,double zero);
 
-void modify_pdb(char* infile, char* outfile, int exclude_het, int remove_water, int is_protein); // reoder protein atoms in PDB file
+void modify_pdb(char* infile, char* outfile, int exclude_het, int remove_water, int is_protein); // reorder protein atoms in PDB file
 int rna_structure(char* infile);
 int get_NextLine(char lines[][100], int nlines);
 int is_rna_structure(char* infile);

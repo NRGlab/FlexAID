@@ -43,7 +43,6 @@ int spfunction(FA_Global* FA,atom* atoms,resid* residue){
   for(i=0;i<FA->num_optres;i++){
     FA->optres[i].cf.rclash = 0;
     FA->optres[i].cf.com = 0.0;
-    FA->optres[i].cf.nor = 0.0;
     FA->optres[i].cf.con = 0.0;
     FA->optres[i].cf.sas = 0.0;
     FA->optres[i].cf.wal = 0.0;    

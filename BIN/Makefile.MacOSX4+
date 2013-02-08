@@ -7,6 +7,7 @@
 
 BOINC = 0
 DEBUG = 0
+DEBUG_LEVEL = 0
 
 # Include path
 I = ../LIB
@@ -16,7 +17,6 @@ W = ../WRK
 
 CXX = g++-4.0
 
-DEFS =
 SYS = -isysroot /Developer/SDKs/MacOSX10.4u.sdk
 MACHOPT = -DMACOSX_DEPLOYMENT_TARGET=10.4 -mmacosx-version-min=10.4
 
@@ -37,7 +37,7 @@ LIBDIRS =
 LIBS = 
 INCLUDES = -I$(BOOST_INCLUDES)
 LDFLAGS = 
-DEFS = 
+DEFS = -DDEBUG_LEVEL=$(DEBUG_LEVEL)
 
 ifeq ($(BOINC),1)
 

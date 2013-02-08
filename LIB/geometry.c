@@ -22,7 +22,7 @@ double GetValueFromGaussian(double x,double max,double zero) {
 #ifdef _WIN32
  void vec_sub(float *a, const float *b, const float *c) {
 #else
- inline void vec_sub(float *a, const float *b, const float *c) {
+ void vec_sub(float *a, const float *b, const float *c) {
 #endif
    a[0]=b[0]-c[0];
    a[1]=b[1]-c[1];
@@ -32,7 +32,7 @@ double GetValueFromGaussian(double x,double max,double zero) {
 #ifdef _WIN32
  float dot_prod(const float *v1, const float *v2) {
 #else
- inline float dot_prod(const float *v1, const float *v2) {
+ float dot_prod(const float *v1, const float *v2) {
 #endif
    return v1[0]* v2[0] + v1[1]* v2[1] + v1[2] * v2[2];
  }
@@ -40,7 +40,7 @@ double GetValueFromGaussian(double x,double max,double zero) {
 #ifdef _WIN32
  float distance2(const float *a, const float *b) {
 #else
- inline float distance2(const float *a, const float *b){
+ float distance2(const float *a, const float *b){
 #endif
   float delta = a[0] - b[0];
   float r2 = delta*delta;

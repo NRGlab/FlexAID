@@ -6,7 +6,6 @@ int main(int argc, char **argv){
 
 	int   i,j;
 	int   natm;
-	double cf;                                /* complementarity function value */
 
 	char remark[MAX_REMARK];
 	char tmpremark[MAX_REMARK];
@@ -26,6 +25,7 @@ int main(int argc, char **argv){
 	atom *atoms = NULL;
 	resid *residue = NULL;
 	resid *res_ptr = NULL;
+	cfstr cf;
 	cfstr* cf_ptr = NULL;
 	rot* rotamer = NULL;
 	chromosome* chrom = NULL;
@@ -254,10 +254,11 @@ int main(int argc, char **argv){
 	VC->first = 0;
 
 	for(i=0;i<FA->npar;i++){printf("[%8.3f]",FA->opt_par[i]);}
-	printf("=%8.5f\n",cf);
+	printf("=%8.5f\n", get_apparent_cf_evalue(&cf));
 	//getchar();
   
-	sprintf(tmpremark,"REMARK CF=%8.5f\n",cf);
+	sprintf(tmpremark,"REMARK CF=%8.5f\n", get_cf_evalue(&cf));
+	sprintf(tmpremark,"REMARK CF.app=%8.5f\n", get_apparent_cf_evalue(&cf));
 	strcat(remark,tmpremark);
 
 	for(i=0;i<FA->num_optres;i++){
