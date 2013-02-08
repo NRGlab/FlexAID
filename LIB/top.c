@@ -103,6 +103,7 @@ int main(int argc, char **argv){
 	//FA->natoms_rmsd=0;
 
     FA->nrg_suite=0;
+    FA->nrg_suite_timeout=60;
 	FA->translational=0;
 	FA->refstructure=0;
 

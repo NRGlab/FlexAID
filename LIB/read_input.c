@@ -120,6 +120,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		if(strcmp(field,"STATEP") == 0){strcpy(FA->state_path,&buffer[7]);}
 		if(strcmp(field,"TEMPOP") == 0){strcpy(FA->temp_path,&buffer[7]);}
 		if(strcmp(field,"NRGSUI") == 0){FA->nrg_suite=1;}
+		if(strcmp(field,"NRGOUT") == 0){sscanf(buffer,"%s %d",field,&FA->nrg_suite_timeout);}
 	}
 
 	CloseFile_B(&infile_ptr,"r");

@@ -311,6 +311,7 @@ struct FA_Global_struct{
 	//int   hrnum;
 
     int   nrg_suite;                     // flag indicating if nrg_suite is enabled
+    int   nrg_suite_timeout;             // specifies the maximum time for the suite to update the visuals (in seconds)
     int   translational;                 // flag indicating if translation degrees of freedom are enabled
 	int   refstructure;                  // reference structure for rmsd calculation
   
@@ -385,7 +386,7 @@ struct FA_Global_struct{
 	char  state_path[MAX_PATH__];          // path leading to files .pause, .stop, .abort
 	char  temp_path[MAX_PATH__];           // path where target.pdb is written, range files (grid/sphere), defaults to working dir
 
-	// minimums used for dynamic allocation  
+	// minimums used for dynamic allocation
 	int    MIN_NUM_ATOM;
 	int    MIN_NUM_RESIDUE;
 	int    MIN_ROTAMER_LIBRARY_SIZE;

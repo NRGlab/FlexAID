@@ -2,6 +2,9 @@
 #include "Vcontacts.h"
 #include "boinc.h"
 
+// in milliseconds
+# define SLEEP 25
+
 #ifdef _WIN32
 # include <windows.h>
 #else
@@ -213,7 +216,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	*/
     
     int save_num_chrom = (int)(GB->num_chrom*SAVE_CHROM_FRACTION);
-
+    
 	for(i=0;i<GB->max_generations;i++){
 
 		///////////////////////////////////////////////////
@@ -387,9 +390,9 @@ int check_state(char* pausefile, char* abortfile, char* stopfile, int interval){
 			fclose(STATE);
 
 # ifdef _WIN32
-			Sleep(25);
+			Sleep(SLEEP);
 # else
-			usleep(25000);
+			usleep(SLEEP*1000);
 # endif
 			STATE = fopen(pausefile,"r");
 
@@ -811,6 +814,11 @@ void calculate_fitness(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chr
         static int gen_id = 1;
         FILE* outfile_ptr = get_update_file_ptr(FA);
 
+        if(outfile_ptr == NULL){
+            fprintf(stderr,"ERROR: The NRGsuite failed to update within the timeout.\n");
+            Terminate(10);
+        }
+        
         fprintf(outfile_ptr, "Generation: %5d\n", gen_id);
 		fprintf(outfile_ptr, "best by energy\n");
         
@@ -854,6 +862,7 @@ FILE* get_update_file_ptr(FA_Global* FA)
     
     FILE* outfile_ptr = NULL;
     char UPDATEFILE[MAX_PATH__];
+    long long timeout = 0;
     
     strcpy(UPDATEFILE,FA->state_path);
 #ifdef _WIN32
@@ -868,11 +877,17 @@ FILE* get_update_file_ptr(FA_Global* FA)
 			fclose(outfile_ptr);
             
 # ifdef _WIN32
-			Sleep(25);
+			Sleep(SLEEP);
 # else
-			usleep(25000);
+			usleep(SLEEP*1000);
 # endif
-			outfile_ptr = fopen(UPDATEFILE,"r");
+            
+            timeout += SLEEP;
+            if(timeout >= FA->nrg_suite_timeout*1000){
+                return NULL;
+            }
+            
+            outfile_ptr = fopen(UPDATEFILE,"r");
             
 		}while(outfile_ptr != NULL);
 	}
