@@ -255,10 +255,11 @@ int main(int argc, char **argv){
 	VC->first = 0;
 
 	for(i=0;i<FA->npar;i++){printf("[%8.3f]",FA->opt_par[i]);}
-	printf("=%8.5f\n", get_apparent_cf_evalue(&cf));
+	printf("=%8.5f\n", get_cf_evalue(&cf));
 	//getchar();
   
 	sprintf(tmpremark,"REMARK CF=%8.5f\n", get_cf_evalue(&cf));
+	strcat(remark,tmpremark);
 	sprintf(tmpremark,"REMARK CF.app=%8.5f\n", get_apparent_cf_evalue(&cf));
 	strcat(remark,tmpremark);
 

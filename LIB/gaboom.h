@@ -131,7 +131,7 @@ double RandomDouble();
 double RandomDouble(boost::int32_t dice);
 
 void  swap_chrom(chromosome * x, chromosome * y);
-void  quicksort_evalue(chromosome* list, int m, int n);
+void  quicksort_app_evalue(chromosome* list, int m, int n);
 void  quicksort_fitnes(chromosome* list, int m, int n);
 int   remove_dups(chromosome* list, int num_chrom, int num_genes);
 

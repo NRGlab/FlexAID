@@ -73,8 +73,8 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		Clus_GAPOP[j]=j;
 		Clus_RMSDT[j]=0.0;
 		n_unclus--;
-		Clus_TCF[num_of_clusters]=chrom[j].evalue;
-		Clus_ACF[num_of_clusters]=chrom[j].evalue;
+		Clus_TCF[num_of_clusters]=chrom[j].app_evalue;
+		Clus_ACF[num_of_clusters]=chrom[j].app_evalue;
 		Clus_TOP[num_of_clusters]=j;
 		Clus_FRE[num_of_clusters]++;
 		//printf("n_unclus=%d j=%d\n",n_unclus,j);
@@ -88,7 +88,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 					Clus_GAPOP[i]=j;
 					Clus_RMSDT[i]=rmsd;
 					n_unclus--;
-					Clus_ACF[num_of_clusters] += chrom[i].evalue;
+					Clus_ACF[num_of_clusters] += chrom[i].app_evalue;
 					Clus_FRE[num_of_clusters]++;
 				}
 			}
@@ -138,7 +138,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		// get parameters of fittest individual in population
 		// after optimization -> best docking candidate
     
-		// cf=chrom[Clus_TOP[j]].evalue;
+		// cf=chrom[Clus_TOP[j]].app_evalue;
 
 		for(int k=0; k<GB->num_genes; k++){
 			FA->opt_par[k] = chrom[Clus_TOP[j]].genes[k].to_ic;
@@ -149,6 +149,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		strcpy(remark,"REMARK optimized structure\n");
 
 		sprintf(tmpremark,"REMARK CF=%8.5f\n",get_cf_evalue(&cf));
+		strcat(remark,tmpremark);
 		sprintf(tmpremark,"REMARK CF.app=%8.5f\n",get_apparent_cf_evalue(&cf));
 		strcat(remark,tmpremark);
 
