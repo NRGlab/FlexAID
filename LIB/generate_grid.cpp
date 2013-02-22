@@ -107,7 +107,7 @@ gridpoint* generate_grid(FA_Global* FA,sphere* spheres, atom* atoms, resid* resi
 		spheres = spheres->prev;
 	}
 
-	printf("built a grid with %d vertices\n", FA->num_grd);
+	printf("built a grid with %d vertices\n", FA->num_grd - 1);
 
 	return cleftgrid;
 }

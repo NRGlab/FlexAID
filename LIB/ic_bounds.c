@@ -13,7 +13,7 @@ void ic_bounds(FA_Global* FA, char* rngopt){
 		// so that every sphere can be selected
 		// 0 is the INI position of the ligand
 		FA->index_min = 1.0;
-		FA->index_max = (double)FA->num_grd;
+		FA->index_max = (double)(FA->num_grd-1);
 
 	}else if(strcmp(rngopt,"global")==0){
 		FA->dis_min=FA->delta_angstron;
