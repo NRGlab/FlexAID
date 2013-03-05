@@ -62,7 +62,7 @@ int calc_region(FA_Global* FA,VC_Global* VC,atom* atoms,int atmcnt)
 		// ============= atom contact calculations =============
 		atomzero = VC->Calclist[i];
 		boxi = VC->Calc[atomzero].boxnum;
-    
+        
 		if(!VC->Calc[atomzero].score){continue;}
     
 		//printf("Get_contacts for %d\n",VC->Calc[atomzero].atomnum);   
@@ -91,8 +91,8 @@ int calc_region(FA_Global* FA,VC_Global* VC,atom* atoms,int atmcnt)
 
 		save_areas(VC->cont, VC->contlist, NC, atomzero, VC->Calc,&VC->ca_recsize, &VC->numcarec, &VC->ca_rec, VC->ca_index);
 
-		min_areas(VC->ca_rec, VC->Calc, &VC->Calc[atomzero]);
-
+		min_areas(VC->ca_rec, VC->Calc, &VC->Calc[atomzero], FA->vcontacts_self_consistency);
+                
 	}
 
 
@@ -1007,7 +1007,7 @@ void calc_areas(vertex poly[], const vertex* centerpt, float rado, int NC, int N
  * subroutine min_areas
  ***************************/
 
-void min_areas(ca_struct* ca_rec, const atomsas* Calc, const atomsas* atomzero_ptr)
+void min_areas(ca_struct* ca_rec, const atomsas* Calc, const atomsas* atomzero_ptr, char* vcontacts_self_consistency)
 {
 	int found;
 	int currindex, currindex2;
@@ -1031,29 +1031,54 @@ void min_areas(ca_struct* ca_rec, const atomsas* Calc, const atomsas* atomzero_p
 				if(ca_rec[currindex].from == ca_rec[currindex2].atom){
 				
 					// compare contact areas between A and B
-					// keep the minimal distance between the 2
-					if(ca_rec[currindex].area > ca_rec[currindex2].area){
-						/*
-						  printf("%d --> %d: %.3f now set to %.3f\n", 
-						  Calc[ca_rec[currindex].atom].atomnum,
-						  Calc[ca_rec[currindex2].atom].atomnum,
-						  ca_rec[currindex].area, ca_rec[currindex2].area);
-						*/
-						ca_rec[currindex].area = ca_rec[currindex2].area;
-					}else{
-						/*
-						  printf("%d --> %d: %.3f now set to %.3f\n", 
-						  Calc[ca_rec[currindex2].atom].atomnum,
-						  Calc[ca_rec[currindex].atom].atomnum,
-						  ca_rec[currindex2].area, ca_rec[currindex].area);
-						*/
-						ca_rec[currindex2].area = ca_rec[currindex].area;
-					}
-				
-					found = 1;
-					break;
-				}
-			
+					// FA->vcontacts_self_consistency determines if the mean, min or max contact area is chosen
+                    
+                    if(!strcmp(vcontacts_self_consistency,"MEAN")){
+
+                        ca_rec[currindex].area = (ca_rec[currindex].area + ca_rec[currindex2].area) / 2.0;
+                        ca_rec[currindex2].area = ca_rec[currindex].area;
+                        
+                        found = 1;
+                        break;
+
+                    }else if(!strcmp(vcontacts_self_consistency,"MIN")){
+                        
+                        if(ca_rec[currindex].area > ca_rec[currindex2].area){
+                            ca_rec[currindex].area = ca_rec[currindex2].area;
+                        }else{
+                            ca_rec[currindex2].area = ca_rec[currindex].area;
+                        }
+                        
+                        found = 1;
+                        break;
+
+                    }else if(!strcmp(vcontacts_self_consistency,"MAX")){
+                        
+                        if(ca_rec[currindex].area < ca_rec[currindex2].area){
+                            /*
+                             printf("%d --> %d: %.3f now set to %.3f\n", 
+                             Calc[ca_rec[currindex].atom].atomnum,
+                             Calc[ca_rec[currindex2].atom].atomnum,
+                             ca_rec[currindex].area, ca_rec[currindex2].area);
+                             */
+                            ca_rec[currindex].area = ca_rec[currindex2].area;
+                        }else{
+                            /*
+                             printf("%d --> %d: %.3f now set to %.3f\n", 
+                             Calc[ca_rec[currindex2].atom].atomnum,
+                             Calc[ca_rec[currindex].atom].atomnum,
+                             ca_rec[currindex2].area, ca_rec[currindex].area);
+                             */
+                            ca_rec[currindex2].area = ca_rec[currindex].area;
+                        }
+                        
+                        found = 1;
+                        break;
+                        
+                    }
+                    
+                }
+                
 				currindex2 = ca_rec[currindex2].prev;
 			}
 

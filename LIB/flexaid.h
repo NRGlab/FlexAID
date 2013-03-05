@@ -310,6 +310,8 @@ struct FA_Global_struct{
 	//int   natoms_rmsd;                   // number of atoms in atoms_rmsd
 	//int   hrnum;
 
+    char vcontacts_self_consistency[6];  // A --> B and B --> A contacts self consistency
+    
     int   nrg_suite;                     // flag indicating if nrg_suite is enabled
     int   nrg_suite_timeout;             // specifies the maximum time for the suite to update the visuals (in seconds)
     int   translational;                 // flag indicating if translation degrees of freedom are enabled

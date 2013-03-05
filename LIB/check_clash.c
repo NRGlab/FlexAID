@@ -1,4 +1,5 @@
 #include "flexaid.h"
+
 /***************************************************************************************
  * This function checks if there are steric clashes between the atoms in the list and
  * other atoms in the protein which are rigid (i.e., not rotamers and ligand)

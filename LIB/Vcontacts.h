@@ -191,7 +191,7 @@ int     calc_region(FA_Global*,VC_Global*,atom*,int);
 void    calc_areas(vertex *,const vertex *, float, int, int, plane *,const ptindex *, const atomsas*);
 void    index_protein(FA_Global*,atom*,resid*,atomsas*,atomindex**,int*,int*,int);
 void    save_areas(const plane *,const contactlist *, int, int,atomsas*, int* ,int*,ca_struct** , int* );
-void    min_areas(ca_struct*, const atomsas*, const atomsas*);
+void    min_areas(ca_struct*, const atomsas*, const atomsas*, char*);
 void    print_areas(atomsas*, int, ca_struct*);
 int     get_contlist4(atom*,int, contactlist *, int, float, int, atomsas*, const int*, const atomindex*, const ca_struct*, const int*);
 void    save_seeds(int*,const plane *, const vertex *, int, int);

@@ -88,6 +88,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		if(strcmp(field,"METOPT") == 0){sscanf(buffer,"%s %s",a,FA->metopt);}
 		if(strcmp(field,"BPKENM") == 0){sscanf(buffer,"%s %s",a,FA->bpkenm);}
 		if(strcmp(field,"COMPLF") == 0){sscanf(buffer,"%s %s",a,FA->complf);}
+		if(strcmp(field,"VCTSCO") == 0){sscanf(buffer,"%s %s",a,FA->vcontacts_self_consistency);}
 		if(strcmp(field,"RNGOPT") == 0){strcpy(rngoptline,buffer);for(i=0;i<6;i++)rngopt[i]=buffer[7+i];rngopt[6]='\0';}
 		if(strcmp(field,"OPTIMZ") == 0){strcpy(optline[nopt++],buffer);}
 		//if(strcmp(field,"NUCLEA") == 0){FA->is_protein=0;}
