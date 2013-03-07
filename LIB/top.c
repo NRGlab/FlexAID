@@ -133,12 +133,13 @@ int main(int argc, char **argv){
 
 	FA->rotobs=0;
 
+    FA->output_scored_only=1;
 	FA->permeability=1.0;
 	FA->intramolecular=1;
 	FA->solventterm=-2.0;
 	FA->by_solventtype=0;
 	FA->metaltype=9;        // neutral (AMINO12.def)
-
+    
 	FA->useflexdee=0;
 	FA->num_constraints=0;
 
@@ -146,7 +147,7 @@ int main(int argc, char **argv){
 
 	FA->mov[0] = NULL;
 	FA->mov[1] = NULL;
-
+    
     strcpy(FA->vcontacts_self_consistency,"MEAN");
     
 	// Linux path

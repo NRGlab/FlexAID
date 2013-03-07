@@ -310,6 +310,7 @@ struct FA_Global_struct{
 	//int   natoms_rmsd;                   // number of atoms in atoms_rmsd
 	//int   hrnum;
 
+    int output_scored_only;              // ouptuts the ligand coordinates only in the results file
     char vcontacts_self_consistency[6];  // A --> B and B --> A contacts self consistency
     
     int   nrg_suite;                     // flag indicating if nrg_suite is enabled
