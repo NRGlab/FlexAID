@@ -291,7 +291,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
   
 	if(FA->is_protein){ residue_conect(FA,*atoms,*residue,deftyp); }
 
-	assign_types(FA,*atoms,*residue,deftyp);
+	//assign_types(FA,*atoms,*residue,deftyp);
 
 	//////////////////////////////////////////////
 

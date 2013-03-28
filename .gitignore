@@ -1,0 +1,8 @@
+*.dat
+*.inp
+*.ic
+*.o
+*.pdb
+*.res
+*.cad
+WRK/*/*

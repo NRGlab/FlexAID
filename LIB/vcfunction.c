@@ -50,14 +50,14 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue)
 	memset(FA->contacts,0,100000*sizeof(int));
 
 	// reset CF values
-	for(j=0; j<FA->num_optres; ++j) {
+	for(j=0; j<FA->num_optres; ++j){
 		FA->optres[j].cf.rclash=0;
 		FA->optres[j].cf.wal=0.0;
 		FA->optres[j].cf.com=0.0;
 		FA->optres[j].cf.con=0.0;
 		FA->optres[j].cf.sas=0.0;
 	}
-  
+    
 	permea = (double)FA->permeability;
 	dee_clash = (double)FA->dee_clash;
 	
@@ -69,13 +69,13 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue)
 	}
 	}
 	*/  
-  
+    
 	//printf("=============NEW INDIVIDUAL==============\n");
-  
-  
+    
+    
 	if(Vcontacts(FA,atoms,residue,VC) == -1){
 
-		FA->skipped++;
+        FA->skipped++;
 
 		free(VC->ca_rec);
 		free(VC->box);

@@ -53,7 +53,7 @@ void read_coor(FA_Global* FA,atom** atoms,resid** residue,char line[], char res_
 		(*atoms)[FA->atm_cnt].optres=NULL;
 		(*atoms)[FA->atm_cnt].graph=0;
 		(*atoms)[FA->atm_cnt].coor_ref=NULL;
-		
+        
 		strcpy((*atoms)[FA->atm_cnt].name,atm_typ);
 		if(strcmp((*atoms)[FA->atm_cnt].name," OXT")==0){
 			(*residue)[FA->res_cnt].ter = 1;
@@ -73,6 +73,8 @@ void read_coor(FA_Global* FA,atom** atoms,resid** residue,char line[], char res_
 
 		(*atoms)[FA->atm_cnt].radius=assign_radius((*atoms)[FA->atm_cnt].name);
     
+        (*atoms)[FA->atm_cnt].type = atoi(&line[76]);
+        
 		for(j=0;j<=4;j++){num_char[j]=line[j+6];}
 		num_char[5]='\0';
 		sscanf(num_char,"%d",&i);
@@ -150,7 +152,7 @@ void read_coor(FA_Global* FA,atom** atoms,resid** residue,char line[], char res_
 			sscanf(res_num,"%d",&(*residue)[FA->res_cnt].number);
 
 			//printf("New residue: %d fatm[%d]=%d(%s-%s) latm[%d]=%d(%s-%s) :: %d\n", FA->res_cnt, FA->res_cnt, (*atoms)[(*residue)[FA->res_cnt].fatm[0]].number, (*residue)[FA->res_cnt].name, (*atoms)[(*residue)[FA->res_cnt].fatm[0]].name, FA->res_cnt-1, (*atoms)[(*residue)[FA->res_cnt-1].latm[0]].number, (*residue)[FA->res_cnt-1].name, (*atoms)[(*residue)[FA->res_cnt-1].latm[0]].name,(*residue)[FA->res_cnt].number);
-
+            
 		}
 
 		(*atoms)[FA->atm_cnt].ofres=FA->res_cnt;
