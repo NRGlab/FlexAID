@@ -1,0 +1,10 @@
+*.lst
+*.inp
+*.ic
+*.pdb
+*.mol2
+*FlexAID_Mac*
+*FlexAID_Linux*
+*FlexAID
+*.o
+WRK/*/*

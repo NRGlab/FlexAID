@@ -200,9 +200,10 @@ void read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]){
 				flag=1;
 			}
 			(*residue)[FA->res_cnt].latm[0]=FA->atm_cnt;
-      
-			//HETTYP _____ _ ____ _ __________________
-      
+            
+            // dummy atom type by default
+            (*atoms)[FA->atm_cnt].type = 39;
+
 			help[0]=buffer[11];
 			help[1]=buffer[12];
 			help[2]='\0';
@@ -214,9 +215,9 @@ void read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]){
 			if((*atoms)[FA->atm_cnt].type > FA->ntypes){
 				printf("WARNING: res %s atom %s has atom type %d when %d types are defined\n",
 				       (*residue)[FA->res_cnt].name, (*atoms)[FA->atm_cnt].name, (*atoms)[FA->atm_cnt].type, FA->ntypes);
-				printf("WARNING: type %d is set to neutral (6)\n", (*atoms)[FA->atm_cnt].type);
+				printf("WARNING: type %d is set to dummy (39)\n", (*atoms)[FA->atm_cnt].type);
 	      
-				(*atoms)[FA->atm_cnt].type = 6;
+				(*atoms)[FA->atm_cnt].type = 39;
 			}
 
 			(*atoms)[FA->atm_cnt].recs=buffer[19];
@@ -244,7 +245,7 @@ void read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]){
 			FA->num_atm[(*atoms)[FA->atm_cnt].number]=FA->atm_cnt;
       
 			// set atoms.radius
-			(*atoms)[FA->atm_cnt].radius=assign_radius((*atoms)[FA->atm_cnt].name);
+			//(*atoms)[FA->atm_cnt].radius=assign_radius((*atoms)[FA->atm_cnt].name);
       
 			// set atoms.ofres
 			(*atoms)[FA->atm_cnt].ofres=FA->res_cnt;

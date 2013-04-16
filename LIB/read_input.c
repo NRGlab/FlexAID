@@ -300,6 +300,8 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 
 	//////////////////////////////////////////////
 	
+    assign_radii_types(FA,(*atoms),(*residue));
+    
 	if(strcmp(rmsd_file,"")){
 		printf("read rmsd structure <%s>: will match atom numbers\n",rmsd_file);
 

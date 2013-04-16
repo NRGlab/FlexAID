@@ -47,6 +47,9 @@ void read_coor(FA_Global* FA,atom** atoms,resid** residue,char line[], char res_
 			//printf("memory re-allocated for atoms\n");
 		}
     
+        // dummy atom type by default
+        (*atoms)[FA->atm_cnt].type = 39;
+        
 		(*atoms)[FA->atm_cnt].eigen = NULL;
 		(*atoms)[FA->atm_cnt].ncons=0;
 		(*atoms)[FA->atm_cnt].cons=NULL;
@@ -71,7 +74,7 @@ void read_coor(FA_Global* FA,atom** atoms,resid** residue,char line[], char res_
 		{ (*atoms)[FA->atm_cnt].isbb=1; }
     
 
-		(*atoms)[FA->atm_cnt].radius=assign_radius((*atoms)[FA->atm_cnt].name);
+		//(*atoms)[FA->atm_cnt].radius=assign_radius((*atoms)[FA->atm_cnt].name);
     
 		for(j=0;j<=4;j++){num_char[j]=line[j+6];}
 		num_char[5]='\0';
