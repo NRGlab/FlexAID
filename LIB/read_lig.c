@@ -208,7 +208,8 @@ void read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]){
 			help[1]=buffer[12];
 			help[2]='\0';
 			sscanf(help,"%d",&(*atoms)[FA->atm_cnt].type);
-      
+            //printf("atom[%d].type=%d\n", (*atoms)[FA->atm_cnt].number, (*atoms)[FA->atm_cnt].type);
+            
 			for (i=0;i<4;i++){(*atoms)[FA->atm_cnt].name[i]=buffer[14+i];}
 			(*atoms)[FA->atm_cnt].name[4]='\0';
       
@@ -432,9 +433,9 @@ void read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]){
 	//  for(i=1;i<=residue[res_cnt].fdih;i++)
 	//printf("%2d=%6d%6d%6d\n",i,altfdih[i][0],altfdih[i][1],altfdih[i][2]);
 
-	if((*residue)[FA->res_cnt].fdih > 0)
+	if((*residue)[FA->res_cnt].fdih > 0){
 		assign_shift(*atoms,*residue,FA->res_cnt,natm,list,altfdih);
-
+    }
 
 	FA->optres[0].rnum=FA->res_cnt;
 	FA->optres[0].type=1;
