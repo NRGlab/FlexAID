@@ -54,14 +54,14 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	// for generation random doubles from [0,1[ (mutation crossover operators)
 	srand((unsigned)time(0));
     
-    // for testing purposes
-    //srand(1);
+	// for testing purposes
+	//srand(1);
     
 	strcpy(PAUSEFILE,FA->state_path);
 #ifdef _WIN32
 	strcat(PAUSEFILE,"\\.pause");
 #else
-    strcat(PAUSEFILE,"/.pause");
+	strcat(PAUSEFILE,"/.pause");
 #endif
     
   
@@ -80,10 +80,10 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 #endif
 
 	GB->num_genes=FA->npar;
-    if(GB->num_genes == 0){
+	if(GB->num_genes == 0){
 		fprintf(stderr,"ERROR: no parameters to optimize.\n");
 		Terminate(1);
-    }
+	}
     
 	printf("num_genes=%d\n",GB->num_genes);
   
@@ -91,34 +91,34 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	GB->adaptive_ga=0;
 	GB->num_print=10;
 	GB->print_int=1;
-    
-    GB->ssnum = 1000;
-    GB->pbfrac = 1.0;
-    GB->duplicates = 0;
+	
+	GB->ssnum = 1000;
+	GB->pbfrac = 1.0;
+	GB->duplicates = 0;
     
 	printf("file in GA is <%s>\n",gainpfile);
   
 	read_gainputs(FA,GB,&geninterval,&popszpartition,gainpfile);
 
-    (*gene_lim) = (genlim*)malloc(GB->num_genes*sizeof(genlim));
+	(*gene_lim) = (genlim*)malloc(GB->num_genes*sizeof(genlim));
 	if(!(*gene_lim)){
 		fprintf(stderr,"ERROR: memory allocation error for gene_lim.\n");	
 		Terminate(2);
 	}
     
-    long int at = 0;
+	long int at = 0;
     
-    if(strcmp(GB->pop_init_method,"RANDOM") == 0){
-        set_gene_lim(FA, GB, (*gene_lim));
-        set_bins((*gene_lim),GB->num_genes);
+	if(strcmp(GB->pop_init_method,"RANDOM") == 0){
+		set_gene_lim(FA, GB, (*gene_lim));
+		set_bins((*gene_lim),GB->num_genes);
         
-    }else if(strcmp(GB->pop_init_method,"IPFILE") == 0){
-        at = read_pop_init_file(FA, GB, (*gene_lim), GB->pop_init_file);
-        if(!at){
-            fprintf(stderr,"ERROR: Unknown format for pop init file.\n");
-            Terminate(10);   
-        }
-    }
+	}else if(strcmp(GB->pop_init_method,"IPFILE") == 0){
+		at = read_pop_init_file(FA, GB, (*gene_lim), GB->pop_init_file);
+		if(!at){
+			fprintf(stderr,"ERROR: Unknown format for pop init file.\n");
+			Terminate(10);   
+		}
+	}
         
 	if(GB->print_int < 0){ GB->print_int = 1; }
   
@@ -133,7 +133,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 		       geninterval, popszpartition);
 	}
         
-    validate_dups(GB, (*gene_lim), GB->num_genes);
+	validate_dups(GB, (*gene_lim), GB->num_genes);
 
 	(*memchrom) = GB->num_chrom;
 	if(strcmp(GB->rep_model,"STEADY")==0){
@@ -199,7 +199,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	GB->sig_share = sqrt(GB->sig_share/(double)GB->num_genes)/(2.0*pow(GB->peaks,(1.0/(double)GB->num_genes)));
 	GB->sig_share /= GB->scale;
 	printf("SIGMA_SHARE=%f\n",GB->sig_share);
-    fflush(stdout);
+	fflush(stdout);
   
 	// for(i=0;i<GB->num_genes;i++) {
 	//printf("GENE(%d)=[%8.3f,%8.3f,%8.3f,%d]\n",
@@ -218,7 +218,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	  }
 	*/
     
-    int save_num_chrom = (int)(GB->num_chrom*SAVE_CHROM_FRACTION);
+	int save_num_chrom = (int)(GB->num_chrom*SAVE_CHROM_FRACTION);
     
 	for(i=0;i<GB->max_generations;i++){
 
@@ -231,9 +231,9 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 
 		}else if(state == 1){ 
 			
-            //quicksort_app_evalue((*chrom_snapshot),0,n_chrom_snapshot-1);
+			//quicksort_app_evalue((*chrom_snapshot),0,n_chrom_snapshot-1);
 			//return(n_chrom_snapshot); 
-            break;
+			break;
 		}
 
 		////////////////////////////////
@@ -264,8 +264,8 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 				sprintf(gridfilename,"/grid.%d.prt.pdb",i+1);
 #endif
                 
-                strcpy(gridfile,FA->temp_path);
-                strcat(gridfile,gridfilename);
+				strcpy(gridfile,FA->temp_path);
+				strcat(gridfile,gridfilename);
 
 				write_grid(FA,(*cleftgrid),gridfile);
 			}
@@ -280,37 +280,37 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 				sprintf(gridfilename,"/grid.%d.slc.pdb",i+1);
 #endif
                 
-                strcpy(gridfile,FA->temp_path);
-                strcat(gridfile,gridfilename);
+				strcpy(gridfile,FA->temp_path);
+				strcat(gridfile,gridfilename);
                 
 				write_grid(FA,(*cleftgrid),gridfile);
 			}
       
-            validate_dups(GB, (*gene_lim), GB->num_genes);
+			validate_dups(GB, (*gene_lim), GB->num_genes);
 
 			//repopulate unselected individuals
 			populate_chromosomes(FA,GB,VC,(*chrom),(*gene_lim),atoms,residue,(*cleftgrid),GB->pop_init_method,target,GB->pop_init_file,at,popszpartition,print,dice);
 		}
-    
+		
 		print = ( (i+1) % GB->print_int == 0 ) ? 1 : 0;
 		//if(print) { printf("Generation: %5d\n",i+1); }
 
 		//print_par(chrom,gene_lim,20,GB->num_genes);
 		//PAUSE;
 
-        /*
-		rrg_flag=0;
-		if((i/rrg_skip)*rrg_skip == i) rrg_flag=1;
-		if((rrg_flag==1) && (GB->outgen==1)){
-			if(FA->refstructure == 1){
-				sprintf(tmp_rrgfile,"%s_%d.rrg",FA->rrgfile,i);
-				//printf("%s\n",tmp_rrgfile);
-				//PAUSE;
-				write_rrg(FA,GB,(*chrom),(*gene_lim),atoms,residue,(*cleftgrid),tmp_rrgfile);
-			}
-		}
-        */
-        
+		/*
+		  rrg_flag=0;
+		  if((i/rrg_skip)*rrg_skip == i) rrg_flag=1;
+		  if((rrg_flag==1) && (GB->outgen==1)){
+		  if(FA->refstructure == 1){
+		  sprintf(tmp_rrgfile,"%s_%d.rrg",FA->rrgfile,i);
+		  //printf("%s\n",tmp_rrgfile);
+		  //PAUSE;
+		  write_rrg(FA,GB,(*chrom),(*gene_lim),atoms,residue,(*cleftgrid),tmp_rrgfile);
+		  }
+		  }
+		*/
+		
 		reproduce(FA,GB,VC,(*chrom),(*gene_lim),atoms,residue,(*cleftgrid),GB->rep_model,GB->mut_rate,GB->cross_rate,print,dice,target);
 		
 		save_snapshot(&(*chrom_snapshot)[i*GB->num_chrom],(*chrom),save_num_chrom,GB->num_genes);
@@ -329,15 +329,15 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
  
 	quicksort_app_evalue((*chrom),0,GB->num_chrom-1);
 
-    strcpy(outfile,FA->rrgfile);
-    strcat(outfile,"_par.res");
-    write_par((*chrom),(*gene_lim),i+1,outfile,GB->num_chrom,GB->num_genes);
+	strcpy(outfile,FA->rrgfile);
+	strcat(outfile,"_par.res");
+	write_par((*chrom),(*gene_lim),i+1,outfile,GB->num_chrom,GB->num_genes);
 
 	quicksort_app_evalue((*chrom_snapshot),0,n_chrom_snapshot-1);
 
 	/*
-		printf("Save snapshot == END ==\n");
-		print_par((*chrom_snapshot),(*gene_lim),n_chrom_snapshot,GB->num_genes);
+	  printf("Save snapshot == END ==\n");
+	  print_par((*chrom_snapshot),(*gene_lim),n_chrom_snapshot,GB->num_genes);
 	*/
 
 	n_chrom_snapshot = remove_dups((*chrom_snapshot),n_chrom_snapshot,GB->num_genes);
@@ -512,7 +512,7 @@ void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,cons
 		*/
 	}
 
-    //***************************ELITISM**********************************
+	//***************************ELITISM**********************************
     
 	if(strcmp(repmodel,"STEADY")==0){
 
@@ -582,8 +582,8 @@ void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,cons
 	  
 					memcpy(chrom[GB->num_chrom+i].genes,chrop1_gen,GB->num_genes*sizeof(gene));
 					chrom[GB->num_chrom+i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[GB->num_chrom+i].genes,target);
-                    chrom[GB->num_chrom+i].evalue=get_cf_evalue(&chrom[GB->num_chrom+i].cf);
-                    chrom[GB->num_chrom+i].app_evalue=get_apparent_cf_evalue(&chrom[GB->num_chrom+i].cf);
+					chrom[GB->num_chrom+i].evalue=get_cf_evalue(&chrom[GB->num_chrom+i].cf);
+					chrom[GB->num_chrom+i].app_evalue=get_apparent_cf_evalue(&chrom[GB->num_chrom+i].cf);
 					chrom[GB->num_chrom+i].status='n';
 					i++;
 	  
@@ -598,8 +598,8 @@ void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,cons
 	  
 					memcpy(chrom[GB->num_chrom+i].genes,chrop2_gen,GB->num_genes*sizeof(gene));
 					chrom[GB->num_chrom+i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[GB->num_chrom+i+1].genes,target);
-                    chrom[GB->num_chrom+i].evalue=get_cf_evalue(&chrom[GB->num_chrom+i].cf);
-                    chrom[GB->num_chrom+i].app_evalue=get_apparent_cf_evalue(&chrom[GB->num_chrom+i].cf);
+					chrom[GB->num_chrom+i].evalue=get_cf_evalue(&chrom[GB->num_chrom+i].cf);
+					chrom[GB->num_chrom+i].app_evalue=get_apparent_cf_evalue(&chrom[GB->num_chrom+i].cf);
 					chrom[GB->num_chrom+i].status='n';
 					i++;
 	  
@@ -687,8 +687,8 @@ void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,cons
 					memcpy(chrom[GB->num_chrom+i].genes,chrop1_gen,GB->num_genes*sizeof(gene));
 	  
 					chrom[GB->num_chrom+i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[GB->num_chrom+i].genes,target);
-                    chrom[GB->num_chrom+i].evalue=get_cf_evalue(&chrom[GB->num_chrom+i].cf);
-                    chrom[GB->num_chrom+i].app_evalue=get_apparent_cf_evalue(&chrom[GB->num_chrom+i].cf);
+					chrom[GB->num_chrom+i].evalue=get_cf_evalue(&chrom[GB->num_chrom+i].cf);
+					chrom[GB->num_chrom+i].app_evalue=get_apparent_cf_evalue(&chrom[GB->num_chrom+i].cf);
 					chrom[GB->num_chrom+i].status='n';
                     
 					i++;
@@ -705,8 +705,8 @@ void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,cons
 					memcpy(chrom[GB->num_chrom+i].genes,chrop2_gen,GB->num_genes*sizeof(gene));
 	  
 					chrom[GB->num_chrom+i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[GB->num_chrom+i].genes,target);
-                    chrom[GB->num_chrom+i].evalue=get_cf_evalue(&chrom[GB->num_chrom+i].cf);
-                    chrom[GB->num_chrom+i].app_evalue=get_apparent_cf_evalue(&chrom[GB->num_chrom+i].cf);
+					chrom[GB->num_chrom+i].evalue=get_cf_evalue(&chrom[GB->num_chrom+i].cf);
+					chrom[GB->num_chrom+i].app_evalue=get_apparent_cf_evalue(&chrom[GB->num_chrom+i].cf);
 					chrom[GB->num_chrom+i].status='n';
 					i++;
 
@@ -764,8 +764,8 @@ void calculate_fitness(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chr
 	for(i=0;i<pop_size;i++){
 		if(chrom[i].status != 'n'){
 			chrom[i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[i].genes,target);
-            chrom[i].evalue=get_cf_evalue(&chrom[i].cf);
-            chrom[i].app_evalue=get_apparent_cf_evalue(&chrom[i].cf);
+			chrom[i].evalue=get_cf_evalue(&chrom[i].cf);
+			chrom[i].app_evalue=get_apparent_cf_evalue(&chrom[i].cf);
 			chrom[i].status='n';
 		}
 	}
@@ -814,24 +814,24 @@ void calculate_fitness(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chr
 
 	if(print){
         
-        static int gen_id = 1;
-        FILE* outfile_ptr = get_update_file_ptr(FA);
+		static int gen_id = 1;
+		FILE* outfile_ptr = get_update_file_ptr(FA);
 
-        if(outfile_ptr == NULL){
-            fprintf(stderr,"ERROR: The NRGsuite failed to update within the timeout.\n");
-            Terminate(10);
-        }
+		if(outfile_ptr == NULL){
+			fprintf(stderr,"ERROR: The NRGsuite failed to update within the timeout.\n");
+			Terminate(10);
+		}
         
-        fprintf(outfile_ptr, "Generation: %5d\n", gen_id);
+		fprintf(outfile_ptr, "Generation: %5d\n", gen_id);
 		fprintf(outfile_ptr, "best by energy\n");
         
 		print_par(chrom,gene_lim,GB->num_print,GB->num_genes, outfile_ptr);
         
-        fflush(outfile_ptr);
+		fflush(outfile_ptr);
 
-        close_update_file_ptr(FA, outfile_ptr);
+		close_update_file_ptr(FA, outfile_ptr);
 
-        gen_id++;
+		gen_id++;
         
 	}
 
@@ -846,9 +846,9 @@ void calculate_fitness(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chr
 void close_update_file_ptr(FA_Global* FA, FILE* outfile_ptr)
 {
 
-    if(FA->nrg_suite){
-        fclose(outfile_ptr);
-    }
+	if(FA->nrg_suite){
+		fclose(outfile_ptr);
+	}
     
 }
 /***********************************************************************/
@@ -859,22 +859,22 @@ void close_update_file_ptr(FA_Global* FA, FILE* outfile_ptr)
 FILE* get_update_file_ptr(FA_Global* FA)
 {
     
-    if(!FA->nrg_suite){
-        return stdout;
-    }
+	if(!FA->nrg_suite){
+		return stdout;
+	}
     
-    FILE* outfile_ptr = NULL;
-    char UPDATEFILE[MAX_PATH__];
-    long long timeout = 0;
+	FILE* outfile_ptr = NULL;
+	char UPDATEFILE[MAX_PATH__];
+	long long timeout = 0;
     
-    strcpy(UPDATEFILE,FA->state_path);
+	strcpy(UPDATEFILE,FA->state_path);
 #ifdef _WIN32
-    strcat(UPDATEFILE,"\\.update");
+	strcat(UPDATEFILE,"\\.update");
 #else
-    strcat(UPDATEFILE,"/.update");
+	strcat(UPDATEFILE,"/.update");
 #endif
     
-    outfile_ptr = fopen(UPDATEFILE,"r");
+	outfile_ptr = fopen(UPDATEFILE,"r");
 	if(outfile_ptr != NULL) {
 		do {
 			fclose(outfile_ptr);
@@ -885,23 +885,23 @@ FILE* get_update_file_ptr(FA_Global* FA)
 			usleep(SLEEP*1000);
 # endif
             
-            timeout += SLEEP;
-            if(timeout >= FA->nrg_suite_timeout*1000){
-                return NULL;
-            }
+			timeout += SLEEP;
+			if(timeout >= FA->nrg_suite_timeout*1000){
+				return NULL;
+			}
             
-            outfile_ptr = fopen(UPDATEFILE,"r");
+			outfile_ptr = fopen(UPDATEFILE,"r");
             
 		}while(outfile_ptr != NULL);
 	}
     
-    outfile_ptr = fopen(UPDATEFILE,"w");
-    if(outfile_ptr == NULL){
-        fprintf(stderr,"ERROR: Cannot open update file '%s' for reading.\n", UPDATEFILE);
-        Terminate(10);
-    }
+	outfile_ptr = fopen(UPDATEFILE,"w");
+	if(outfile_ptr == NULL){
+		fprintf(stderr,"ERROR: Cannot open update file '%s' for reading.\n", UPDATEFILE);
+		Terminate(10);
+	}
     
-    return outfile_ptr;
+	return outfile_ptr;
     
 }
 
@@ -911,8 +911,8 @@ FILE* get_update_file_ptr(FA_Global* FA)
 /*        1         2         3         4         5         6         7*/
 /***********************************************************************/
 cfstr eval_chromosome(FA_Global* FA,GB_Global* GB,VC_Global* VC,const genlim* gene_lim,
-                       atom* atoms,resid* residue,gridpoint* cleftgrid,gene* john, 
-                       cfstr (*function)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*)){
+		      atom* atoms,resid* residue,gridpoint* cleftgrid,gene* john, 
+		      cfstr (*function)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*)){
 	
 	double icv[MAX_NUM_GENES] = {0};
 	
@@ -951,7 +951,7 @@ void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* 
 		dice(rng, one_to_max_int32);
 	
     
-    FILE* infile_ptr = NULL;
+	FILE* infile_ptr = NULL;
     
 	// initialise genes to zero
 	for(i=popoffset;i<GB->num_chrom;i++){
@@ -967,7 +967,7 @@ void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* 
 		printf("generating random population...\n");
 		//printf("num_chrom=%d num_genes=%d\n",GB->num_chrom,GB->num_genes);
     
-        int gener=0;
+		int gener=0;
         
 		i=popoffset;
 		while(i<GB->num_chrom){
@@ -999,46 +999,46 @@ void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* 
             
 		}
         
-        printf("generated %d randomized individuals\n", gener);
+		printf("generated %d randomized individuals\n", gener);
 
 	}
 
 	//------------------------------------------------------------------------------
 	
 	if(strcmp(method,"IPFILE")==0){
-        printf("generating population from file...\n");
+		printf("generating population from file...\n");
 
 		if(!OpenFile_B(file,"r",&infile_ptr)){
-            fprintf(stderr,"ERROR: Cannot open file '%s' for reading.\n", file);
+			fprintf(stderr,"ERROR: Cannot open file '%s' for reading.\n", file);
 			Terminate(8);
-        }
+		}
         
-        fseek(infile_ptr, at, SEEK_SET);
+		fseek(infile_ptr, at, SEEK_SET);
                 
-        i=0;
-        j=0;
-        while(i<GB->num_chrom && fread(&chrom[i].genes[j].to_int32, 1, sizeof(boost::int32_t), infile_ptr)){
+		i=0;
+		j=0;
+		while(i<GB->num_chrom && fread(&chrom[i].genes[j].to_int32, 1, sizeof(boost::int32_t), infile_ptr)){
             
-            chrom[i].genes[j].to_ic = genetoic(&gene_lim[j],chrom[i].genes[j].to_int32);
+			chrom[i].genes[j].to_ic = genetoic(&gene_lim[j],chrom[i].genes[j].to_int32);
             
-            j++;
-            if(j==GB->num_genes){
-                i++;
-                j=0;
-            }
-        }
+			j++;
+			if(j==GB->num_genes){
+				i++;
+				j=0;
+			}
+		}
         
 		CloseFile_B(&infile_ptr,"r");
         
-        printf("generated %d individuals from file\n", i);
+		printf("generated %d individuals from file\n", i);
         
-        // reset to RANDOM afterwards
-        strcpy(method,"RANDOM");
+		// reset to RANDOM afterwards
+		strcpy(method,"RANDOM");
         
-        // complete remaining population when necessary
-        return populate_chromosomes(FA,GB,VC,chrom,gene_lim,atoms,residue,
-                                    cleftgrid,GB->pop_init_method,target,
-                                    GB->pop_init_file,at,i,print,dice);
+		// complete remaining population when necessary
+		return populate_chromosomes(FA,GB,VC,chrom,gene_lim,atoms,residue,
+					    cleftgrid,GB->pop_init_method,target,
+					    GB->pop_init_file,at,i,print,dice);
 	}
 	
 	//------------------------------------------------------------------------------
@@ -1046,8 +1046,8 @@ void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* 
 	// calculate evalue for each chromosome
 	for(i=popoffset;i<GB->num_chrom;i++){
 		chrom[i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[i].genes,target);
-        chrom[i].evalue=get_cf_evalue(&chrom[i].cf);
-        chrom[i].app_evalue=get_apparent_cf_evalue(&chrom[i].cf);
+		chrom[i].evalue=get_cf_evalue(&chrom[i].cf);
+		chrom[i].app_evalue=get_apparent_cf_evalue(&chrom[i].cf);
 		chrom[i].status='n';
 		//PAUSE;
 		//printf("evalue(%d)=%6.3f\n",i,chrom[i].evalue);
@@ -1056,7 +1056,7 @@ void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* 
 	// sort and calculate fitness
 	calculate_fitness(FA,GB,VC,chrom,gene_lim,atoms,residue,cleftgrid,GB->fitness_model,GB->num_chrom,print,target);
 
-    return;
+	return;
 }
 /***********************************************************************/
 /*        1         2         3         4         5         6          */
@@ -1137,30 +1137,30 @@ int cmp_chrom2pop_int(const chromosome* chrom,const gene* genes, int num_genes,i
 /***********************************************************************/
 void validate_dups(GB_Global* GB, genlim* gene_lim, int num_genes){	
     
-    double n_poss = calc_poss(gene_lim, num_genes);
+	double n_poss = calc_poss(gene_lim, num_genes);
     
-    if(n_poss < (double)GB->num_chrom && !GB->duplicates){
-        fprintf(stderr,"Too many chromosomes for the number of possibilites (%.1lf) when no duplicates allowed.\n", n_poss);
-        fprintf(stderr,"Duplicates are then allowed.\n");
-        GB->duplicates = 1;
-    }
+	if(n_poss < (double)GB->num_chrom && !GB->duplicates){
+		fprintf(stderr,"Too many chromosomes for the number of possibilites (%.1lf) when no duplicates allowed.\n", n_poss);
+		fprintf(stderr,"Duplicates are then allowed.\n");
+		GB->duplicates = 1;
+	}
     
-    return;
+	return;
 }
 
 double calc_poss(genlim* gene_lim, int num_genes){	
 
-    double n_poss = 0.0;
+	double n_poss = 0.0;
 
 	for(int i=0; i<num_genes; i++){
-        if(n_poss > 0.0){
-            n_poss *= gene_lim[i].nbin;
-        }else{
-            n_poss = gene_lim[i].nbin;
-        }
-    }
+		if(n_poss > 0.0){
+			n_poss *= gene_lim[i].nbin;
+		}else{
+			n_poss = gene_lim[i].nbin;
+		}
+	}
     
-    return n_poss;
+	return n_poss;
 }
 
 void set_bins(genlim* gene_lim, int num_genes){	
@@ -1171,8 +1171,8 @@ void set_bins(genlim* gene_lim, int num_genes){
 		if(gene_lim[i].map){ nbin += 1.0; }
 		
 		gene_lim[i].bin = 1.0/nbin;
-        gene_lim[i].nbin = nbin;
-    }
+		gene_lim[i].nbin = nbin;
+	}
 
 	return;
 }
@@ -1207,13 +1207,13 @@ void read_gainputs(FA_Global* FA,GB_Global* GB,int* gen_int,int* sz_part,char fi
 	//printf("file here is <%s>\n",file);
 	infile_ptr=NULL;
 	if(!OpenFile_B(file,"r",&infile_ptr)){
-        fprintf(stderr,"ERROR: Cannot find file '%s'.\n", file);	
+		fprintf(stderr,"ERROR: Cannot find file '%s'.\n", file);	
 		Terminate(8);
-    }
+	}
     
 	while (fgets(buffer, sizeof(buffer),infile_ptr)){
         
-        buffer[strlen(buffer)-1] = '\0';
+		buffer[strlen(buffer)-1] = '\0';
         
 		if(strncmp(buffer,"NUMCHROM",8) == 0){
 			sscanf(buffer,"%s %d",field,&GB->num_chrom);
@@ -1237,18 +1237,18 @@ void read_gainputs(FA_Global* FA,GB_Global* GB,int* gen_int,int* sz_part,char fi
 			sscanf(buffer,"%s %lf",field,&GB->end_mut_prob);
 		}else if(strncmp(buffer,"POPINIMT",8) == 0){
 			sscanf(buffer,"%s %s",field,GB->pop_init_method);
-            //0         1         2
-            //012345678901234567890123456789
-            //POPINIMT IPFILE file.dat
-            if(strcmp(GB->pop_init_method,"IPFILE") == 0){
-                strcpy(GB->pop_init_file,&buffer[16]);
-            }
+			//0         1         2
+			//012345678901234567890123456789
+			//POPINIMT IPFILE file.dat
+			if(strcmp(GB->pop_init_method,"IPFILE") == 0){
+				strcpy(GB->pop_init_file,&buffer[16]);
+			}
 		}else if(strncmp(buffer,"FITMODEL",8) == 0){
 			sscanf(buffer,"%s %s",field,GB->fitness_model);
 		}else if(strncmp(buffer,"REPMODEL",8) == 0){
 			sscanf(buffer,"%s %s",field,GB->rep_model);
 		}else if(strncmp(buffer,"DUPLICAT",8) == 0){
-            GB->duplicates = 1;
+			GB->duplicates = 1;
 		}else if(strncmp(buffer,"BOOMFRAC",8) == 0){
 			sscanf(buffer,"%s %lf",field,&GB->pbfrac);
 		}else if(strncmp(buffer,"STEADNUM",8) == 0){
@@ -1280,39 +1280,39 @@ void read_gainputs(FA_Global* FA,GB_Global* GB,int* gen_int,int* sz_part,char fi
 long int read_pop_init_file(FA_Global* FA, GB_Global* GB, genlim* gene_lim, char* pop_init_file)
 {
     
-    long int at = 0;
-    FILE* infile_ptr = NULL;
+	long int at = 0;
+	FILE* infile_ptr = NULL;
     
-    if(!OpenFile_B(pop_init_file,"r",&infile_ptr)){
-        fprintf(stderr,"ERROR: Cannot open file '%s' for reading.\n", pop_init_file);	
-        Terminate(8);
-    }
+	if(!OpenFile_B(pop_init_file,"r",&infile_ptr)){
+		fprintf(stderr,"ERROR: Cannot open file '%s' for reading.\n", pop_init_file);	
+		Terminate(8);
+	}
     
-    char genes_tag[6];
-    fread(&genes_tag[0], 1, sizeof(genes_tag)-1, infile_ptr);
-    genes_tag[5] = '\0';
-    //printf("genes_tag=%s\n", genes_tag);
+	char genes_tag[6];
+	fread(&genes_tag[0], 1, sizeof(genes_tag)-1, infile_ptr);
+	genes_tag[5] = '\0';
+	//printf("genes_tag=%s\n", genes_tag);
     
-    if(strcmp(genes_tag,"genes") == 0){
+	if(strcmp(genes_tag,"genes") == 0){
         
-        int i=0;
-        while(i < GB->num_genes){
-            fread(&gene_lim[i], 1, sizeof(genlim), infile_ptr);
-            i++;
-        }
+		int i=0;
+		while(i < GB->num_genes){
+			fread(&gene_lim[i], 1, sizeof(genlim), infile_ptr);
+			i++;
+		}
 
-        char chrom_tag[6];
-        fread(&chrom_tag[0], 1, sizeof(chrom_tag)-1, infile_ptr);
-        chrom_tag[5] = '\0';
-        //printf("chrom_tag=%s\n", chrom_tag);
+		char chrom_tag[6];
+		fread(&chrom_tag[0], 1, sizeof(chrom_tag)-1, infile_ptr);
+		chrom_tag[5] = '\0';
+		//printf("chrom_tag=%s\n", chrom_tag);
         
-        if(strcmp(chrom_tag,"chrom") == 0){
-            at = ftell(infile_ptr);
-        }
+		if(strcmp(chrom_tag,"chrom") == 0){
+			at = ftell(infile_ptr);
+		}
         
-    }    
+	}    
     
-    CloseFile_B(&infile_ptr, "r");
+	CloseFile_B(&infile_ptr, "r");
         
 	return at;
 }
@@ -1478,9 +1478,9 @@ void quicksort_app_evalue(chromosome* list,int m,int n){
 
 		while(i <= j)
 		{
-			while((i <= n) && (list[i].app_evalue > key))
+			while((i <= n) && (list[i].app_evalue <= key))
 				i++;
-			while((j > m) && (list[j].app_evalue <= key))
+			while((j > m) && (list[j].app_evalue > key))
 				j--;
 			if( i < j)
 				swap_chrom(&list[i],&list[j]);
@@ -1561,7 +1561,7 @@ void print_par(const chromosome* chrom,const genlim* gene_lim,int num_chrom,int 
 		for(int j=0;j<num_genes;j++) fprintf(outfile_ptr, "%10.2f ", chrom[i].genes[j].to_ic);
 		fprintf(outfile_ptr, ") ");
 		fprintf(outfile_ptr, " value=%9.3f fitnes=%9.3f\n",chrom[i].evalue,chrom[i].fitnes);
-    }
+	}
     
 	return;
 }
@@ -1580,23 +1580,23 @@ void write_par(const chromosome* chrom,const genlim* gene_lim,int ger,char* outf
 		Terminate(6);
 	}else{
         
-        char genes_tag[5] = { 'g' , 'e' , 'n' , 'e' , 's' };
+		char genes_tag[5] = { 'g' , 'e' , 'n' , 'e' , 's' };
         
-        fwrite(&genes_tag[0], 1, sizeof(genes_tag), outfile_ptr);
+		fwrite(&genes_tag[0], 1, sizeof(genes_tag), outfile_ptr);
 		for(j=0;j<num_genes;j++){
-            fwrite(&gene_lim[j], 1, sizeof(genlim), outfile_ptr);
+			fwrite(&gene_lim[j], 1, sizeof(genlim), outfile_ptr);
 		}
         
-        char chrom_tag[5] = { 'c' , 'h' , 'r' , 'o' , 'm' };
+		char chrom_tag[5] = { 'c' , 'h' , 'r' , 'o' , 'm' };
 
-        fwrite(&chrom_tag[0], 1, sizeof(chrom_tag), outfile_ptr);
+		fwrite(&chrom_tag[0], 1, sizeof(chrom_tag), outfile_ptr);
 		for(i=0;i<num_chrom;i++){
 			for(j=0;j<num_genes;j++){
-                fwrite(&chrom[i].genes[j].to_int32, 1, sizeof(boost::int32_t), outfile_ptr);
-            }
+				fwrite(&chrom[i].genes[j].to_int32, 1, sizeof(boost::int32_t), outfile_ptr);
+			}
 		}
 
-    }
+	}
 
 	CloseFile_B(&outfile_ptr,"w");
 
@@ -1698,9 +1698,9 @@ double genetoic(const genlim* gene_lim, boost::int32_t gene){
 	double ic = gene_lim->min + gene_lim->del * (double)i;
 	
 	/*        
-	printf("ic=%.1f gene=%d randdouble=%.8f min=%.3f del=%.3f bin=%.8f\n", 
-	       ic, gene, RandomDouble(gene), 
-	       gene_lim->min, gene_lim->del, gene_lim->bin);
+		  printf("ic=%.1f gene=%d randdouble=%.8f min=%.3f del=%.3f bin=%.8f\n", 
+		  ic, gene, RandomDouble(gene), 
+		  gene_lim->min, gene_lim->del, gene_lim->bin);
 	*/
 
 	return(ic);
@@ -1720,9 +1720,9 @@ int ictogene(const genlim* gene_lim, double ic){
 	int gene = RandomInt(tot);
 	
         /*
-	printf("ic=%.3f gene=%d randdouble=%.5f min=%.3f del=%.3f bin=%.3f\n", 
-	       ic, gene, RandomDouble(gene), 
-	       gene_lim->min, gene_lim->del, gene_lim->bin);
+	  printf("ic=%.3f gene=%d randdouble=%.5f min=%.3f del=%.3f bin=%.3f\n", 
+	  ic, gene, RandomDouble(gene), 
+	  gene_lim->min, gene_lim->del, gene_lim->bin);
 	*/
 	
 	return(gene);

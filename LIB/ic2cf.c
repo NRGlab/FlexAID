@@ -299,7 +299,7 @@ double get_apparent_cf_evalue(cfstr* cf) {
 #else
 double get_apparent_cf_evalue(cfstr* cf) {
 #endif
-    return cf->com - cf->wal + cf->sas - cf->con;
+    return cf->com + cf->wal + cf->sas + cf->con;
 }
     
 #ifdef _WIN32
@@ -307,6 +307,6 @@ double get_cf_evalue(cfstr* cf) {
 #else
 double get_cf_evalue(cfstr* cf) {
 #endif
-    return cf->com - cf->wal + cf->sas;
+    return cf->com + cf->wal + cf->sas;
 }
         

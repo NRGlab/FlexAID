@@ -242,6 +242,21 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 #endif
 			}
 		
+		}else if(FA->ntypes == 39 || FA->ntypes == 40){ //      -/+ solvent term
+			if(FA->is_protein){
+#ifdef _WIN32
+				strcat(deftyp,"\\AMINO.def");
+#else
+				strcat(deftyp,"/AMINO.def");
+#endif
+			}else{
+#ifdef _WIN32
+				strcat(deftyp,"\\NUCLEOTIDES.def");
+#else
+				strcat(deftyp,"/NUCLEOTIDES.def");
+#endif
+			}
+		
 		}else{
 			fprintf(stderr, "ERROR: Invalid number of atom types read in energy matrix (%s)\n", emat);
 			Terminate(20);

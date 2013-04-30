@@ -34,7 +34,7 @@ SHAREPEK 5.0
 SHARESCL 10.0
 
 # Modele de reproduction
-REPMODEL BOOMWD
+REPMODEL BOOM
 
 # Fraction de la population a generer
 # Lorsque REPMODEL vaut BOOMWD
@@ -50,6 +50,6 @@ PRINTCHR 10
 
 # Permet de sauvegarder la population a toutes
 # les 10 generations
-OUTGENER 0
+#OUTGENER 1
 
 #OPTIGRID 50 50

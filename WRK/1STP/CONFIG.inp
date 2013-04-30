@@ -43,11 +43,11 @@ OPTIMZ 9999 - -1
 OPTIMZ 9999 - 0
 # Allows the rotatable bond #1 to be flexible
 # The order of bonds is described in the ligand input file
-OPTIMZ 9999 - 1
-OPTIMZ 9999 - 2
-OPTIMZ 9999 - 3
-OPTIMZ 9999 - 4
-OPTIMZ 9999 - 5
+#OPTIMZ 9999 - 1
+#OPTIMZ 9999 - 2
+#OPTIMZ 9999 - 3
+#OPTIMZ 9999 - 4
+#OPTIMZ 9999 - 5
 #OPTIMZ ...
 
 # The variation of angles and dihedrals from the reference point
@@ -66,7 +66,7 @@ VARFLX 10.0
 COMPLF VCT
 
 # Interaction matrix between atom types (forces)
-IMATRX ../M6_cons_3.dat
+IMATRX nrg_mat_BEST.dat
 
 # Forces the use of a types definition file
 # By default, FlexAID uses DEPSPA to search for types def.
@@ -89,7 +89,7 @@ PERMEA 0.9
 # Type of the solvent
 # The value has to be between [0-N] where N is the number of atom
 # types defined in DEFTYP
-SLVTYP 13
+SLVTYP 40
 
 # When the atom type of solvent is 0, areas in contact with solvent
 # are multiplied by this constant

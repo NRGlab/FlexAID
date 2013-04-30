@@ -439,13 +439,13 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue)
 	//print_surfmat(matrix,"surf.mat");
 #if DEBUG_LEVEL > 0
 	printf("\n");
-	printf("CF.sum = %.3f\n", cfs->com + cfs->sas - cfs->wal);
+	printf("CF.sum = %.3f\n", cfs->com + cfs->sas + cfs->wal);
 	printf("CF.com = %.3f\n", cfs->com);
 	printf("CF.sas = %.3f\n", cfs->sas);
 	printf("CF.wal = %.3f\n", cfs->wal);
 	getchar(); 
 #endif
-  
+  	
 	free(VC->ca_rec);
 	//printf("free-ing %p\n",VC->ca_rec);
   

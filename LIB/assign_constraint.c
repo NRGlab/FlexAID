@@ -48,7 +48,7 @@ int assign_constraint(FA_Global* FA, atom* atoms, resid* residue, constraint* co
     chn=cons->chn1;
     strcpy(rnam,cons->rnam1);
     
-    printf("searching %s %c %d %d\n",rnam,chn,rnum,anum);
+    //printf("searching %s %c %d %d\n",rnam,chn,rnum,anum);
     
     for(i=1;i<=FA->res_cnt;i++){
         if(residue[i].number == rnum        &&
@@ -63,14 +63,14 @@ int assign_constraint(FA_Global* FA, atom* atoms, resid* residue, constraint* co
         }
     }
     
-    printf("found k1: %d\n",k1);
+    //printf("found k1: %d\n",k1);
     
     rnum=cons->rnum2;
     anum=cons->anum2;
     chn=cons->chn2;
     strcpy(rnam,cons->rnam2);
     
-    printf("searching %s %c %d %d\n",rnam,chn,rnum,anum);
+    //printf("searching %s %c %d %d\n",rnam,chn,rnum,anum);
     
     for(i=1;i<=FA->res_cnt;i++){
         if(residue[i].number == rnum        &&
@@ -85,7 +85,7 @@ int assign_constraint(FA_Global* FA, atom* atoms, resid* residue, constraint* co
         }
     }
     
-    printf("found k2: %d\n",k2);
+    //printf("found k2: %d\n",k2);
     
     
     if(k1 != 0 && k2 != 0){
