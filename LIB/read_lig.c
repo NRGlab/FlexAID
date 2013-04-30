@@ -203,7 +203,7 @@ void read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]){
             
             // dummy atom type by default
             (*atoms)[FA->atm_cnt].type = 39;
-
+            
 			help[0]=buffer[11];
 			help[1]=buffer[12];
 			help[2]='\0';

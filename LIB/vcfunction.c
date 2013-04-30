@@ -398,7 +398,7 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue)
 			// skip to next contact
 			currindex = VC->ca_rec[currindex].prev;
 		}    
-    
+        
 		//    printf("Atom[%d]=%d has %d contacts\n",VC->Calc[i].atomnum,VC->Calc[i].atomnum,contnum);
 		//    printf("Atom[%d] COM=[%8.2f]\tWAL=[%8.2f]\n",VC->Calc[i].atomnum,com_atm,Ewall_atm);
     
