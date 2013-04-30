@@ -200,23 +200,25 @@ void read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]){
 				flag=1;
 			}
 			(*residue)[FA->res_cnt].latm[0]=FA->atm_cnt;
-      
-			//HETTYP _____ _ ____ _ __________________
-      
+            
+            // dummy atom type by default
+            (*atoms)[FA->atm_cnt].type = 39;
+            
 			help[0]=buffer[11];
 			help[1]=buffer[12];
 			help[2]='\0';
 			sscanf(help,"%d",&(*atoms)[FA->atm_cnt].type);
-      
+            //printf("atom[%d].type=%d\n", (*atoms)[FA->atm_cnt].number, (*atoms)[FA->atm_cnt].type);
+            
 			for (i=0;i<4;i++){(*atoms)[FA->atm_cnt].name[i]=buffer[14+i];}
 			(*atoms)[FA->atm_cnt].name[4]='\0';
       
 			if((*atoms)[FA->atm_cnt].type > FA->ntypes){
 				printf("WARNING: res %s atom %s has atom type %d when %d types are defined\n",
 				       (*residue)[FA->res_cnt].name, (*atoms)[FA->atm_cnt].name, (*atoms)[FA->atm_cnt].type, FA->ntypes);
-				printf("WARNING: type %d is set to neutral (6)\n", (*atoms)[FA->atm_cnt].type);
+				printf("WARNING: type %d is set to dummy (39)\n", (*atoms)[FA->atm_cnt].type);
 	      
-				(*atoms)[FA->atm_cnt].type = 6;
+				(*atoms)[FA->atm_cnt].type = 39;
 			}
 
 			(*atoms)[FA->atm_cnt].recs=buffer[19];
@@ -244,7 +246,7 @@ void read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]){
 			FA->num_atm[(*atoms)[FA->atm_cnt].number]=FA->atm_cnt;
       
 			// set atoms.radius
-			(*atoms)[FA->atm_cnt].radius=assign_radius((*atoms)[FA->atm_cnt].name);
+			//(*atoms)[FA->atm_cnt].radius=assign_radius((*atoms)[FA->atm_cnt].name);
       
 			// set atoms.ofres
 			(*atoms)[FA->atm_cnt].ofres=FA->res_cnt;
@@ -431,9 +433,9 @@ void read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]){
 	//  for(i=1;i<=residue[res_cnt].fdih;i++)
 	//printf("%2d=%6d%6d%6d\n",i,altfdih[i][0],altfdih[i][1],altfdih[i][2]);
 
-	if((*residue)[FA->res_cnt].fdih > 0)
+	if((*residue)[FA->res_cnt].fdih > 0){
 		assign_shift(*atoms,*residue,FA->res_cnt,natm,list,altfdih);
-
+    }
 
 	FA->optres[0].rnum=FA->res_cnt;
 	FA->optres[0].type=1;

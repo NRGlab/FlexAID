@@ -12,10 +12,13 @@ void assign_radii(atom* atoms,resid* residue,int atm_cnt)
     
     for(int atomi=1; atomi<=atm_cnt; ++atomi) {
         
+        // ATOM records
         if(residue[atoms[atomi].ofres].type == 0){
             
-            // ===============================================================
-            // check if residue is DNA or RNA - ADDED  25-Sept-2003 BJM
+            /*****************************************************************/
+            /********************       DNA OR RNA      **********************/
+            /*****************************************************************/
+            
             if(!strncmp(residue[atoms[atomi].ofres].name, "  C", 3) || !strncmp(residue[atoms[atomi].ofres].name, "C  ", 3) ||
                !strncmp(residue[atoms[atomi].ofres].name, "  G", 3) || !strncmp(residue[atoms[atomi].ofres].name, "G  ", 3) ||
                !strncmp(residue[atoms[atomi].ofres].name, "  A", 3) || !strncmp(residue[atoms[atomi].ofres].name, "A  ", 3) ||
@@ -74,10 +77,20 @@ void assign_radii(atom* atoms,resid* residue,int atm_cnt)
                     } else { 
                         atoms[atomi].radius = radius[1];  // C3H1, dummy value					
                     }
+                    
+                }else{
+                    printf("Unknown atom name '%s' from residue '%s': radius set to default (2.0)\n",
+                           atoms[atomi].name, residue[atoms[atomi].ofres].name);
+                    
+                    atoms[atomi].radius = radius[10];  // unknown atom                    
                 }
-                // ============================ end addition =========================
+                
+                /*****************************************************************/
+                /********************        PROTEIN        **********************/
+                /*****************************************************************/
+                
             } else {
-                // if not DNA/RNA, then amino acid residue
+                
                 if(atoms[atomi].name[1] == 'O') {
                     //   OXYGEN
                     if((atoms[atomi].name[2] == 'G')||(atoms[atomi].name[2] == 'H')) {
@@ -140,36 +153,11 @@ void assign_radii(atom* atoms,resid* residue,int atm_cnt)
                     atoms[atomi].radius = radius[10];     // default for unknown atom;
                 }
             }
-            
-        }else{
          
-            if(!strncmp(atoms[atomi].name,"ZN",2)){
-                if(atoms[atomi].bond[0]){
-                    
-                }else{
-                    atoms[atomi].radius = 1.39f;
-                }
-            }else if(!strncmp(atoms[atomi].name,"MG",2)){
-                atoms[atomi].radius = 1.73f;                
-            }else if(!strncmp(atoms[atomi].name,"NI",2)){
-                atoms[atomi].radius = 1.63f;
-            }else if(!strncmp(atoms[atomi].name,"SR",2)){
-                atoms[atomi].radius = 2.00f;
-            }else if(!strncmp(atoms[atomi].name,"CA",2)){
-                atoms[atomi].radius = 2.00f;
-            }else if(!strncmp(atoms[atomi].name,"CU",2)){
-                atoms[atomi].radius = 1.40f;
-            }else if(!strncmp(atoms[atomi].name,"SE",2)){
-                atoms[atomi].radius = 1.90f;
-            }else if(!strncmp(atoms[atomi].name,"FE",2)){
-                atoms[atomi].radius = 2.00f;
-            }else if(!strncmp(atoms[atomi].name,"CD",2)){
-                atoms[atomi].radius = 2.00f;                
-            }else if(!strncmp(atoms[atomi].name,"HG",2)){
-                
-            }else if(!strncmp(atoms[atomi].name,"MN",2)){
-                
-            }
+            
+        } else {
+            // HETATM records (modified amino acids, bound ligands, metals, water)
+            
         }
         
         //    printf("Atom[%d]=%d\t%s(%s) Rad=%1.2f\n",atomi,atoms[atomi].number,atoms[atomi].name,residue[atoms[atomi].ofres].name,atoms[atomi].radius);

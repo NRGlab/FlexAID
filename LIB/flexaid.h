@@ -125,7 +125,7 @@ struct constraint_str{
 	int  anum2;
 	int  inum1;
 	int  inum2;
-
+    
 	float max_ang;    // threshold critical angle value
 	float max_dist;   // threshold critical distance value
 
@@ -410,6 +410,7 @@ typedef struct FA_Global_struct FA_Global;
 //-----------------------------------------------------------------------------------------
 float  assign_radius(char atm[]);                                  // assigns atomic radii
 void   assign_radii(atom* atoms,resid* residue,int atmcnt);      // overrides default radii from FlexAID
+void   assign_radii_types(FA_Global* FA, atom* atoms, resid* residue); // sets radius using the SYBYL types
 
 // NEW GEOMETRY INLINE FUNCTIONS
 float  dihedral(const float *,const float *,const float *,const float *);

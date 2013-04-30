@@ -300,6 +300,9 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 
 	//////////////////////////////////////////////
 	
+    assign_radii_types(FA,(*atoms),(*residue));    
+	printf("radii are now assigned\n");
+    
 	if(strcmp(rmsd_file,"")){
 		printf("read rmsd structure <%s>: will match atom numbers\n",rmsd_file);
 
@@ -322,11 +325,6 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		assign_eigen(FA,*atoms,*residue,FA->res_cnt,FA->normal_modes);
 	}
 
-	//////////////////////////////////////////////
-
-	// overrides FlexAID radii by Vcontacts'
-	assign_radii(*atoms,*residue,FA->atm_cnt);
-	printf("radii are now assigned\n");
   
 	//////////////////////////////////////////////
 

@@ -79,6 +79,7 @@ OBJ =	top.o			\
 	partition_grid.o	\
 	assign_radius.o 	\
 	assign_radii.o		\
+	assign_radii_types.o	\
 	assign_types.o 		\
 	assign_shift.o		\
 	bondedlist.o 		\
@@ -208,6 +209,9 @@ assign_radius.o: $I/assign_radius.c $I/flexaid.h $I/boinc.h
 
 assign_radii.o: $I/assign_radii.c $I/flexaid.h
 	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/assign_radii.c $(INCLUDES)
+
+assign_radii_types.o: $I/assign_radii_types.c $I/flexaid.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/assign_radii_types.c $(INCLUDES)
 
 assign_types.o: $I/assign_types.c $I/flexaid.h $I/boinc.h
 	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/assign_types.c $(INCLUDES)

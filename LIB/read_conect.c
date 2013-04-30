@@ -40,11 +40,25 @@ void read_conect(FA_Global* FA,atom** atoms,char line[]){
     
     //printf("CONECT atm=%d tmp[0]=%d tmp[1]=%d tmp[2]=%d tmp[3]=%d\n",atm,tmp[0],tmp[1],tmp[2],tmp[3]);
     
+    int already_bound=0;
+    
     for(i=0;i<=3;i++){
-        if(tmp[i] != 0){
-            //printf("Added for atom[%d]:%d\n",atm,tmp[i]);
-            (*atoms)[FA->num_atm[atm]].bond[i+1]=FA->num_atm[tmp[i]];
-            (*atoms)[FA->num_atm[atm]].bond[0]++;
+        
+        if(tmp[i] != 0 && FA->num_atm[tmp[i]] != 0){
+            
+            already_bound = 0;
+            for(j=1;j<=(*atoms)[FA->num_atm[atm]].bond[0];j++){
+                if((*atoms)[FA->num_atm[atm]].bond[j] == FA->num_atm[tmp[i]]){
+                    already_bound = 1;
+                    break;
+                }
+            }
+            
+            if(!already_bound){
+                (*atoms)[FA->num_atm[atm]].bond[i+1]=FA->num_atm[tmp[i]];
+                (*atoms)[FA->num_atm[atm]].bond[0]++;
+                //printf("Added for atom[%d]:%d\n",atm,tmp[i]);
+            }
         }else{
             break;
         }

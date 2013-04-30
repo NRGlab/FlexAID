@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 *.dat
 *.inp
 *.ic
@@ -5,4 +6,15 @@
 *.pdb
 *.res
 *.cad
+=======
+*.lst
+*.inp
+*.ic
+*.pdb
+*.mol2
+*FlexAID_Mac*
+*FlexAID_Linux*
+*FlexAID
+*.o
+>>>>>>> radii_chimera
 WRK/*/*
