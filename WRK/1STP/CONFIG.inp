@@ -3,7 +3,7 @@
 ################################################################
 
 # PDB of the target protein/RNA structure 
-PDBNAM 1STP_noBTN.pdb
+PDBNAM 1STP_noBTN.inp.pdb
 
 # Flag indicating whether target is RNA
 # When enabled, structure is RNA
@@ -15,7 +15,7 @@ INPLIG BTN.inp
 # Uses the reference molecule defined in BTN_ref
 # The atom numbering must match between the ligand input file
 # and the ligand refernce PDB file
-RMSDST BTN_ref.pdb
+#RMSDST BTN_ref.pdb
 
 ################################################################
 #                        BINDING-SITE                          #

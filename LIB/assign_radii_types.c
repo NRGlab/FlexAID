@@ -137,7 +137,7 @@ void assign_radii_types(FA_Global* FA, atom* atoms, resid* residue)
                 
             }
             
-            printf("atom[%d].type=%d set to radius %.3f\n", atoms[j].number, atoms[j].type, atoms[j].radius);
+            //printf("atom[%d].type=%d set to radius %.3f\n", atoms[j].number, atoms[j].type, atoms[j].radius);
         }
     }
 }

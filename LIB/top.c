@@ -148,7 +148,7 @@ int main(int argc, char **argv){
 	FA->mov[0] = NULL;
 	FA->mov[1] = NULL;
     
-    strcpy(FA->vcontacts_self_consistency,"MEAN");
+        strcpy(FA->vcontacts_self_consistency,"MAX");
     
 	// Linux path
 	pch=strrchr(argv[0],'\\');
