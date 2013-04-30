@@ -119,9 +119,9 @@ int main(int argc, char **argv){
 
 	GB->outgen=0;
 	FA->num_grd=0;
-	FA->exclude_het=1;
-	FA->remove_water=0;
-
+	FA->exclude_het=0;
+	FA->remove_water=1;
+	
 	FA->recalci=0;
 	FA->skipped=0;
   

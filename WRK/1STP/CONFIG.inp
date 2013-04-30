@@ -39,6 +39,7 @@ SPACER 0.375
 
 # Allows the translation/rotation degrees of freedom of ligand
 # with residue number 9999 in chain ' '
+OPTIMZ 9999 - -1
 OPTIMZ 9999 - 0
 # Allows the rotatable bond #1 to be flexible
 # The order of bonds is described in the ligand input file
