@@ -75,11 +75,13 @@ IMATRX nrg_mat_BEST.dat
 #DEFTYP ../AMINO12.def
 
 # Include HET groups from target molecule
-# The atom type will be 0 for atoms listed as HETATM
-#INCHET
+# By default, HET groups are included (modifed aa, ligands, water, ...)
+# To exclude, un-comment next line:
+#EXCHET
 
-# If HET groups are enabled, remove HOH groups (water)
-#RMVHOH
+# If HET groups are present, water molecules are removed by default
+# To include them, un-comment next line:
+#INCHOH
 
 # Permeability allowed between atoms
 # 1.0 is no permeability at all
