@@ -48,7 +48,7 @@
 
 #define KWALL    1.0e6
 #define KANGLE   1.0e2
-#define KDIST    1.0e4
+#define KDIST    1.0e3
 
 #define PI 3.141592
 #define E  2.718281

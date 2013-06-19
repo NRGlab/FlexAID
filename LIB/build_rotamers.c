@@ -236,23 +236,23 @@ void build_rotamers(FA_Global* FA,atom** atoms,resid* residue,rot* rotamer){
 					sprintf(conffile,"conf-%d.pdb",l);
 					write_pdb(FA,(*atoms),residue,conffile,conffile);
 					*/
-                    
-                    if(FA->nrg_suite){
-                        printf("Rotamer for %s%d%c with dihedrals", 
-                               residue[kres].name, residue[kres].number,
-                               residue[kres].chn == ' ' ? '-' : residue[kres].chn);
-                        
-                        for(j=0;j<residue[kres].fdih;j++){
-                            printf(" %8.3f", rotamer[l].chi[j]);
-                        }
-                        printf("\n");
-                    }
+					
+					if(FA->nrg_suite){
+						printf("Rotamer for %s%d%c with dihedrals", 
+						       residue[kres].name, residue[kres].number,
+						       residue[kres].chn == ' ' ? '-' : residue[kres].chn);
+						
+						for(j=0;j<residue[kres].fdih;j++){
+							printf(" %8.3f", rotamer[l].chi[j]);
+						}
+						printf("\n");
+					}
 				}
-	
+				
 				residue[kres].rot = 0;
-
+				
 				n++;
-	
+				
 			}
       
 			l++;
@@ -260,25 +260,25 @@ void build_rotamers(FA_Global* FA,atom** atoms,resid* residue,rot* rotamer){
 		}
     
 		if(FA->nrg_suite){
-            printf("%d possible rotamer(s) for residue %s %d %c\n",
-                   residue[FA->flex_res[i].inum].trot, residue[FA->flex_res[i].inum].name,
-                   residue[FA->flex_res[i].inum].number, 
-                   residue[FA->flex_res[i].inum].chn == ' ' ? '-' : residue[FA->flex_res[i].inum].chn);
-        }
-
+			printf("%d possible rotamer(s) for residue %s %d %c\n",
+			       residue[FA->flex_res[i].inum].trot, residue[FA->flex_res[i].inum].name,
+			       residue[FA->flex_res[i].inum].number, 
+			       residue[FA->flex_res[i].inum].chn == ' ' ? '-' : residue[FA->flex_res[i].inum].chn);
+		}
+		
 		// if no rotamers were accepted , set as rigid all atoms of side-chain
 		if (residue[FA->flex_res[i].inum].trot == 0) {
-      
+			
 			for(j=residue[FA->flex_res[i].inum].fatm[0];j<=residue[FA->flex_res[i].inum].latm[0];j++){
-	
+				
 				(*atoms)[j].recs = 'r';
-	
+				
 			}
-      
+			
 		}else{
-      
+			
 			FA->nflxsc_real++;
-      
+			
 			/*
 			  for(k=0; k<=residue[kres].trot; k++) { 
 			  printf("rot[%d] fatm=%d latm=%d\n",
@@ -288,9 +288,11 @@ void build_rotamers(FA_Global* FA,atom** atoms,resid* residue,rot* rotamer){
 
 		}
 
+		fflush(stdout);
+		
 	}
-
-
+	
+	
 	// set side-chain atoms as rigid for side-chains in which no rotamers were accepted
 	// for those in which at least one rotamer was accepted
 	// add to optimized residue struct and build bondedlist accordingly

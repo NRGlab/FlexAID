@@ -109,7 +109,7 @@ void read_constraints(FA_Global* FA, atom* atoms, resid* residue, char* filename
 	    
 		FA->constraints[FA->num_constraints].id = FA->num_constraints;
 
-	    
+	    	//printf("will assign constraint!\n");
 		if(assign_constraint(FA,atoms,residue,&FA->constraints[FA->num_constraints])){
 			++FA->num_constraints;
 		}

@@ -606,6 +606,7 @@ void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,cons
 				}
 			}
 		}
+		
 		for(i=0;i<GB->ssnum;i++) chrom[GB->num_chrom-1-i]=chrom[GB->num_chrom+i];
 		calculate_fitness(FA,GB,VC,chrom,gene_lim,atoms,residue,cleftgrid,GB->fitness_model,GB->num_chrom,print,target);
 	}
