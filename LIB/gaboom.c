@@ -231,7 +231,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 
 		}else if(state == 1){ 
 			
-			//quicksort_app_evalue((*chrom_snapshot),0,n_chrom_snapshot-1);
+			//quicksort_evalue((*chrom_snapshot),0,n_chrom_snapshot-1);
 			//return(n_chrom_snapshot); 
 			break;
 		}
@@ -251,7 +251,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 		    (i+1) != GB->max_generations) {        // discard the last generation
       
 			//need to sort in decreasing order of energy
-			quicksort_app_evalue((*chrom),0,GB->num_chrom-1);
+			quicksort_evalue((*chrom),0,GB->num_chrom-1);
       
 			//printf("Partionning grid...(%d)\n",FA->popszpartition);
 			partition_grid(FA,(*chrom),(*gene_lim),atoms,residue,cleftgrid,popszpartition,1);
@@ -327,13 +327,13 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 		}
 	}
  
-	quicksort_app_evalue((*chrom),0,GB->num_chrom-1);
+	quicksort_evalue((*chrom),0,GB->num_chrom-1);
 
 	strcpy(outfile,FA->rrgfile);
 	strcat(outfile,"_par.res");
 	write_par((*chrom),(*gene_lim),i+1,outfile,GB->num_chrom,GB->num_genes);
 
-	quicksort_app_evalue((*chrom_snapshot),0,n_chrom_snapshot-1);
+	quicksort_evalue((*chrom_snapshot),0,n_chrom_snapshot-1);
 
 	/*
 	  printf("Save snapshot == END ==\n");
@@ -771,7 +771,7 @@ void calculate_fitness(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chr
 		}
 	}
 
-	quicksort_app_evalue(chrom,0,pop_size-1);
+	quicksort_evalue(chrom,0,pop_size-1);
 
 	//print_par(chrom,gene_lim,5,GB->num_genes);
 	//PAUSE;
@@ -1466,22 +1466,21 @@ void swap_chrom(chromosome *x, chromosome *y){
 	chromosome t=*x;*x=*y;*y=t;
 }
 
-void quicksort_app_evalue(chromosome* list,int m,int n){
-	double key;
-	int i,j;
+void quicksort_evalue(chromosome* list,int m,int n){
 
-	//int k;
 	if( m < n ) {
 
-		key = list[m].app_evalue;
+		double key = list[(m+n)/2].evalue;
+		int i,j;
+		
 		i = m+1;
 		j = n;
 
 		while(i <= j)
 		{
-			while((i <= n) && (list[i].app_evalue <= key))
+			while((i <= n) && (list[i].evalue <= key))
 				i++;
-			while((j > m) && (list[j].app_evalue > key))
+			while((j > m) && (list[j].evalue > key))
 				j--;
 			if( i < j)
 				swap_chrom(&list[i],&list[j]);
@@ -1490,8 +1489,8 @@ void quicksort_app_evalue(chromosome* list,int m,int n){
 		// swap two elements
 		swap_chrom(&list[m],&list[j]);
 		// recursively sort the lesser list
-		quicksort_app_evalue(list,m,j-1);
-		quicksort_app_evalue(list,j+1,n);
+		quicksort_evalue(list,m,j-1);
+		quicksort_evalue(list,j+1,n);
 	}
 }
 

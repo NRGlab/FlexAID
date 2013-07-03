@@ -46,9 +46,9 @@
 #define MAX_CLOSE_DIST 10
 #define RMSD_THRESHOLD 2.0
 
-#define KWALL    1.0e6
+#define KWALL    1.0e7
 #define KANGLE   1.0e2
-#define KDIST    1.0e3
+#define KDIST    1.0e4
 
 #define PI 3.141592
 #define E  2.718281

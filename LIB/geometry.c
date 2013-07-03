@@ -1,7 +1,7 @@
 #include "flexaid.h"
 
 double GetValueFromGaussian(double x,double max,double zero) {
-	return pow( -(x-zero) * (x-(2*max-zero)) / (pow(zero-max,2.0)), 25.0 );
+	return pow( -(x-zero) * (x-(2*max-zero)) / (pow(zero-max,2.0)), 50.0 );
 }
 
 #ifdef _WIN32

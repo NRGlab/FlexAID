@@ -22,7 +22,7 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue)
 	int    type=1;
 	int    fatm=0;
 
-    double dist_opt = 0.0;
+	double dist_opt = 0.0;
 	double complementarity;
 	//int   intra;
 	//int   intraf;
@@ -138,9 +138,9 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue)
 				//cfs->con += KANGLE*(radA+radC+2.0*Rw);
 
 				if(atoms[atomzero].cons[j]->type == 1){
-					cfs->con += ( KDIST * ( radA + radC + 2.0 * Rw ) ) ;
+					cfs->con += KDIST;
 				}
-
+				
 				//printf("constraint for atom[%d]: %.3f\n", atoms[atomzero].number,cfs->con);
 			}
       
@@ -180,7 +180,6 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue)
 
 			// number of contacts counter
 			contnum++;
-
 
 #if DEBUG_LEVEL > 0
 			cf_atom.com  =  0.0;
@@ -263,39 +262,34 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue)
 					}
 					if(cons != NULL){break;}
 				}
-
+				
 				if(cons != NULL){
-
+					
 					if(cons->type == 1){
-
+						
 						covalent=1;
-	    
-                        dist_opt = cons->bond_len;
-
+						dist_opt = cons->bond_len;
+						
 						//ang = angle(atoms[atomzero].coor,atoms[atomcont].coor,atoms[atoms[atomcont].bond[1]].coor);
 						//cfs->con -= KANGLE*cons->max_ang*GetValueFromGaussian(ang,120.0,cons->max_ang);
-	    
+						
 						//float gaus=GetValueFromGaussian(VC->ca_rec[currindex].dist,dist_opt,cons->max_dist);
 						//printf("gaus: %.2f\n",gaus);
 						//getchar();
-
-                        /*
-                        printf("cons->max_dist=%.3f - VC->ca_rec[currindex].dist=%.3f - dist_opt=%.3f - GetValueFromGaussian=%.3f\n", 
-                               cons->max_dist, VC->ca_rec[currindex].dist, dist_opt,
-                               GetValueFromGaussian(VC->ca_rec[currindex].dist,dist_opt,cons->max_dist));
-                        */
-                        
-						//printf("before: %.3f\n",cfs->con);
-						cfs->con -= ( KDIST * (double)cons->max_dist * GetValueFromGaussian(VC->ca_rec[currindex].dist,dist_opt,cons->max_dist) ) ;
-						//printf("after: %.3f\n",cfs->con);
+						
+						printf("cons->max_dist=%.3f - VC->ca_rec[currindex].dist=%.3f - dist_opt=%.3f - GetValueFromGaussian=%.3f\n", cons->max_dist, VC->ca_rec[currindex].dist, dist_opt,GetValueFromGaussian(VC->ca_rec[currindex].dist,dist_opt,cons->max_dist));
+						
+						printf("before: %.3f\n",cfs->con);
+						cfs->con -= KDIST * GetValueFromGaussian(VC->ca_rec[currindex].dist,dist_opt,cons->max_dist);
+						printf("after: %.3f\n",cfs->con);
 						//getchar();
-	    
+						
 						/*
 						  printf("removing from con: %.3f\n", //KANGLE*cons->max_ang*GetValueFromGaussian(ang,120.0,cons->max_ang));
 						  KDIST*cons->max_dist*GetValueFromGaussian(VC->ca_rec[currindex].dist,dist_opt,cons->max_dist));
 						  getchar();
 						*/
-
+						
 					}else{
 
 						// interaction constraint
@@ -322,29 +316,29 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue)
 			//	coorB = VC->Calc[VC->ca_rec[currindex].atom].coor;
 
 			// CHECK IF CLASH
-            float clash_distance = permea*rAB;
-            if(covalent && permea*dist_opt < permea*rAB){
-                clash_distance = permea*dist_opt;
-            }
+			float clash_distance = permea*rAB;
+			if(covalent && permea*dist_opt < permea*rAB){
+				clash_distance = permea*dist_opt;
+			}
                         
 			if (VC->ca_rec[currindex].dist < clash_distance){
-                
-                /*
-				if(covalent){
-                    int atmi=FA->num_atm[VC->Calc[i].atomnum];
-                    int atmj=FA->num_atm[VC->Calc[VC->ca_rec[currindex].atom].atomnum];
-                    int resi=atoms[atmi].ofres;
-                    int resj=atoms[atmj].ofres;
-                    
-                    printf("((Atom overlap between %s%d%c[%d](%s)-%s%d%c[%d](%s))) with DIST=%.3f with CLASH_DIST=%.3f\n",
-                           residue[resi].name,residue[resi].number,residue[resi].chn,
-                           atoms[atmi].number,atoms[atmi].name,
-                           residue[resj].name,residue[resj].number,residue[resj].chn,
-                           atoms[atmj].number,atoms[atmj].name,
-                           VC->ca_rec[currindex].dist,clash_distance);
-                }
-                */
-                
+				
+				/*
+				  if(covalent){
+				  int atmi=FA->num_atm[VC->Calc[i].atomnum];
+				  int atmj=FA->num_atm[VC->Calc[VC->ca_rec[currindex].atom].atomnum];
+				  int resi=atoms[atmi].ofres;
+				  int resj=atoms[atmj].ofres;
+				  
+				  printf("((Atom overlap between %s%d%c[%d](%s)-%s%d%c[%d](%s))) with DIST=%.3f with CLASH_DIST=%.3f\n",
+				  residue[resi].name,residue[resi].number,residue[resi].chn,
+				  atoms[atmi].number,atoms[atmi].name,
+				  residue[resj].name,residue[resj].number,residue[resj].chn,
+				  atoms[atmj].number,atoms[atmj].name,
+				  VC->ca_rec[currindex].dist,clash_distance);
+				  }
+				*/
+				
 				//Ewall_atm += KWALL*(pow(VC->ca_rec[currindex].dist*VC->ca_rec[currindex].dist,-6.0)-pow(0.9*rAB,-12.0));
 				cfs->wal += KWALL*(pow(VC->ca_rec[currindex].dist,-12.0)-pow(permea*rAB,-12.0));
 
