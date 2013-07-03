@@ -13,6 +13,14 @@
 
 using namespace std;
 
+static int x = 0;
+
+#define QS_TYPE double
+#define QS_ASC(a,b) ((a)-(b))
+#define QS_DSC(a,b) ((b)-(a))
+
+void QuickSort(chromosome*, int, int, bool);
+
 /***********************************************************************/
 /*        1         2         3         4         5         6          */
 /*234567890123456789012345678901234567890123456789012345678901234567890*/
@@ -228,11 +236,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
     
 		if(state == -1){ 
 			return(state); 
-
 		}else if(state == 1){ 
-			
-			//quicksort_app_evalue((*chrom_snapshot),0,n_chrom_snapshot-1);
-			//return(n_chrom_snapshot); 
 			break;
 		}
 
@@ -250,8 +254,9 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 		    ((i+1) % geninterval) == 0      &&     // is factor of
 		    (i+1) != GB->max_generations) {        // discard the last generation
       
+			printf("generation %d\n", i+1);
 			//need to sort in decreasing order of energy
-			quicksort_app_evalue((*chrom),0,GB->num_chrom-1);
+			QuickSort((*chrom),0,GB->num_chrom-1,true);
       
 			//printf("Partionning grid...(%d)\n",FA->popszpartition);
 			partition_grid(FA,(*chrom),(*gene_lim),atoms,residue,cleftgrid,popszpartition,1);
@@ -318,7 +323,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 		
 
 		if(strcmp(GB->fitness_model,"PSHARE")==0){
-			quicksort_fitnes((*chrom),0,GB->num_chrom-1);
+			QuickSort((*chrom),0,GB->num_chrom-1,false);
 			
 			if(print){
 				printf("best by fitnes\n");
@@ -327,21 +332,28 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 		}
 	}
  
-	quicksort_app_evalue((*chrom),0,GB->num_chrom-1);
+	QuickSort((*chrom),0,GB->num_chrom-1,true);
 
 	strcpy(outfile,FA->rrgfile);
 	strcat(outfile,"_par.res");
 	write_par((*chrom),(*gene_lim),i+1,outfile,GB->num_chrom,GB->num_genes);
-
-	quicksort_app_evalue((*chrom_snapshot),0,n_chrom_snapshot-1);
+	
+	printf("n_chrom_snapshot: %d\n", n_chrom_snapshot);
+	x=0;
+	//quicksort_app_evalue((*chrom_snapshot),0,n_chrom_snapshot-1);
+	QuickSort((*chrom_snapshot),0,n_chrom_snapshot-1,true);
+	printf("x=%d\n", x);
+	printf("final quicksorted\n");	
 
 	/*
 	  printf("Save snapshot == END ==\n");
 	  print_par((*chrom_snapshot),(*gene_lim),n_chrom_snapshot,GB->num_genes);
 	*/
 
+	printf("removing duplicates\n");
 	n_chrom_snapshot = remove_dups((*chrom_snapshot),n_chrom_snapshot,GB->num_genes);
-	
+	printf("removed duplicates\n");
+
 	/*	
 		printf("Save snapshot == END ==\n");
 		print_par((*chrom_snapshot),(*gene_lim),n_chrom_snapshot,GB->num_genes);
@@ -757,7 +769,8 @@ int roullete_wheel(const chromosome* chrom,int n){
 void calculate_fitness(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chrom, const genlim* gene_lim,
                        atom* atoms,resid* residue,gridpoint* cleftgrid,char method[], int pop_size, int print,
                        cfstr (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*)){
-
+	
+	static int gen_id = 0;
 	int i,j;
 	//float tot=0.0;
 	double share,rmsp;
@@ -770,8 +783,8 @@ void calculate_fitness(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chr
 			chrom[i].status='n';
 		}
 	}
-
-	quicksort_app_evalue(chrom,0,pop_size-1);
+	
+	QuickSort(chrom,0,pop_size-1,true);
 
 	//print_par(chrom,gene_lim,5,GB->num_genes);
 	//PAUSE;
@@ -815,7 +828,6 @@ void calculate_fitness(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chr
 
 	if(print){
         
-		static int gen_id = 1;
 		FILE* outfile_ptr = get_update_file_ptr(FA);
 
 		if(outfile_ptr == NULL){
@@ -831,11 +843,11 @@ void calculate_fitness(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chr
 		fflush(outfile_ptr);
 
 		close_update_file_ptr(FA, outfile_ptr);
-
-		gen_id++;
-        
+       
 	}
 
+	gen_id++;
+ 
 	return;
 }
 
@@ -1466,68 +1478,53 @@ void swap_chrom(chromosome *x, chromosome *y){
 	chromosome t=*x;*x=*y;*y=t;
 }
 
-void quicksort_app_evalue(chromosome* list,int m,int n){
-	double key;
-	int i,j;
-
-	//int k;
-	if( m < n ) {
-
-		key = list[m].app_evalue;
-		i = m+1;
-		j = n;
-
-		while(i <= j)
-		{
-			while((i <= n) && (list[i].app_evalue <= key))
-				i++;
-			while((j > m) && (list[j].app_evalue > key))
-				j--;
-			if( i < j)
-				swap_chrom(&list[i],&list[j]);
-		}
-
-		// swap two elements
-		swap_chrom(&list[m],&list[j]);
-		// recursively sort the lesser list
-		quicksort_app_evalue(list,m,j-1);
-		quicksort_app_evalue(list,j+1,n);
-	}
-}
-
-/***********************************************************************/
-/*        1         2         3         4         5         6          */
-/*234567890123456789012345678901234567890123456789012345678901234567890*/
-/*        1         2         3         4         5         6         7*/
-/***********************************************************************/
-//decreasing order
-void quicksort_fitnes(chromosome* list,int m,int n){
-	double key;
-	int i,j;
-  
-	//int k;
-	if( m < n ) {
+void QuickSort(chromosome* list, int beg, int end, bool energy)
+{
+    QS_TYPE piv;
+	
+    int  l,r,p;
+ 
+    while (beg<end)    // This while loop will avoid the second recursive call
+    {
+        l = beg; p = beg + (end-beg)/2; r = end;
 		
-		key = list[m].fitnes;
-		i = m+1;
-		j = n;
+		if(energy)
+			piv = list[p].evalue;
+		else
+			piv = list[p].fitnes;			
 
-		while(i <= j)
-		{
-			while((i <= n) && (list[i].fitnes > key))
-				i++;
-			while((j > m) && (list[j].fitnes <= key))
-				j--;
-			if( i < j)
-				swap_chrom(&list[i],&list[j]);
-		}
-
-		// swap two elements
-		swap_chrom(&list[m],&list[j]);
-		// recursively sort the lesser list
-		quicksort_fitnes(list,m,j-1);
-		quicksort_fitnes(list,j+1,n);
-	}
+        while (1)
+        {
+            while ( (l<=r) && ( ( energy && QS_ASC(list[l].evalue,piv) <= 0 ) ||
+								( !energy && QS_DSC(list[l].fitnes,piv) <= 0 ) ) ) l++;
+            while ( (l<=r) && ( ( energy && QS_ASC(list[r].evalue,piv) > 0 ) ||
+								( !energy && QS_DSC(list[r].fitnes,piv) ) ) ) r--;
+			
+            if (l>r) break;
+			
+			swap_chrom(&list[l],&list[r]);
+ 
+            if (p==r) p=l;
+ 
+            l++; r--;
+        }
+ 
+		swap_chrom(&list[p],&list[r]);
+        //list[p]=list[r]; list[r].evalue=piv;
+        r--;
+ 
+        // Recursion on the shorter side & loop (with new indexes) on the longer
+        if ((r-beg)<(end-l))
+        {
+            QuickSort(list, beg, r, energy);
+            beg=l;
+        }
+        else
+        {
+            QuickSort(list, l, end, energy);
+            end=r;
+        }
+    }   
 }
 
 /***********************************************************************/
