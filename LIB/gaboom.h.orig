@@ -20,6 +20,7 @@
 #include <math.h>
 #include <time.h>
 #include <limits.h>
+#include <map>
 
 #include "flexaid.h"
 #include "Vcontacts.h"
@@ -29,10 +30,6 @@
 #define MAX_GEN_LENGTH 32                         // in number of bits
 #define MAX_RANDOM_VALUE 2147483647              // upper bound of 32-bit integer
 #define SAVE_CHROM_FRACTION 1.0
-
-#define QS_TYPE double
-#define QS_ASC(a,b) ((a)-(b))
-#define QS_DSC(a,b) ((b)-(a))
 
 using namespace std;
 
@@ -116,7 +113,6 @@ typedef struct GB_Global_struct GB_Global;
 /***********************************************************************/
 int   GA(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome** chrom_snapshot,genlim** gene_lim,atom* atoms,resid* residue,gridpoint** cleftgrid,char gainpfile[], int* memchrom, cfstr (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int, double*));
 int   check_state(char* pausefile, char* abortfile, char* stopfile, int interval);
-void  QuickSort(chromosome*, int, int, bool);
 void  crossover(gene *john,gene *mary,int num_genes);
 void  mutate(gene *john,int num_genes,double mut_rate);
 void  bin_print(int dec,int len);
@@ -136,6 +132,11 @@ double RandomDouble();
 double RandomDouble(boost::int32_t dice);
 
 void  swap_chrom(chromosome * x, chromosome * y);
+<<<<<<< HEAD
+void  quicksort_evalue(chromosome* list, int m, int n);
+void  quicksort_fitnes(chromosome* list, int m, int n);
+=======
+>>>>>>> master
 int   remove_dups(chromosome* list, int num_chrom, int num_genes);
 
 FILE* get_update_file_ptr(FA_Global* FA);

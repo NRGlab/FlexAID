@@ -13,6 +13,14 @@
 
 using namespace std;
 
+static int x = 0;
+
+#define QS_TYPE double
+#define QS_ASC(a,b) ((a)-(b))
+#define QS_DSC(a,b) ((b)-(a))
+
+void QuickSort(chromosome*, int, int, bool);
+
 /***********************************************************************/
 /*        1         2         3         4         5         6          */
 /*234567890123456789012345678901234567890123456789012345678901234567890*/
@@ -229,6 +237,12 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 		if(state == -1){ 
 			return(state); 
 		}else if(state == 1){ 
+<<<<<<< HEAD
+			
+			//quicksort_evalue((*chrom_snapshot),0,n_chrom_snapshot-1);
+			//return(n_chrom_snapshot); 
+=======
+>>>>>>> master
 			break;
 		}
 
@@ -246,8 +260,13 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 		    ((i+1) % geninterval) == 0      &&     // is factor of
 		    (i+1) != GB->max_generations) {        // discard the last generation
       
+			printf("generation %d\n", i+1);
 			//need to sort in decreasing order of energy
+<<<<<<< HEAD
+			quicksort_evalue((*chrom),0,GB->num_chrom-1);
+=======
 			QuickSort((*chrom),0,GB->num_chrom-1,true);
+>>>>>>> master
       
 			//printf("Partionning grid...(%d)\n",FA->popszpartition);
 			partition_grid(FA,(*chrom),(*gene_lim),atoms,residue,cleftgrid,popszpartition,1);
@@ -323,21 +342,36 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 		}
 	}
  
+<<<<<<< HEAD
+	quicksort_evalue((*chrom),0,GB->num_chrom-1);
+=======
 	QuickSort((*chrom),0,GB->num_chrom-1,true);
+>>>>>>> master
 
 	strcpy(outfile,FA->rrgfile);
 	strcat(outfile,"_par.res");
 	write_par((*chrom),(*gene_lim),i+1,outfile,GB->num_chrom,GB->num_genes);
+<<<<<<< HEAD
+
+	quicksort_evalue((*chrom_snapshot),0,n_chrom_snapshot-1);
+=======
 	
+	printf("n_chrom_snapshot: %d\n", n_chrom_snapshot);
+	x=0;
 	//quicksort_app_evalue((*chrom_snapshot),0,n_chrom_snapshot-1);
 	QuickSort((*chrom_snapshot),0,n_chrom_snapshot-1,true);
+	printf("x=%d\n", x);
+	printf("final quicksorted\n");	
+>>>>>>> master
 
 	/*
 	  printf("Save snapshot == END ==\n");
 	  print_par((*chrom_snapshot),(*gene_lim),n_chrom_snapshot,GB->num_genes);
 	*/
 
+	printf("removing duplicates\n");
 	n_chrom_snapshot = remove_dups((*chrom_snapshot),n_chrom_snapshot,GB->num_genes);
+	printf("removed duplicates\n");
 
 	/*	
 		printf("Save snapshot == END ==\n");
@@ -768,8 +802,13 @@ void calculate_fitness(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chr
 			chrom[i].status='n';
 		}
 	}
+<<<<<<< HEAD
+
+	quicksort_evalue(chrom,0,pop_size-1);
+=======
 	
 	QuickSort(chrom,0,pop_size-1,true);
+>>>>>>> master
 
 	//print_par(chrom,gene_lim,5,GB->num_genes);
 	//PAUSE;
@@ -1463,6 +1502,48 @@ void swap_chrom(chromosome *x, chromosome *y){
 	chromosome t=*x;*x=*y;*y=t;
 }
 
+<<<<<<< HEAD
+void quicksort_evalue(chromosome* list,int m,int n){
+
+	if( m < n ) {
+
+		double key = list[(m+n)/2].evalue;
+		int i,j;
+		
+		i = m+1;
+		j = n;
+
+		while(i <= j)
+		{
+			while((i <= n) && (list[i].evalue <= key))
+				i++;
+			while((j > m) && (list[j].evalue > key))
+				j--;
+			if( i < j)
+				swap_chrom(&list[i],&list[j]);
+		}
+
+		// swap two elements
+		swap_chrom(&list[m],&list[j]);
+		// recursively sort the lesser list
+		quicksort_evalue(list,m,j-1);
+		quicksort_evalue(list,j+1,n);
+	}
+}
+
+/***********************************************************************/
+/*        1         2         3         4         5         6          */
+/*234567890123456789012345678901234567890123456789012345678901234567890*/
+/*        1         2         3         4         5         6         7*/
+/***********************************************************************/
+//decreasing order
+void quicksort_fitnes(chromosome* list,int m,int n){
+	double key;
+	int i,j;
+  
+	//int k;
+	if( m < n ) {
+=======
 void QuickSort(chromosome* list, int beg, int end, bool energy)
 {
     QS_TYPE piv;
@@ -1472,6 +1553,7 @@ void QuickSort(chromosome* list, int beg, int end, bool energy)
     while (beg<end)    // This while loop will avoid the second recursive call
     {
         l = beg; p = beg + (end-beg)/2; r = end;
+>>>>>>> master
 		
 		if(energy)
 			piv = list[p].evalue;
