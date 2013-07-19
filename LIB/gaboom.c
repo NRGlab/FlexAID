@@ -248,18 +248,16 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
       
 			//need to sort in decreasing order of energy
 			QuickSort((*chrom),0,GB->num_chrom-1,true);
-      
+			
 			//printf("Partionning grid...(%d)\n",FA->popszpartition);
 			partition_grid(FA,(*chrom),(*gene_lim),atoms,residue,cleftgrid,popszpartition,1);
-      
+			
 			if(FA->output_range){
-                
 #ifdef _WIN32
 				sprintf(gridfilename,"\\grid.%d.prt.pdb",i+1);
 #else
 				sprintf(gridfilename,"/grid.%d.prt.pdb",i+1);
 #endif
-                
 				strcpy(gridfile,FA->temp_path);
 				strcat(gridfile,gridfilename);
 
@@ -331,12 +329,12 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	
 	//quicksort_app_evalue((*chrom_snapshot),0,n_chrom_snapshot-1);
 	QuickSort((*chrom_snapshot),0,n_chrom_snapshot-1,true);
-
+	
 	/*
 	  printf("Save snapshot == END ==\n");
 	  print_par((*chrom_snapshot),(*gene_lim),n_chrom_snapshot,GB->num_genes);
 	*/
-
+	
 	n_chrom_snapshot = remove_dups((*chrom_snapshot),n_chrom_snapshot,GB->num_genes);
 
 	/*	
@@ -687,8 +685,9 @@ void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,cons
 					chrom[GB->num_chrom+i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[GB->num_chrom+i].genes,target);
 					chrom[GB->num_chrom+i].evalue=get_cf_evalue(&chrom[GB->num_chrom+i].cf);
 					chrom[GB->num_chrom+i].app_evalue=get_apparent_cf_evalue(&chrom[GB->num_chrom+i].cf);
+
 					chrom[GB->num_chrom+i].status='n';
-                    
+					
 					i++;
 	  
 				}
@@ -791,9 +790,9 @@ void calculate_fitness(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chr
 		   corresponds to its position in index_map. Moreover,
 		   each chromosome's fitness is lowered by sharing.
 		*/
-    
+		
 		for(i=0;i<GB->num_chrom;i++){
-      
+			
 			share=0.0;
 			for(j=0;j<GB->num_chrom;j++){
 				
@@ -805,7 +804,7 @@ void calculate_fitness(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chr
 				//share=1.0;
 				chrom[i].fitnes = (GB->num_chrom-i)/share;
 				//printf("i=%d lf=%d share=%f fit=%f\n",i,(GB->num_chrom-i),
-				//     share,chrom[i].fitnes);
+				//       share,chrom[i].fitnes);
 				//PAUSE;
 			}
 		}
@@ -1543,9 +1542,10 @@ void print_par(const chromosome* chrom,const genlim* gene_lim,int num_chrom,int 
 		fprintf(outfile_ptr, "%4d (",i);
 		for(int j=0;j<num_genes;j++) fprintf(outfile_ptr, "%10.2f ", chrom[i].genes[j].to_ic);
 		fprintf(outfile_ptr, ") ");
-		fprintf(outfile_ptr, " value=%9.3f fitnes=%9.3f\n",chrom[i].evalue,chrom[i].fitnes);
+		fprintf(outfile_ptr, " cf=%9.3f cf.app=%9.3f fitnes=%9.3f\n",
+			chrom[i].evalue, chrom[i].app_evalue, chrom[i].fitnes);
 	}
-    
+	
 	return;
 }
 

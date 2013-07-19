@@ -283,9 +283,9 @@ int main(int argc, char **argv){
 		strcat(remark,tmpremark);
 		sprintf(tmpremark,"REMARK CF.con=%8.5f\n",cf_ptr->con);
 		strcat(remark,tmpremark);
-
+		
 	}
-
+	
 	for(i=0;i<FA->npar;i++){
 		sprintf(tmpremark,"REMARK [%8.3f]\n",FA->opt_par[i]);
 		strcat(remark,tmpremark);
