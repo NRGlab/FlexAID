@@ -1021,7 +1021,7 @@ void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* 
 	if(strcmp(method,"IPFILE")==0){
 		printf("generating population from file...\n");
 
-		if(!OpenFile_B(file,"r",&infile_ptr)){
+		if(!OpenFile_B(file,"rb",&infile_ptr)){
 			fprintf(stderr,"ERROR: Cannot open file '%s' for reading.\n", file);
 			Terminate(8);
 		}
@@ -1296,7 +1296,7 @@ long int read_pop_init_file(FA_Global* FA, GB_Global* GB, genlim* gene_lim, char
 	long int at = 0;
 	FILE* infile_ptr = NULL;
     
-	if(!OpenFile_B(pop_init_file,"r",&infile_ptr)){
+	if(!OpenFile_B(pop_init_file,"rb",&infile_ptr)){
 		fprintf(stderr,"ERROR: Cannot open file '%s' for reading.\n", pop_init_file);	
 		Terminate(8);
 	}
@@ -1307,7 +1307,7 @@ long int read_pop_init_file(FA_Global* FA, GB_Global* GB, genlim* gene_lim, char
 	//printf("genes_tag=%s\n", genes_tag);
     
 	if(strcmp(genes_tag,"genes") == 0){
-        
+		
 		int i=0;
 		while(i < GB->num_genes){
 			fread(&gene_lim[i], 1, sizeof(genlim), infile_ptr);
@@ -1574,7 +1574,7 @@ void write_par(const chromosome* chrom,const genlim* gene_lim,int ger,char* outf
 	FILE *outfile_ptr;
   
 	outfile_ptr=NULL;
-	if(!OpenFile_B(outfile,"w",&outfile_ptr)){
+	if(!OpenFile_B(outfile,"wb",&outfile_ptr)){
 		Terminate(6);
 	}else{
         
