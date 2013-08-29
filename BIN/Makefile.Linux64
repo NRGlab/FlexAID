@@ -123,7 +123,9 @@ OBJ =	top.o			\
 	generate_grid.o		\
 	cluster.o		\
 	rna_structure.o		\
-	maps.o
+	maps.o			\
+	shortest_path.o		\
+	assign_shortflex.o
 	
 all: a.out
 	\mv a.out $W/FlexAID_Linux64
@@ -335,6 +337,12 @@ cluster.o: $I/cluster.c $I/gaboom.h $I/boinc.h
 
 rna_structure.o: $I/rna_structure.c $I/boinc.h
 	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/rna_structure.c $(INCLUDES)
+
+shortest_path.o: $I/shortest_path.c $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/shortest_path.c $(INCLUDES)
+
+assign_shortflex.o: $I/assign_shortflex.c $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/assign_shortflex.c $(INCLUDES)
 
 maps.o: $I/maps.cpp $I/maps.hpp
 	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/maps.cpp

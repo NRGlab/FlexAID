@@ -132,7 +132,8 @@ void read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]){
 			FA->num_het++;
 			FA->het_res[FA->num_het]=FA->res_cnt;
 			(*residue)[FA->res_cnt].bonded=NULL;
-
+			//(*residue)[FA->res_cnt].shortpath=NULL;
+			
 			(*residue)[FA->res_cnt].type=1;
 			strcpy((*residue)[FA->res_cnt].name,rnam);
 
@@ -283,15 +284,14 @@ void read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]){
 				}
 				//printf("memory re-allocated fdih...\n");
 				memset(&(*residue)[FA->res_cnt].bond[FA->MIN_FLEX_BONDS-5],0,5*sizeof(int));
-	      
-	      
+
 				// altfdih
 				altfdih = (int**)realloc(altfdih,FA->MIN_FLEX_BONDS*sizeof(int*));
 				if(!altfdih){
 					fprintf(stderr,"ERROR: memory allocation failed for altfdih.\n");
 					Terminate(2);
 				}
-	      
+				
 				for(i=FA->MIN_FLEX_BONDS-5;i<FA->MIN_FLEX_BONDS;i++){
 					altfdih[i] = (int*)malloc(3*sizeof(int));
 					if(!altfdih[i]){
@@ -300,9 +300,9 @@ void read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]){
 					}
 				}
 			}
-      
+			
 			for(k=0;k<3;k++) altfdih[(*residue)[FA->res_cnt].fdih][k]=0;
-      
+			
 			for(i=7;i<9;i++) bufnul[i-7]=buffer[i];
 			bufnul[2]='\0';
 			sscanf(bufnul,"%d",&fdih);
@@ -315,12 +315,12 @@ void read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]){
 				}
 				bufnul[5]='\0';
 				sscanf(bufnul,"%d",&k);
-	
+				
 				altfdih[(*residue)[FA->res_cnt].fdih][i]=FA->num_atm[k];
-
-				if ((*residue)[FA->res_cnt].bond[(*residue)[FA->res_cnt].fdih]==0)
+				
+				if ((*residue)[FA->res_cnt].bond[(*residue)[FA->res_cnt].fdih]==0){
 					(*residue)[FA->res_cnt].bond[(*residue)[FA->res_cnt].fdih]=FA->num_atm[k];
-
+				}
 			        //printf("added %d to bond=%d\n",(*residue)[FA->res_cnt].bond[(*residue)[FA->res_cnt].fdih],(*residue)[FA->res_cnt].fdih);
 			}
       
@@ -435,7 +435,7 @@ void read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]){
 
 	if((*residue)[FA->res_cnt].fdih > 0){
 		assign_shift(*atoms,*residue,FA->res_cnt,natm,list,altfdih);
-    }
+	}
 
 	FA->optres[0].rnum=FA->res_cnt;
 	FA->optres[0].type=1;
@@ -445,10 +445,10 @@ void read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]){
 	//neighbours n-bonds-away are stored in memory
 	for(i=0;i<natm;i++){
 		nbonded=0;
-    
+		
 		bondedlist(*atoms,list[i],FA->bloops,&nbonded,bondlist,neighbours);
 		update_bonded(&(*residue)[FA->res_cnt],natm,nbonded,bondlist,neighbours);
-
+		
 		/*
 		  printf("bondlist[%d] for atom %d\t",i,(*atoms)[list[i]].number);
 		  for(j=0;j<nbonded;j++) printf("%6d",(*atoms)[bondlist[j]].number);
@@ -456,6 +456,9 @@ void read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]){
 		*/
 	}
   
+	shortest_path(&(*residue)[FA->res_cnt],natm,*atoms);
+	assign_shortflex(&(*residue)[FA->res_cnt],natm,(*residue)[FA->res_cnt].fdih,*atoms);
+
 	// prints bonded matrix
 	/*
 	  for(i=0;i<natm;i++){
@@ -467,7 +470,7 @@ void read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]){
 	  }
 	  getchar();
 	*/
-
+	
 	FA->num_optres++;
 
 	buildcc(FA,*atoms,natm,list);

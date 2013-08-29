@@ -15,8 +15,8 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cl
 	int i,j,k;
 	int cat;    /* atom number constrained to the one considered */
 
-    cfstr cf;
-    static cfstr cf_clash = { 0.0, 0.0, CLASH_PENALTY_VALUE, 0.0, 1 };
+	cfstr cf;
+	static cfstr cf_clash = { 0.0, 0.0, CLASH_PENALTY_VALUE, 0.0, 1 };
     
 	int rclash=0;
 
@@ -112,22 +112,16 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cl
 		buildcc(FA,atoms,FA->nmov[i],FA->mov[i]);
 	}
   
-  
-	if (strcmp(FA->complf,"VCT")==0){
-		if(vcfunction(FA,VC,atoms,residue)){
-			return cf_clash;
-		}
-	}else if (strcmp(FA->complf,"SPH")==0){
-		if(spfunction(FA,atoms,residue)){
-			return cf_clash;
-		}
+	vector< pair<int,int> > intraclashes;
+	if(vcfunction(FA,VC,atoms,residue,intraclashes)){
+		return cf_clash;
 	}
-  
-    cf.com = 0.0;
-    cf.wal = 0.0;
-    cf.sas = 0.0;
-    cf.con = 0.0;
-    cf.rclash = 0;
+	
+	cf.com = 0.0;
+	cf.wal = 0.0;
+	cf.sas = 0.0;
+	cf.con = 0.0;
+	cf.rclash = 0;
     
 	for(i=0;i<FA->num_optres;i++){
     
@@ -156,10 +150,10 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cl
         
 		//sum += (FA->optres[i].cf.com - FA->optres[i].cf.wal + FA->optres[i].cf.sas - FA->optres[i].cf.con);
     
-        cf.com += FA->optres[i].cf.com;
-        cf.wal += FA->optres[i].cf.wal;
-        cf.sas += FA->optres[i].cf.sas;
-        cf.con += FA->optres[i].cf.con;
+		cf.com += FA->optres[i].cf.com;
+		cf.wal += FA->optres[i].cf.wal;
+		cf.sas += FA->optres[i].cf.sas;
+		cf.con += FA->optres[i].cf.con;
 
 	}
 
@@ -293,19 +287,24 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cl
 
 }
 
+void add_intraclash_key(void)
+{
+
+}
+
 
 #ifdef _WIN32
 double get_apparent_cf_evalue(cfstr* cf) {
 #else
-double get_apparent_cf_evalue(cfstr* cf) {
+	double get_apparent_cf_evalue(cfstr* cf) {
 #endif
-    return cf->com + cf->wal + cf->sas;
-}
+		return cf->com + cf->wal + cf->sas;
+	}
     
 #ifdef _WIN32
-double get_cf_evalue(cfstr* cf) {
+	double get_cf_evalue(cfstr* cf) {
 #else
-double get_cf_evalue(cfstr* cf) {
+		double get_cf_evalue(cfstr* cf) {
 #endif
-    return cf->com + cf->wal + cf->sas + cf->con;
-}
+			return cf->com + cf->wal + cf->sas + cf->con;
+		}

@@ -2,7 +2,7 @@
 
 #define DEBUG_LEVEL 0
 
-int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue)
+int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< pair<int,int> > & intraclashes)
 {
 	int    i,j,k;
 	double SAS,area;
@@ -15,7 +15,7 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue)
 
 	//float  Ewall;
 	//float  Ewall_atm=0;
-
+	
 	//float  com_atm;
 	//int    rot=0;
 	int    rnum=0;
@@ -38,9 +38,9 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue)
 #if DEBUG_LEVEL > 0
 	cfstr cf_atom;
 #endif
-  
+	
 	//float  matrix[NTYPES+1][NTYPES+1];
-
+	
 	// reset all values pointed
 	memset(VC->Calc,0,FA->atm_cnt_real*sizeof(atomsas));
 	memset(VC->Calclist,0,FA->atm_cnt_real*sizeof(int));
@@ -185,7 +185,6 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue)
 			cf_atom.com  =  0.0;
 			cf_atom.wal  =  0.0;
 #endif
-			
 			/*
 			if ( VC->ca_rec[currindex].dist < 0.0001 ) { 
 				currindex = VC->ca_rec[currindex].prev;
@@ -196,14 +195,15 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue)
 			// atom in contact with atom zero
 			atomcont = FA->num_atm[VC->Calc[VC->ca_rec[currindex].atom].atomnum];
 
+			int intramolecular = atoms[atomcont].ofres == atoms[atomzero].ofres;
+			
 			// is contact atom bonded to atom zero
 			// if YES, skip contact atom
-			if(atoms[atomcont].ofres == atoms[atomzero].ofres)
+			if(intramolecular)
 			{
+				fatm = residue[rnum].fatm[0];
 	  
 				// get first atom of residue
-				fatm = residue[rnum].fatm[0];
-
 				if(residue[rnum].bonded[atomcont-fatm][atomzero-fatm] >= 0)
 				{
 
@@ -339,12 +339,19 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue)
 				  }
 				*/
 				
+				double Ewall = KWALL*(pow(VC->ca_rec[currindex].dist,-12.0)-pow(permea*rAB,-12.0));
+				
 				//Ewall_atm += KWALL*(pow(VC->ca_rec[currindex].dist*VC->ca_rec[currindex].dist,-6.0)-pow(0.9*rAB,-12.0));
-				cfs->wal += KWALL*(pow(VC->ca_rec[currindex].dist,-12.0)-pow(permea*rAB,-12.0));
+				cfs->wal += Ewall;
 
 #if DEBUG_LEVEL > 0
-				cf_atom.wal += KWALL*(pow(VC->ca_rec[currindex].dist,-12.0)-pow(permea*rAB,-12.0));
+				cf_atom.wal += Ewall;
 #endif
+				// ligand intramolecular clash exceeds threshold
+				// add an entry in the dee elimination
+				if(intramolecular && type == 1 && Ewall > DEE_WALL_THRESHOLD){
+					intraclashes.push_back(pair<int,int>(atomcont-fatm,atomcont-fatm));
+				}
 
 				// Treat everything as rigid
 				if ( VC->ca_rec[currindex].dist <= dee_clash*rAB ) { cfs->rclash=1; }
@@ -371,7 +378,7 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue)
 			matrix[VC->Calc[VC->ca_rec[currindex].atom].type][VC->Calc[i].type] += area;
 			}
 			*/
-      			
+			
 #if DEBUG_LEVEL > 0
 			printf("        %3s %c %4d %5d %2d %4.2f :: %7.4f %6.2f %6.2f :: %10.3f %10.3f\n",
 			       VC->Calc[VC->ca_rec[currindex].atom].res,
@@ -411,12 +418,12 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue)
 			cf_atom.sas += (double)FA->solventterm * SAS;
 #endif
 		}
-
+		
 		
 		FA->contacts[VC->Calc[i].atomnum] = 1;
 		//printf("%d calculated\n", VC->Calc[i].atomnum);
 
-
+		
 #if DEBUG_LEVEL > 1
 		printf("CF.SAS is %.3f (Area=%.3f) for %d contacts\n", 
 		       cf_atom.sas, SAS, contnum); 

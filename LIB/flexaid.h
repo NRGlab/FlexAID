@@ -19,12 +19,21 @@
 #include <fcntl.h>
 #include <math.h>
 #include <time.h>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <iostream>
+#include <iterator>
+#include <algorithm>
+#include <utility>
+#include <map>
 
 //#include "/home/francis/valgrind/include/valgrind/memcheck.h"
 
 //const int endian_t = 1;
 //#define IS_BIG_ENDIAN() ( ( *(char *) &endian_t ) == 0 ) // cross-platform development
 
+#define MAX_SHORTEST_PATH 25        // max number of atom to reach any atom of the same molecule
 #define MAX_PATH__ 250              // max size of path length
 #define MAX_REMARK 5000             // max size of comment length
 #define MAX_NUM_RES 250             // max number of residues allowed 
@@ -49,6 +58,7 @@
 #define KWALL    1.0e6
 #define KANGLE   1.0e2
 #define KDIST    1.0e3
+#define DEE_WALL_THRESHOLD 1.0e4
 
 #define PI 3.141592
 #define E  2.718281
@@ -84,6 +94,8 @@
   FREE( p ); \
   }
 */
+
+using namespace std;
 
 typedef unsigned int uint;
 
@@ -142,21 +154,21 @@ struct atom_struct{  // atom structure
 	float  coor[3];     // processing coordinates
 	float* coor_ref;    // reference coordinates
 	float  coor_ori[3]; // original coordinates
-
+	
 	int    number;  // atom number according to PDB file
 	float  radius;  // atomic radius
 	int    type;    // atom type
 	int    bond[5]; // atom number (not according to PDB) of covalently bonded atoms, bond[0] gives the total
 	int    ofres;   // residue number to which an atom belongs.
 	char   recs;    // flag which labels an atom as flexible or rigid
-	float dis;     // distance from rec[0] atom
-	float ang;     // angle between atom, rec[0] and rec[1]
-	float dih;     // dihedral between atom, rec[0], rec[1] and rec[2]
-	float shift;   // gives the angle shift from that of rec[3]'s atom
+	float  dis;     // distance from rec[0] atom
+	float  ang;     // angle between atom, rec[0] and rec[1]
+	float  dih;     // dihedral between atom, rec[0], rec[1] and rec[2]
+	float  shift;   // gives the angle shift from that of rec[3]'s atom
 	int    ncons;   // number of constraint for atoms
 	int    isbb;    // atom is a backbone atom
 	int    graph;   // id of graph atom belongs to (ligands only)
-
+	
 	constraint** cons; // points to constraint , if NULL no constraint to atom
 	OptRes* optres;  // pointer to optimised residue list
 	float** eigen;   // eigen vectors
@@ -175,6 +187,9 @@ struct residue_struct{   // residue structure
 	int*  fatm;     // number of first atom for a given rotamer of given residue
 	int*  latm;     // number of last atom for a given rotamer of given residue
 	int** bonded;   // bonded list of atoms (i x j matrix)
+	//vector< vector<string> > shortpath;
+	char*** shortpath;  // shortest path of atoms (i x j matrix)
+	int*** shortflex; // list of flexible bonds between 2 atoms following the shortest path
 	int   type;     // labels residues as protein or ligand residues
 	int   fdih;     // number of flexible bonds
 	int*  bond;     // atoms whose rec[3] defines each flexible bond
@@ -346,8 +361,8 @@ struct FA_Global_struct{
 
 	float**  normal_grid;                        // 2-dimensional grid containing amplitudes of eigenvectors
 	float**  eigenvector;                        // 2-dimensional grid containing eigen vectors
-	int      num_eigen;  
-
+	int      num_eigen;
+	
 	double normalindex_min;                // boundaries of IC for normal mode in GA
 	double normalindex_max;                // ...
 
@@ -473,6 +488,8 @@ void   assign_constraint_threshold(FA_Global* FA,atom* atoms,constraint* cons,in
 
 int    assign_constraint(FA_Global* FA,atom* atoms, resid* residue,constraint* cons);                         // assign constraint to atoms structure
 void   update_constraint(atom* atoms, int index, constraint* cons);                                            // add new constraint in atoms structure
+void   shortest_path(resid* residue, int tot, atom* atoms);
+void   assign_shortflex(resid* residue, int tot, int fdih, atom* atoms);
 void   update_bonded(resid* residue, int tot, int nlist, int* list, int* nbr);   // update bonded matrix for residue
 void   update_optres(atom* atoms, int atm_cnt, OptRes* optres_ptr,int num_optres); // update atoms structure with optres pointers
 void   set_intprob(flxsc* flex_res);                                         // sets internal probability for rotamer change
