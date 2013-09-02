@@ -40,7 +40,7 @@
 #define MAX_NUM_MODES 5             // max number of normal modes
 #define MAX_NUM_ATM 10000           // max number of atoms allowed 
 #define MAX_ATM_HET 200             // max number of atoms in het groups allowed 
-#define MAX_FLEX_BONDS 20           // max number of flexible bonds for het groups
+//#define MAX_FLEX_BONDS 20           // max number of flexible bonds for het groups
 #define MAX_GRID_POINTS 1000        // Total number of points to anchor ligand
 #define MAX_NORMAL_GRID 5000        // max number of grid points in normal grid
 #define MAX_SPHERE_POINTS 610       // Total number of points in atom surface sphere 
@@ -58,7 +58,7 @@
 #define KWALL    1.0e6
 #define KANGLE   1.0e2
 #define KDIST    1.0e3
-#define DEE_WALL_THRESHOLD 1.0e4
+#define DEE_WALL_THRESHOLD 100.0
 
 #define PI 3.141592
 #define E  2.718281
@@ -94,8 +94,6 @@
   FREE( p ); \
   }
 */
-
-using namespace std;
 
 typedef unsigned int uint;
 
@@ -150,6 +148,13 @@ struct constraint_str{
 };
 typedef struct constraint_str constraint;
 
+struct optmap_struct{  // optimization residues structure
+	int typ; // type of atom to be optimized
+	int atm; // number of atom to be optimized
+	int bnd; // which flexible bond needs to be optimized
+};
+typedef struct optmap_struct optmap;
+
 struct atom_struct{  // atom structure
 	float  coor[3];     // processing coordinates
 	float* coor_ref;    // reference coordinates
@@ -169,10 +174,11 @@ struct atom_struct{  // atom structure
 	int    isbb;    // atom is a backbone atom
 	int    graph;   // id of graph atom belongs to (ligands only)
 	
+	optmap* par;    // if this atom defines a variable (translational/rotational or dihedrals)
 	constraint** cons; // points to constraint , if NULL no constraint to atom
 	OptRes* optres;  // pointer to optimised residue list
 	float** eigen;   // eigen vectors
-
+	
 	int    rec[4];  // atom number to be used when reconstructing the atom coordinates from internal coordinates
 	char   name[5]; // atom name
 	char   element[3]; // element name
@@ -187,7 +193,6 @@ struct residue_struct{   // residue structure
 	int*  fatm;     // number of first atom for a given rotamer of given residue
 	int*  latm;     // number of last atom for a given rotamer of given residue
 	int** bonded;   // bonded list of atoms (i x j matrix)
-	//vector< vector<string> > shortpath;
 	char*** shortpath;  // shortest path of atoms (i x j matrix)
 	int*** shortflex; // list of flexible bonds between 2 atoms following the shortest path
 	int   type;     // labels residues as protein or ligand residues
@@ -213,12 +218,21 @@ struct flexible_sc_struct{ // flexible side chain structure
 };
 typedef struct flexible_sc_struct flxsc;
 
-struct optmap_struct{  // optimization residues structure
-	int typ; // type of atom to be optimized
-	int atm; // number of atom to be optimized
-	int bnd; // which flexible bond needs to be optimized
+/*
+class DEELig_Node {
+public:
+	void DEELig_Node(void);
+private:
+	struct deelig_node_struct* parent;
+	std::map<int, struct deelig_node_struct*> childs;
 };
-typedef struct optmap_struct optmap;
+*/
+
+struct deelig_node_struct{
+	struct deelig_node_struct* parent;
+	std::map<int, struct deelig_node_struct*> childs;
+};
+//typedef struct deelig_node_struct deelig_node;
 
 struct RotLib_struct{ // Rotamer library entry records
 	char  res[4];  // residue name
@@ -260,8 +274,18 @@ struct FlexDEE_Node_struct {
 
 
 struct FA_Global_struct{
-	optmap* map_par;             // array of structure of mapping of optimization parameters
-	double*  opt_par;             // optimization parameters  
+	optmap* map_par;                 // array of structure of mapping of optimization parameters
+
+	int map_par_flexbond_first_index; // index in array of first flexbond map par
+	optmap* map_par_flexbond_first;  // first map representing the flexible bonds
+	optmap* map_par_flexbond_last;   // last map representing the flexible bonds
+
+	int map_par_sidechain_first_index; // index in array of first flexbond map par
+	optmap* map_par_sidechain_first; // first map representing the side-chain rotamers
+	optmap* map_par_sidechain_last;  // last map representing the side-chain rotamers
+
+ 	double*  opt_par;                // optimization parameters  
+	struct deelig_node_struct* deelig_root_node;   // termination criteria for ligand flexible
 	
 	int    npar;                         // number of parameters
 	int*  num_atm;                       // PDB num --> internal num mapping
@@ -271,8 +295,9 @@ struct FA_Global_struct{
     
 	//atom  atoms[MAX_NUM_ATM];            // array of atom structure
 	int   atm_cnt;                       // total number of atoms including all rotamers
-	int   atm_cnt_real;                  // total number of atoms real 
-    
+	int   atm_cnt_real;                  // total number of atoms real
+	int   nflexbonds;                    // number of ligand flexible bonds
+	
 	int   is_protein;                    // PDBNAM is a protein molecule
 	//int   is_nucleicacid;                // PDBNAM is a DNA/RNA molecule
 

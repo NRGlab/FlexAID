@@ -1,4 +1,5 @@
 #include "gaboom.h"
+#include "boinc.h"
 
 /******************************************************************************
  * SUBROUTINE ic2cf gets a vector with internal coordinates rebuilds the 
@@ -12,12 +13,14 @@
 
 cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cleftgrid,int npar, double* icv){
   
+	static int nbranch = 0;
+	
 	int i,j,k;
 	int cat;    /* atom number constrained to the one considered */
 
 	cfstr cf;
 	static cfstr cf_clash = { 0.0, 0.0, CLASH_PENALTY_VALUE, 0.0, 1 };
-    
+	
 	int rclash=0;
 
 	psFlexDEE_Node psFlexDEENode;
@@ -29,14 +32,15 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cl
 	//float threshold=10.0;
 	//int nflxchk=-1;
 	int normalmode=-1;
-
+	int deelig_list[100];
+	
 	//int rigid_clash=0;
 	//float rand=0.0;
 	//float min_dis=10.0;
   
 	// copy values from icv into respective srtructure atom ic fields 
 	// andcompute the ic of a constrained atom prior to reconstruction
-
+	
 	//for(i=0;i<npar;i++){printf("[%8.3f]",icv[i]);}printf("\n");
 	//PAUSE;
 
@@ -50,16 +54,16 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cl
 			atoms[FA->map_par[i].atm].dis = cleftgrid[grd_idx].dis;
 			atoms[FA->map_par[i].atm].ang = cleftgrid[grd_idx].ang;
 			atoms[FA->map_par[i].atm].dih = cleftgrid[grd_idx].dih;
-      
+			
 		}else if(FA->map_par[i].typ==0)  {
 			atoms[FA->map_par[i].atm].dis = (float)icv[i];
-      
+			
 		}else if(FA->map_par[i].typ==1)  {
 			atoms[FA->map_par[i].atm].ang = (float)icv[i];
-      
+			
 		}else if(FA->map_par[i].typ==2)  {
 			atoms[FA->map_par[i].atm].dih = (float)icv[i];
-      
+			
 			j=FA->map_par[i].atm;
 			cat=atoms[j].rec[3];
 			if(cat != 0){
@@ -69,7 +73,7 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cl
 					cat=atoms[j].rec[3];
 				}
 			}
-            
+			
 		}else if(FA->map_par[i].typ==3) { //by index
 			grd_idx = (uint)icv[i];
 			//printf("icv(index): %d\n", grd_idx);
@@ -98,9 +102,10 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cl
 	//PAUSE;
   
 	// do not alter default (ini) protein conf.
-	if(normalmode > -1)
+	if(normalmode > -1){
 		alter_mode(atoms,residue,FA->normal_grid[normalmode],FA->res_cnt,FA->normal_modes);
-  
+	}
+	
 	/* rebuild cartesian coordinates of optimized residues*/
   
   
@@ -125,8 +130,10 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cl
     
 	for(i=0;i<FA->num_optres;i++){
     
+		resid* res = &residue[FA->optres[i].rnum];
+		
 		// flexible side-chain optimization
-		if ( i != 0 ) {
+		if ( !FA->optres[i].type ) {
   
 			if ( FA->optres[i].cf.rclash == 1 ) { 
 
@@ -138,9 +145,64 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cl
 				*/
 	
 				rclash = 1; 
-
+				
 			}
       
+		}else{
+			
+			int fatm = res->fatm[0];
+			
+			vector< pair<int,int> >::iterator it;
+			for(it=intraclashes.begin(); it!=intraclashes.end(); ++it)
+			{
+				for(k=1; k<=res->fdih; k++){
+					deelig_list[k] = -1000;
+				}
+				
+				// flex bonds list
+				int fbindex = 0;
+				int* fblist = res->shortflex[it->first][it->second];
+				
+				//printf("between[%d][%d]\n", atoms[it->first+fatm].number, atoms[it->second+fatm].number);
+				//cout << fblist[fbindex] << endl;
+				
+				while(fblist[fbindex] != -1){
+					if(atoms[res->bond[fblist[fbindex]]].par != NULL){
+						deelig_list[fblist[fbindex]] =
+							(int)(atoms[res->bond[fblist[fbindex]]].dih + 0.5);
+					}
+					fbindex++;
+				}
+				
+				struct deelig_node_struct* node = FA->deelig_root_node;
+				
+				bool add = false;
+				for(k=1; k<=res->fdih; k++){
+					std::map<int, struct deelig_node_struct*>::iterator it;
+					it = node->childs.find(deelig_list[k]);
+					
+					if(it == node->childs.end()){
+						struct deelig_node_struct* deelig_child_node = new struct deelig_node_struct;
+						if(!deelig_child_node){
+							fprintf(stderr, "ERROR: memory allocation error for deelig_child_node\n");
+							Terminate(2);
+						}
+						
+						//if(k==1) cout << "new node added " << deelig_list[k] << endl;
+						node->childs[deelig_list[k]] = deelig_child_node;
+						
+						deelig_child_node->parent = node;
+						node = deelig_child_node;
+						add = true;
+					}else{
+						node = it->second;
+					}
+				}
+				
+				if(add) nbranch++;
+				//cout << "total branches " << nbranch << endl;
+			}
+			
 		}
     
 		/*

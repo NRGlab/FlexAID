@@ -3,6 +3,8 @@
 #include "flexaid.h"
 #include "boinc.h"
 
+using namespace std;
+
 /****************************************/
 /* assign_flexclash: assigns the flexible
    bonds that are within the shortest path
@@ -27,13 +29,13 @@ void assign_shortflex(resid* residue, int tot, int fdih, atom* atoms)
 				Terminate(2);
 			}else{
 				for(int j=0; j<tot; j++){
-					residue->shortflex[i][j] = (int*)malloc(fdih*sizeof(int));
+					residue->shortflex[i][j] = (int*)malloc((fdih+1)*sizeof(int));
 					if(!residue->shortflex[i][j]){
 						fprintf(stderr,
 							"ERROR: Could not allocate memory for residue->shortflex[%d][%d]\n", i, j);
 						Terminate(2);
 					}else{
-						memset(residue->shortflex[i][j],-1,fdih*sizeof(int));
+						memset(residue->shortflex[i][j],-1,(fdih+1)*sizeof(int));
 					}
 				}
 			}
@@ -69,8 +71,12 @@ void assign_shortflex(resid* residue, int tot, int fdih, atom* atoms)
 							   (atoms[atoms[flexatm].rec[0]].number == atm2 && 
 							    atoms[atoms[flexatm].rec[1]].number == atm1)){
 							*/
-								//cout << "added " << k << " "
-								//     << atm1 << " " << atm2 << endl;
+								/*
+								cout << "added " << k << " "
+								     << atoms[atm1].number << " "
+								     << atoms[atm2].number << endl;
+								*/
+								
 								residue->shortflex[i][j][counter++] = k;
 								break;
 							}

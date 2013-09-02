@@ -46,7 +46,7 @@ int main(int argc, char **argv){
 		fprintf(stderr,"ERROR: Could not allocate memory for FA || GB || VC\n");
 		Terminate(2);
 	}
-
+	
 	memset(FA,0,sizeof(FA_Global));
 	memset(GB,0,sizeof(GB_Global));
 	memset(VC,0,sizeof(VC_Global));
@@ -84,7 +84,7 @@ int main(int argc, char **argv){
 	FA->MIN_CONSTRAINTS = 1;
 
 	FA->num_optres = 0;
-
+	FA->nflexbonds = 0;
 	FA->normal_grid = NULL;
 	FA->supernode = 0;
 	FA->eigenvector = NULL;
@@ -102,8 +102,8 @@ int main(int argc, char **argv){
 	FA->nors=0;
 	//FA->natoms_rmsd=0;
 
-    FA->nrg_suite=0;
-    FA->nrg_suite_timeout=60;
+	FA->nrg_suite=0;
+	FA->nrg_suite_timeout=60;
 	FA->translational=0;
 	FA->refstructure=0;
 
@@ -217,6 +217,14 @@ int main(int argc, char **argv){
 	memset(FA->min_opt_par,0,FA->MIN_PAR*sizeof(double));
 	memset(FA->max_opt_par,0,FA->MIN_PAR*sizeof(double));
 
+	FA->map_par_flexbond_first_index = -1;
+	FA->map_par_flexbond_first = NULL;
+	FA->map_par_flexbond_last = NULL;
+	
+	FA->map_par_sidechain_first_index = -1;
+	FA->map_par_sidechain_first = NULL;
+	FA->map_par_sidechain_last = NULL;
+	
 	/////////////////////////////////////////////////////////////////////////////////
   
 	printf("Reading input (%s)...\n",dockinp);
@@ -237,7 +245,15 @@ int main(int argc, char **argv){
 			Terminate(2);
 		}
 	}  
-  
+	
+	//FA->deelig_root_node = (struct deelig_node_struct*)malloc(sizeof(struct deelig_node_struct));
+	FA->deelig_root_node = new struct deelig_node_struct;
+	if(!FA->deelig_root_node){
+		fprintf(stderr, "ERROR: memory allocation error for deelig_root_node\n");
+		Terminate(2);
+	}
+	FA->deelig_root_node->parent = NULL;
+	
 	//printf("Create rebuild list...\n");
 	create_rebuild_list(FA,atoms,residue);
   
@@ -371,7 +387,7 @@ int main(int argc, char **argv){
 			/******************************************************************/
       
 			printf("clustering all individuals in GA...\n");
-            fflush(stdout);
+			fflush(stdout);
             
 			cluster(FA,GB,VC,chrom_snapshot,gene_lim,atoms,residue,cleftgrid,n_chrom_snapshot,end_strfile,tmp_end_strfile,dockinp,gainp);
 		}
@@ -552,7 +568,7 @@ int main(int argc, char **argv){
 	/////////////////  END   /////////////////
 	//////////////////////////////////////////
 
-    printf("Done.\n");
+	printf("Done.\n");
     
 	Terminate(0);
 

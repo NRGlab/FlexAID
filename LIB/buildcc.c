@@ -119,20 +119,6 @@ void buildcc(FA_Global* FA,atom* atoms,int tot,int list[]){
     y[0]=(cy*cx*op-cz*st)*xk+((1.0f-b)*ct+b)*yk+(cy*cz*op+cx*st)*zk+y[1];
     z[0]=(cz*cy*op-cx*st)*yk+((1.0f-c)*ct+c)*zk+(cz*cx*op+cy*st)*xk+z[1];
     
-    /*
-    //printf("%s %d:%s %d\n",
-    //	   (*residue)[atoms[list[an]].ofres].name,
-    //	   (*residue)[atoms[list[an]].ofres].number,
-    //	   atoms[list[an]].name,atoms[list[an]].number);
-    printf("%s %d\n",atoms[list[an]].name,atoms[list[an]].number);
-    printf("%f %f %f\n",
-	   atoms[list[an]].coor[0],
-	   atoms[list[an]].coor[1],
-	   atoms[list[an]].coor[2]);
-    printf("%f %f %f\n",x[0],y[0],z[0]);
-    //PAUSE;
-    */
-
     atoms[list[an]].coor[0]=x[0];
     atoms[list[an]].coor[1]=y[0];
     atoms[list[an]].coor[2]=z[0];

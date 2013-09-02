@@ -95,7 +95,8 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	GB->ssnum = 1000;
 	GB->pbfrac = 1.0;
 	GB->duplicates = 0;
-    
+	GB->intragenes = 0;
+	
 	printf("file in GA is <%s>\n",gainpfile);
   
 	read_gainputs(FA,GB,&geninterval,&popszpartition,gainpfile);
@@ -206,7 +207,8 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	//	   i,(*gene_lim)[i].min,(*gene_lim)[i].max,(*gene_lim)[i].del);
 	//PAUSE;
   
-	populate_chromosomes(FA,GB,VC,(*chrom),(*gene_lim),atoms,residue,(*cleftgrid),GB->pop_init_method,target,GB->pop_init_file,at,0,print,dice);
+	populate_chromosomes(FA,GB,VC,(*chrom),(*gene_lim),atoms,residue,(*cleftgrid),
+			     GB->pop_init_method,target,GB->pop_init_file,at,0,print,dice);
 	//}
 	
 	//print_pop((*chrom),(*gene_lim),GB->num_chrom,GB->num_genes);
@@ -283,7 +285,8 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 			validate_dups(GB, (*gene_lim), GB->num_genes);
 
 			//repopulate unselected individuals
-			populate_chromosomes(FA,GB,VC,(*chrom),(*gene_lim),atoms,residue,(*cleftgrid),GB->pop_init_method,target,GB->pop_init_file,at,popszpartition,print,dice);
+			populate_chromosomes(FA,GB,VC,(*chrom),(*gene_lim),atoms,residue,(*cleftgrid),
+					     GB->pop_init_method,target,GB->pop_init_file,at,popszpartition,print,dice);
 		}
 		
 		print = ( (i+1) % GB->print_int == 0 ) ? 1 : 0;
@@ -320,7 +323,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 			}
 		}
 	}
- 
+	
 	QuickSort((*chrom),0,GB->num_chrom-1,true);
 
 	strcpy(outfile,FA->rrgfile);
@@ -433,14 +436,14 @@ void fitness_stats(GB_Global* GB, const chromosome* chrom,int pop_size){
 			flag=0;
 		}
 
-		if(chrom[i].fitnes > GB->fit_max) 
+		if(chrom[i].fitnes > GB->fit_max)
 			GB->fit_max=chrom[i].fitnes;
-    
+		
 		GB->fit_avg+=chrom[i].fitnes;
 	}
   
 	GB->fit_avg /= (double)pop_size;
-  
+	
 	return;
 }
 /***********************************************************************/
@@ -483,20 +486,30 @@ void adapt_prob(GB_Global* GB,double fit1, double fit2, double* mutp, double* cr
 /*234567890123456789012345678901234567890123456789012345678901234567890*/
 /*        1         2         3         4         5         6         7*/
 /***********************************************************************/
-void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,const genlim* gene_lim,
+void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom, const genlim* gene_lim,
                atom* atoms,resid* residue,gridpoint* cleftgrid,char* repmodel, 
                double mutprob, double crossprob, int print,
-               boost::variate_generator< RNGType, boost::uniform_int<> > &, 
+               boost::variate_generator< RNGType, boost::uniform_int<> > & dice, 
                cfstr (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*)){
-
+	
+	static int nrejected = 0;
+	
 	int i,j,k;
 	int nnew,p1,p2;
-
+	
 	gene chrop1_gen[MAX_NUM_GENES];
 	gene chrop2_gen[MAX_NUM_GENES];
-
+	
 	int num_genes_wo_sc=0;	
-
+	
+	/*
+	RNGType rng;
+	
+	boost::uniform_int<> one_to_max_int32( 1, MAX_RANDOM_VALUE );
+	boost::variate_generator< RNGType, boost::uniform_int<> >
+		dice(rng, one_to_max_int32);
+	*/
+	
 	//before calculating get avg and max fitness of the whole pop.
 	if (GB->adaptive_ga) {
 		fitness_stats(GB,chrom,GB->num_chrom);
@@ -506,40 +519,40 @@ void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,cons
 		  PAUSE;
 		*/
 	}
-
+	
 	//***************************ELITISM**********************************
-    
+	
 	if(strcmp(repmodel,"STEADY")==0){
 
 		i=0;
 		while(i<GB->ssnum){
-
+			
 			/************************************/
 			/****** SELECTION OF PARENTS ********/
 			/************************************/
-
+			
 			p1=roullete_wheel(chrom,GB->num_chrom);
 			p2=roullete_wheel(chrom,GB->num_chrom);
 			if (GB->adaptive_ga) adapt_prob(GB,chrom[p1].fitnes,chrom[p2].fitnes,&mutprob,&crossprob);
-
+			
 			/************************************/
 			/******  CROSSOVER OPERATOR  ********/
 			/************************************/
-
+			
 			// create temporary genes
 			memcpy(chrop1_gen,chrom[p1].genes,GB->num_genes*sizeof(gene));
 			memcpy(chrop2_gen,chrom[p2].genes,GB->num_genes*sizeof(gene));
-
+			
 			if(RandomDouble() < crossprob){
-				crossover(chrop1_gen,chrop2_gen,GB->num_genes);
+				crossover(chrop1_gen,chrop2_gen,GB->num_genes,GB->intragenes);
 			}
-
+			
 			/************************************/
 			/******   MUTATION OPERATOR  ********/
 			/************************************/
-
+			
 			num_genes_wo_sc = GB->num_genes-FA->nflxsc_real;
-
+			
 			mutate(chrop1_gen,GB->num_genes-FA->nflxsc_real,mutprob);
 			k=0;
 			for(j=0;j<FA->nflxsc;j++){
@@ -550,7 +563,7 @@ void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,cons
 					k++;
 				}
 			}
-
+			
 			mutate(chrop2_gen,GB->num_genes-FA->nflxsc_real,mutprob);
 			k=0;
 			for(j=0;j<FA->nflxsc;j++){
@@ -561,44 +574,53 @@ void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,cons
 					k++;
 				}
 			}
-
+			
 			for(j=0; j<GB->num_genes; j++){
 				chrop1_gen[j].to_ic = genetoic(&gene_lim[j],chrop1_gen[j].to_int32);
 				chrop2_gen[j].to_ic = genetoic(&gene_lim[j],chrop2_gen[j].to_int32);
 			}
-
+			
 			/************************************/
 			/******   CHECK DUPLICATION  ********/
 			/************************************/
 
 			if(GB->duplicates || cmp_chrom2pop(chrom,chrop1_gen,GB->num_genes,0,GB->num_chrom+i)==0){
+				
+				/*
+				if(!FA->useflexdee || 
+				cmp_chrom2rotlist(FA->psFlexDEENode,chrom,gene_lim,num_genes_wo_sc,
+						  FA->nflxsc_real,GB->num_chrom,FA->FlexDEE_Nodes)==0){
+				*/
+	  
+				nrejected += filter_deelig(FA,GB,chrom,chrop1_gen,GB->num_chrom+i,atoms,gene_lim,dice);
+				memcpy(chrom[GB->num_chrom+i].genes,chrop1_gen,GB->num_genes*sizeof(gene));
 
-				if(!FA->useflexdee || cmp_chrom2rotlist(FA->psFlexDEENode,chrom,gene_lim,num_genes_wo_sc,FA->nflxsc_real,GB->num_chrom,FA->FlexDEE_Nodes)==0){
-	  
-					memcpy(chrom[GB->num_chrom+i].genes,chrop1_gen,GB->num_genes*sizeof(gene));
-					chrom[GB->num_chrom+i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[GB->num_chrom+i].genes,target);
-					chrom[GB->num_chrom+i].evalue=get_cf_evalue(&chrom[GB->num_chrom+i].cf);
-					chrom[GB->num_chrom+i].app_evalue=get_apparent_cf_evalue(&chrom[GB->num_chrom+i].cf);
-					chrom[GB->num_chrom+i].status='n';
-					i++;
-	  
-				}
+				chrom[GB->num_chrom+i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[GB->num_chrom+i].genes,target);
+				chrom[GB->num_chrom+i].evalue=get_cf_evalue(&chrom[GB->num_chrom+i].cf);
+				chrom[GB->num_chrom+i].app_evalue=get_apparent_cf_evalue(&chrom[GB->num_chrom+i].cf);
+				chrom[GB->num_chrom+i].status='n';
+				i++;
+				
 			}
-            
+			
 			if(i==GB->ssnum) break;
       
 			if(GB->duplicates || cmp_chrom2pop(chrom,chrop2_gen,GB->num_genes,0,GB->num_chrom+i)==0){
-	
-				if(!FA->useflexdee || cmp_chrom2rotlist(FA->psFlexDEENode,chrom,gene_lim,num_genes_wo_sc,FA->nflxsc_real,GB->num_chrom,FA->FlexDEE_Nodes)==0){
 	  
-					memcpy(chrom[GB->num_chrom+i].genes,chrop2_gen,GB->num_genes*sizeof(gene));
-					chrom[GB->num_chrom+i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[GB->num_chrom+i+1].genes,target);
-					chrom[GB->num_chrom+i].evalue=get_cf_evalue(&chrom[GB->num_chrom+i].cf);
-					chrom[GB->num_chrom+i].app_evalue=get_apparent_cf_evalue(&chrom[GB->num_chrom+i].cf);
-					chrom[GB->num_chrom+i].status='n';
-					i++;
-	  
-				}
+				/*
+				if(!FA->useflexdee || 
+				cmp_chrom2rotlist(FA->psFlexDEENode,chrom,gene_lim,num_genes_wo_sc,
+						  FA->nflxsc_real,GB->num_chrom,FA->FlexDEE_Nodes)==0){
+				*/
+				nrejected += filter_deelig(FA,GB,chrom,chrop2_gen,GB->num_chrom+i,atoms,gene_lim,dice);
+				memcpy(chrom[GB->num_chrom+i].genes,chrop2_gen,GB->num_genes*sizeof(gene));
+
+				chrom[GB->num_chrom+i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[GB->num_chrom+i+1].genes,target);
+				chrom[GB->num_chrom+i].evalue=get_cf_evalue(&chrom[GB->num_chrom+i].cf);
+				chrom[GB->num_chrom+i].app_evalue=get_apparent_cf_evalue(&chrom[GB->num_chrom+i].cf);
+				chrom[GB->num_chrom+i].status='n';
+				i++;
+				
 			}
 		}
 		
@@ -609,7 +631,7 @@ void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,cons
 	//****************** POPULATION BOOM ****************
 
 	if(strcmp(repmodel,"BOOM")==0){
-    
+		
 		/* create n new individuals from old pop according to fitness
 		   without duplicates, sort them together with the whole pop
 		   of N+n individuals and select the N best fit */
@@ -633,18 +655,18 @@ void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,cons
 			memcpy(chrop2_gen,chrom[p2].genes,GB->num_genes*sizeof(gene));
 
 			if(RandomDouble() < crossprob) {
-				crossover(chrop1_gen,chrop2_gen,GB->num_genes);
+				crossover(chrop1_gen,chrop2_gen,GB->num_genes,GB->intragenes);
 			}
-
+			
 			/************************************/
 			/******   MUTATION OPERATOR  ********/
 			/************************************/
-
+			
 			num_genes_wo_sc = GB->num_genes-FA->nflxsc_real;
-
+			
 			mutate(chrop1_gen,GB->num_genes-FA->nflxsc_real,mutprob);
 			//printf("mutating %p to %d genes\n",chrop1_gen,GB->num_genes-FA->nflxsc_real);
-
+			
 			k=0;
 			for(j=0;j<FA->nflxsc;j++){
 				if(residue[FA->flex_res[j].inum].trot > 0){
@@ -655,7 +677,7 @@ void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,cons
 					k++;
 				}
 			}
-
+			
 			mutate(chrop2_gen,GB->num_genes-FA->nflxsc_real,mutprob);
 			k=0;
 			for(j=0;j<FA->nflxsc;j++){
@@ -665,57 +687,153 @@ void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom,cons
 					k++;
 				}
 			}
-
+			
+			// need to recalculate genes internal coordinates
+			// because of crossover/mutation operators
 			for(j=0; j<GB->num_genes; j++){
 				chrop1_gen[j].to_ic = genetoic(&gene_lim[j],chrop1_gen[j].to_int32);
 				chrop2_gen[j].to_ic = genetoic(&gene_lim[j],chrop2_gen[j].to_int32);
 			}
-
-			/************************************/
-			/******   CHECK DUPLICATION  ********/
-			/************************************/
-      
+			
+			
 			if(GB->duplicates || cmp_chrom2pop(chrom,chrop1_gen,GB->num_genes,0,GB->num_chrom+i)==0){
-	
+				/*
 				if(!FA->useflexdee || 
-				   cmp_chrom2rotlist(FA->psFlexDEENode,chrom,gene_lim,num_genes_wo_sc,FA->nflxsc_real,GB->num_chrom,FA->FlexDEE_Nodes)==0){
-
-					memcpy(chrom[GB->num_chrom+i].genes,chrop1_gen,GB->num_genes*sizeof(gene));
-	  
-					chrom[GB->num_chrom+i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[GB->num_chrom+i].genes,target);
-					chrom[GB->num_chrom+i].evalue=get_cf_evalue(&chrom[GB->num_chrom+i].cf);
-					chrom[GB->num_chrom+i].app_evalue=get_apparent_cf_evalue(&chrom[GB->num_chrom+i].cf);
-
-					chrom[GB->num_chrom+i].status='n';
-					
-					i++;
-	  
-				}
+				cmp_chrom2rotlist(FA->psFlexDEENode,chrom,gene_lim,num_genes_wo_sc,
+						  FA->nflxsc_real,GB->num_chrom,FA->FlexDEE_Nodes)==0){
+				*/
+				
+				nrejected += filter_deelig(FA,GB,chrom,chrop1_gen,GB->num_chrom+i,atoms,gene_lim,dice);
+				memcpy(chrom[GB->num_chrom+i].genes,chrop1_gen,GB->num_genes*sizeof(gene));
+				
+				chrom[GB->num_chrom+i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,
+									  chrom[GB->num_chrom+i].genes,target);
+				chrom[GB->num_chrom+i].evalue=get_cf_evalue(&chrom[GB->num_chrom+i].cf);
+				chrom[GB->num_chrom+i].app_evalue=get_apparent_cf_evalue(&chrom[GB->num_chrom+i].cf);
+				
+				chrom[GB->num_chrom+i].status='n';
+								
+				i++;
+				
 			}
 
 			if(i==nnew) break;
-
+			
 			if(GB->duplicates || cmp_chrom2pop(chrom,chrop2_gen,GB->num_genes,0,GB->num_chrom+i)==0){
+				/*
+				if(!FA->useflexdee || 
+				cmp_chrom2rotlist(FA->psFlexDEENode,chrom,gene_lim,num_genes_wo_sc,
+						  FA->nflxsc_real,GB->num_chrom,FA->FlexDEE_Nodes)==0){
+				*/
 
-				if(!FA->useflexdee || cmp_chrom2rotlist(FA->psFlexDEENode,chrom,gene_lim,num_genes_wo_sc,FA->nflxsc_real,GB->num_chrom,FA->FlexDEE_Nodes)==0){
-	  
-					memcpy(chrom[GB->num_chrom+i].genes,chrop2_gen,GB->num_genes*sizeof(gene));
-	  
-					chrom[GB->num_chrom+i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[GB->num_chrom+i].genes,target);
-					chrom[GB->num_chrom+i].evalue=get_cf_evalue(&chrom[GB->num_chrom+i].cf);
-					chrom[GB->num_chrom+i].app_evalue=get_apparent_cf_evalue(&chrom[GB->num_chrom+i].cf);
-					chrom[GB->num_chrom+i].status='n';
-					i++;
+				nrejected += filter_deelig(FA,GB,chrom,chrop2_gen,GB->num_chrom+i,atoms,gene_lim,dice);
+				memcpy(chrom[GB->num_chrom+i].genes,chrop2_gen,GB->num_genes*sizeof(gene));
 
-				}
+				chrom[GB->num_chrom+i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,
+									  chrom[GB->num_chrom+i].genes,target);
+				chrom[GB->num_chrom+i].evalue=get_cf_evalue(&chrom[GB->num_chrom+i].cf);
+				chrom[GB->num_chrom+i].app_evalue=get_apparent_cf_evalue(&chrom[GB->num_chrom+i].cf);
+				chrom[GB->num_chrom+i].status='n';
+				i++;
+				
 			}
 		}
-    
+
 		calculate_fitness(FA,GB,VC,chrom,gene_lim,atoms,residue,cleftgrid,GB->fitness_model,GB->num_chrom+nnew,print,target);
     	}
 
+	printf("number of conformers rejected: %d\n", nrejected);
+	
 	return;
 }
+
+/***********************************************************************/
+/*        1         2         3         4         5         6          */
+/*234567890123456789012345678901234567890123456789012345678901234567890*/
+/*        1         2         3         4         5         6         7*/
+/***********************************************************************/
+int filter_deelig(FA_Global* FA, GB_Global* GB, chromosome* chrom, gene* genes, int ci, atom* atoms, const genlim* gene_lim,
+		   boost::variate_generator< RNGType, boost::uniform_int<> > & dice)
+{	
+	int nrejected = 0;
+	
+	if(FA->nflexbonds){
+		
+		int j,deelig_list[100];
+		
+		for(j=1; j<=FA->nflexbonds; j++)
+			deelig_list[j] = -1000;
+			
+		for(j=0; j<GB->num_genes; j++)
+			if(FA->map_par[j].typ == 2 && FA->map_par[j].bnd != -1)
+				deelig_list[FA->map_par[j].bnd] = (int)(genes[j].to_ic+0.5);
+		
+		if(deelig_search(FA->deelig_root_node, &deelig_list[1], FA->nflexbonds)){
+			
+			/*
+			printf("conformer rejected:");
+			for(j=1; j<=FA->nflexbonds; j++)
+				printf("%d ", deelig_list[j]);
+			printf("\n");
+			*/
+			
+			// generate a new conformer until the conformer 
+			// has not already been assigned as 'clashing conformer'
+			// and is also not a duplicate
+			do{
+				nrejected++;
+				
+				// only generate a new conformer, do not modify other variables
+				generate_random_individual(FA,GB,atoms,genes,gene_lim,dice,
+							   FA->map_par_flexbond_first_index,
+							   FA->map_par_flexbond_first_index+FA->nflexbonds);
+				
+				for(j=1; j<=FA->nflexbonds; j++)
+					deelig_list[j] = -1000;
+				
+				for(j=0; j<GB->num_genes; j++)
+					if(FA->map_par[j].typ == 2 && FA->map_par[j].bnd != -1)
+						deelig_list[FA->map_par[j].bnd] = (int)(genes[j].to_ic+0.5);
+				/*
+				if(deelig_search(FA->deelig_root_node, &deelig_list[1], FA->nflexbonds)){
+					printf("do-while conformer rejected:");
+					for(j=1; j<=FA->nflexbonds; j++)
+						printf("%d ", deelig_list[j]);
+					printf("\n");
+				}
+				*/
+				
+			}while((!GB->duplicates && cmp_chrom2pop(chrom,genes,GB->num_genes,0,ci)) ||
+			       (deelig_search(FA->deelig_root_node, &deelig_list[1], FA->nflexbonds)));
+		}
+		
+	}
+
+	return nrejected;
+}
+
+/***********************************************************************/
+/*        1         2         3         4         5         6          */
+/*234567890123456789012345678901234567890123456789012345678901234567890*/
+/*        1         2         3         4         5         6         7*/
+/***********************************************************************/
+int deelig_search(struct deelig_node_struct* root_node, int* deelig_list, int fdih)
+{
+	std::map<int, struct deelig_node_struct*>::iterator it;
+	struct deelig_node_struct* node = root_node;
+	
+	for(int i=1; i<=fdih; i++){
+		if((it=node->childs.find(deelig_list[i])) != node->childs.end() ||
+		   (deelig_list[i] != -1000 && (it=node->childs.find(-1000)) != node->childs.end())){
+			node = it->second;
+		}else{
+			return(0);
+		}
+	}
+	
+	return(1);
+}
+
 /***********************************************************************/
 /*        1         2         3         4         5         6          */
 /*234567890123456789012345678901234567890123456789012345678901234567890*/
@@ -927,6 +1045,42 @@ cfstr eval_chromosome(FA_Global* FA,GB_Global* GB,VC_Global* VC,const genlim* ge
   
 	return (*function)(FA,VC,atoms,residue,cleftgrid,GB->num_genes,icv);
 }
+
+/***********************************************************************/
+/*        1         2         3         4         5         6          */
+/*234567890123456789012345678901234567890123456789012345678901234567890*/
+/*        1         2         3         4         5         6         7*/
+/***********************************************************************/
+void generate_random_individual(FA_Global* FA, GB_Global* GB, atom* atoms, gene* genes, const genlim* gene_lim,
+				boost::variate_generator< RNGType, boost::uniform_int<> > & dice,
+				int from_gene, int to_gene)
+{
+	for(int j=from_gene;j<to_gene;j++){
+		
+		// side-chain optimization
+		if(FA->map_par[j].typ == 4){
+			int l=0;
+			while(FA->flex_res[l].inum != atoms[FA->map_par[j].atm].ofres){
+				l++;
+			};
+			
+			//printf("probability of atom[%d].ofres[%d]\t flex_res[%d](%s).inum[%d]= %.3f\n", FA->map_par[j].atm, atoms[FA->map_par[j].atm].ofres, l, FA->flex_res[l].name, FA->flex_res[l].inum, FA->flex_res[l].prob);
+			
+			if(RandomDouble() < FA->flex_res[l].prob){
+				genes[j].to_int32 = dice();
+			}else{
+				genes[j].to_int32 = 0;
+			}
+		}else{
+			genes[j].to_int32 = dice();
+		}
+		
+		genes[j].to_ic = genetoic(&gene_lim[j],genes[j].to_int32);
+	}
+	
+	return;
+}
+
 /***********************************************************************/
 /*        1         2         3         4         5         6          */
 /*234567890123456789012345678901234567890123456789012345678901234567890*/
@@ -936,18 +1090,18 @@ void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* 
                           atom* atoms,resid* residue,gridpoint* cleftgrid,char method[],
                           cfstr (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*), 
                           char file[], long int at, int popoffset, int print,
-                          boost::variate_generator< RNGType, boost::uniform_int<> > &){
-  
-	int i,j,l;
+                          boost::variate_generator< RNGType, boost::uniform_int<> > & dice){
 	
+	int i,j;
 	
+	/*
 	RNGType rng;
 	
 	boost::uniform_int<> one_to_max_int32( 1, MAX_RANDOM_VALUE );
 	boost::variate_generator< RNGType, boost::uniform_int<> >
 		dice(rng, one_to_max_int32);
+	*/
 	
-    
 	FILE* infile_ptr = NULL;
     
 	// initialise genes to zero
@@ -957,81 +1111,61 @@ void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* 
 			chrom[i].genes[j].to_ic=0.0;
 		}
 	}
-
+	
 	//------------------------------------------------------------------------------
 	// use method to create new genes
 	if(strcmp(method,"RANDOM")==0){
 		printf("generating random population...\n");
 		//printf("num_chrom=%d num_genes=%d\n",GB->num_chrom,GB->num_genes);
-    
+		
 		int gener=0;
-        
+		
 		i=popoffset;
 		while(i<GB->num_chrom){
-			for(j=0;j<GB->num_genes;j++){
-
-				// side-chain optimization
-				if(FA->map_par[j].typ == 4){
-					l=0;
-					while(FA->flex_res[l].inum != atoms[FA->map_par[j].atm].ofres){
-						l++;
-					};
-	  
-					//printf("probability of atom[%d].ofres[%d]\t flex_res[%d](%s).inum[%d]= %.3f\n", FA->map_par[j].atm, atoms[FA->map_par[j].atm].ofres, l, FA->flex_res[l].name, FA->flex_res[l].inum, FA->flex_res[l].prob);
-
-					if(RandomDouble() < FA->flex_res[l].prob){
-						chrom[i].genes[j].to_int32 = dice();
-					}else{
-						chrom[i].genes[j].to_int32 = 0;
-					}
-				}else{
-					chrom[i].genes[j].to_int32 = dice();
-					//printf("chrom[%d].gene[%d]=%u\n",i,j,chrom[i].genes[j]);
-				}
-				
-				chrom[i].genes[j].to_ic = genetoic(&gene_lim[j],chrom[i].genes[j].to_int32);
-			}
+			do{
+				generate_random_individual(FA,GB,atoms,chrom[i].genes,gene_lim,dice,0,GB->num_genes);
+			}while(GB->duplicates && cmp_chrom2pop(chrom,chrom[i].genes,GB->num_genes,0,i)==0);
 			
-			if(GB->duplicates || cmp_chrom2pop(chrom,chrom[i].genes,GB->num_genes,0,i)==0){i++;gener++;}
-            
+			gener++;
+			i++;
 		}
-        
+		
 		printf("generated %d randomized individuals\n", gener);
-
+		
 	}
-
+	
 	//------------------------------------------------------------------------------
 	
 	if(strcmp(method,"IPFILE")==0){
 		printf("generating population from file...\n");
-
+		
 		if(!OpenFile_B(file,"rb",&infile_ptr)){
 			fprintf(stderr,"ERROR: Cannot open file '%s' for reading.\n", file);
 			Terminate(8);
 		}
-        
+		
 		fseek(infile_ptr, at, SEEK_SET);
                 
 		i=0;
 		j=0;
 		while(i<GB->num_chrom && fread(&chrom[i].genes[j].to_int32, 1, sizeof(boost::int32_t), infile_ptr)){
-            
+			
 			chrom[i].genes[j].to_ic = genetoic(&gene_lim[j],chrom[i].genes[j].to_int32);
-            
+			
 			j++;
 			if(j==GB->num_genes){
 				i++;
 				j=0;
 			}
 		}
-        
+		
 		CloseFile_B(&infile_ptr,"r");
-        
+		
 		printf("generated %d individuals from file\n", i);
-        
+		
 		// reset to RANDOM afterwards
 		strcpy(method,"RANDOM");
-        
+		
 		// complete remaining population when necessary
 		return populate_chromosomes(FA,GB,VC,chrom,gene_lim,atoms,residue,
 					    cleftgrid,GB->pop_init_method,target,
@@ -1039,7 +1173,7 @@ void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* 
 	}
 	
 	//------------------------------------------------------------------------------
-
+	
 	// calculate evalue for each chromosome
 	for(i=popoffset;i<GB->num_chrom;i++){
 		chrom[i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[i].genes,target);
@@ -1049,7 +1183,7 @@ void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* 
 		//PAUSE;
 		//printf("evalue(%d)=%6.3f\n",i,chrom[i].evalue);
 	}
-  
+	
 	// sort and calculate fitness
 	calculate_fitness(FA,GB,VC,chrom,gene_lim,atoms,residue,cleftgrid,GB->fitness_model,GB->num_chrom,print,target);
 
@@ -1092,18 +1226,18 @@ int cmp_chrom2rotlist(psFlexDEE_Node psFlexDEE_INI_Node, const chromosome* chrom
 /***********************************************************************/
 int cmp_chrom2pop(const chromosome* chrom,const gene* genes, int num_genes,int start, int last){
 	int i,j,flag;
-  
+	
 	for(i=start;i<last;i++){
 		flag=0;
 		for(j=0;j<num_genes;j++){
 			//printf("comparing %u to %u\n",c->genes[j],chrom[i].genes[j]);
 			flag += abs(genes[j].to_ic - chrom[i].genes[j].to_ic) < 0.1;
 		}
-    
+		
 		//printf("flag=%d\n",flag);
 		if(flag == num_genes){return 1;}
 	}
-
+	
 	return 0;
 } 
 /***********************************************************************/
@@ -1228,6 +1362,8 @@ void read_gainputs(FA_Global* FA,GB_Global* GB,int* gen_int,int* sz_part,char fi
 			sscanf(buffer,"%s %lf",field,&GB->cross_rate);
 		}else if(strncmp(buffer,"MUTARATE",8) == 0){
 			sscanf(buffer,"%s %lf",field,&GB->mut_rate);
+		}else if(strncmp(buffer,"INTRAGEN",8) == 0){
+			GB->intragenes = 1;
 		}else if(strncmp(buffer,"INIMPROB",8) == 0){
 			sscanf(buffer,"%s %lf",field,&GB->ini_mut_prob);
 		}else if(strncmp(buffer,"ENDMPROB",8) == 0){
@@ -1339,43 +1475,79 @@ void set_gene_lim(FA_Global* FA, GB_Global* GB, genlim* gene_lim)
 /*234567890123456789012345678901234567890123456789012345678901234567890*/
 /*        1         2         3         4         5         6         7*/
 /***********************************************************************/
-void crossover(gene *john,gene *mary,int num_genes){
+void crossover(gene *john,gene *mary,int num_genes, int intragenes){
 
 	/* john and mary are two chromosomes to be crossover at points a and b
 	 */
-
+	
 	/*
-	  printf("john before:\n");
-	  print_chrom(john,num_genes,0);
-	  printf("mary before:\n");
-	  print_chrom(mary,num_genes,0);
+	printf("john before:\n");
+	print_chrom(john,num_genes,0);
+	printf("mary before:\n");
+	print_chrom(mary,num_genes,0);
 	*/
 
 	int i,j;
 	int optr,temp;
-	int gen_a,gen_b,pnt_a,pnt_b,aux_gen,aux_pnt;
-
+	int gen_a,gen_b,aux_gen;
+	int pnt_a,pnt_b,aux_pnt;
+	
 	gen_a=(int)(RandomDouble()*(double)num_genes);
-	pnt_a=(int)(RandomDouble()*(double)(MAX_GEN_LENGTH));
 	gen_b=(int)(RandomDouble()*(double)num_genes);
-	pnt_b=(int)(RandomDouble()*(double)(MAX_GEN_LENGTH));
+	//printf("gen_a=%d\tgen_b=%d\n",gen_a,gen_b);
+
+	
+	
+	if(intragenes){
+		pnt_a=(int)(RandomDouble()*(double)(MAX_GEN_LENGTH));
+		pnt_b=(int)(RandomDouble()*(double)(MAX_GEN_LENGTH));
+		
+		if(gen_a > gen_b){
+			aux_gen=gen_a;
+			aux_pnt=pnt_a;
+			gen_a=gen_b;
+			pnt_a=pnt_b;
+			gen_b=aux_gen;
+			pnt_b=aux_pnt;
+		}
+		
+		if(gen_a == gen_b && pnt_a < pnt_b){
+			aux_pnt=pnt_b;
+			pnt_b=pnt_a;
+			pnt_a=aux_pnt;
+		}		
+	}else{
+		if(gen_a > gen_b){
+			aux_gen=gen_a;
+			gen_a=gen_b;
+			gen_b=aux_gen;
+		}
+		
+		if(gen_a != gen_b){
+			// find left of right bound of gene a
+			if(RandomDouble() < 0.5){
+				pnt_a=MAX_GEN_LENGTH;
+			}else{
+				pnt_a=0;
+			}
+
+			// find left of right bound of gene b
+			if(RandomDouble() < 0.5){
+				pnt_b=MAX_GEN_LENGTH;
+			}else{
+				pnt_b=0;
+			}
+			
+			if((gen_b - gen_a) == 1 && pnt_a == 0 && pnt_b == MAX_GEN_LENGTH){
+				pnt_b=pnt_a;
+			}
+		}else{
+			pnt_a=MAX_GEN_LENGTH; pnt_b=0;
+		}
+	}
+		
 	//printf("gen_a=%d\tpnt_a=%d\tgen_b=%d\tpnt_b=%d\n",gen_a,pnt_a,gen_b,pnt_b);
-
-	if(gen_a > gen_b){
-		aux_gen=gen_a;
-		aux_pnt=pnt_a;
-		gen_a=gen_b;
-		pnt_a=pnt_b;
-		gen_b=aux_gen;
-		pnt_b=aux_pnt;
-	}
-
-	if(gen_a == gen_b && pnt_a < pnt_b){
-		aux_pnt=pnt_b;
-		pnt_b=pnt_a;
-		pnt_a=aux_pnt;
-	}
-
+	
 	for(j=gen_a;j<=gen_b;j++){
 		optr=1;
 		aux_pnt = (j==gen_a)?pnt_a:(MAX_GEN_LENGTH);
@@ -1399,7 +1571,7 @@ void crossover(gene *john,gene *mary,int num_genes){
 	  printf("mary after:\n");
 	  print_chrom(mary,num_genes,0);
 	*/
-
+	  
 	return;
 }
 
@@ -1521,13 +1693,10 @@ int remove_dups(chromosome* list, int num_chrom, int num_genes){
 	
 	int at=1;
 	
-	for(int i=1; i<num_chrom; i++){
-		//int cmp_chrom2pop_int(const chromosome* chrom,const gene* genes, int num_genes,int start, int last){
-		if(cmp_chrom2pop_int(list,list[i].genes,num_genes,0,at)==0){
+	for(int i=1; i<num_chrom; i++)
+		if(!cmp_chrom2pop(list,list[i].genes,num_genes,0,at))
 			swap_chrom(&list[at++],&list[i]);
-		}
-	}
-
+	
 	return at;
 }
 

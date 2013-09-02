@@ -47,16 +47,17 @@ void read_coor(FA_Global* FA,atom** atoms,resid** residue,char line[], char res_
 			//printf("memory re-allocated for atoms\n");
 		}
     
-        // dummy atom type by default
-        (*atoms)[FA->atm_cnt].type = 39;
+		// dummy atom type by default
+		(*atoms)[FA->atm_cnt].type = 39;
         
 		(*atoms)[FA->atm_cnt].eigen = NULL;
 		(*atoms)[FA->atm_cnt].ncons=0;
 		(*atoms)[FA->atm_cnt].cons=NULL;
 		(*atoms)[FA->atm_cnt].optres=NULL;
+		(*atoms)[FA->atm_cnt].par=NULL;
 		(*atoms)[FA->atm_cnt].graph=0;
 		(*atoms)[FA->atm_cnt].coor_ref=NULL;
-        
+		
 		strcpy((*atoms)[FA->atm_cnt].name,atm_typ);
 		if(strcmp((*atoms)[FA->atm_cnt].name," OXT")==0){
 			(*residue)[FA->res_cnt].ter = 1;
@@ -76,7 +77,7 @@ void read_coor(FA_Global* FA,atom** atoms,resid** residue,char line[], char res_
 
 		//(*atoms)[FA->atm_cnt].radius=assign_radius((*atoms)[FA->atm_cnt].name);
     
-        (*atoms)[FA->atm_cnt].type = atoi(&line[76]);
+		(*atoms)[FA->atm_cnt].type = atoi(&line[76]);
         
 		for(j=0;j<=4;j++){num_char[j]=line[j+6];}
 		num_char[5]='\0';

@@ -50,7 +50,7 @@ void read_emat(FA_Global* FA, char* scr_bin_file){
 				//bufnul[8]='\0';
 				//sscanf(bufnul,"%f",&FA->energy[i][j]);
 				FA->energy[i][j] = atof(&buffer[13]);
-				FA->energy[j][i]=FA->energy[i][j];
+				FA->energy[j][i] = FA->energy[i][j];
 			}
 		}
 	}

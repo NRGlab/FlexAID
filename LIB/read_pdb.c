@@ -33,6 +33,7 @@ void read_pdb(FA_Global* FA,atom** atoms,resid** residue, char* pdb_name){
   (*atoms)[0].eigen = NULL;
   (*atoms)[0].cons = NULL;
   (*atoms)[0].optres = NULL;
+  (*atoms)[0].par = NULL;
   (*residue)[0].gpa = NULL;
   
   (*residue)[0].fatm = (int*)malloc(sizeof(int));

@@ -78,7 +78,7 @@ void update_bonded(resid* residue, int tot, int nlist, int* list, int* nbr)
     printf("internal atom numbers list[0]=%d\tlist[%d]=%d\tfatm=%d\n",
     	   list[0],i,list[i],fatm);
     */
-	  
+    
     if(list[i]-fatm >= 0)
       {
 	if(list[i]-fatm < (latm-fatm+1))

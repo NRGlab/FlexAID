@@ -62,6 +62,8 @@ extern "C" {
 #endif
 */
 
+using namespace std;
+
 // ------------------------- structure definitions ----------------------
 struct AtomCalcSAS_struct {
   int   atomnum;      // record number from PDB

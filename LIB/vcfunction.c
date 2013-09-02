@@ -20,15 +20,11 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 	//int    rot=0;
 	int    rnum=0;
 	int    type=1;
-	int    fatm=0;
 
 	double dist_opt = 0.0;
 	double complementarity;
 	//int   intra;
 	//int   intraf;
-
-	int atomzero=0;    // atom index in atoms structure of source atom
-	int atomcont=0;    // atom index in ****************** contacting atom
 
 	int nconszero=0; 
 	int nconscont=0;
@@ -57,7 +53,7 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 		FA->optres[j].cf.con=0.0;
 		FA->optres[j].cf.sas=0.0;
 	}
-    
+	
 	permea = (double)FA->permeability;
 	dee_clash = (double)FA->dee_clash;
 	
@@ -72,27 +68,26 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
     
 	//printf("=============NEW INDIVIDUAL==============\n");
     
-    
 	if(Vcontacts(FA,atoms,residue,VC) == -1){
 
         FA->skipped++;
 
 		free(VC->ca_rec);
 		free(VC->box);
-
+		
 		return(1);
 	}
-    
+	
 	for(i=0; i<FA->atm_cnt_real; ++i) {
-    
+		
 		cfs = NULL;
-
+		
 		// atom from which contacts are calculated
-		atomzero = FA->num_atm[VC->Calc[i].atomnum];
-
+		int atomzero = FA->num_atm[VC->Calc[i].atomnum];
+		
 		// number of constraints for atomzero
 		nconszero=atoms[atomzero].ncons;
-
+		
 		if(atoms[atomzero].optres != NULL)
 		{
 			// the residue optimizable
@@ -109,18 +104,18 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 		{
 			continue;
 		}
-
+		
 		//printf("-------------------------------\nAtom[%4d]=%s in Residue[%4d]\n",VC->Calc[i].atomnum,atoms[FA->num_atm[VC->Calc[i].atomnum]].name,VC->Calc[i].resnum);
-    
-    
+		
+		
 		//com_atm=0.0;
 		//Ewall_atm=0.0;
-
+		
 		radA  = (double)VC->Calc[i].radius;
 		radoA = radA + Rw;
-
+		
 		SAS = 4.0*PI*radoA*radoA;
-
+		
 #if DEBUG_LEVEL > 0
 		cf_atom.sas = 0.0;
 #endif
@@ -193,17 +188,25 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 			*/
 
 			// atom in contact with atom zero
-			atomcont = FA->num_atm[VC->Calc[VC->ca_rec[currindex].atom].atomnum];
+			int atomcont = FA->num_atm[VC->Calc[VC->ca_rec[currindex].atom].atomnum];
 
 			int intramolecular = atoms[atomcont].ofres == atoms[atomzero].ofres;
-			
+	
+			// get first atom of residue
+			int fatm = residue[rnum].fatm[0];
+		
 			// is contact atom bonded to atom zero
 			// if YES, skip contact atom
 			if(intramolecular)
 			{
-				fatm = residue[rnum].fatm[0];
-	  
-				// get first atom of residue
+	  				
+				/*
+				printf("%d(%d) and %d(%d) bonded(%d)\n",
+				       atoms[atomcont].number, atomcont-fatm,
+				       atoms[atomzero].number, atomzero-fatm,
+				       residue[rnum].bonded[atomcont-fatm][atomzero-fatm]);
+				*/
+				
 				if(residue[rnum].bonded[atomcont-fatm][atomzero-fatm] >= 0)
 				{
 
@@ -350,9 +353,9 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 				// ligand intramolecular clash exceeds threshold
 				// add an entry in the dee elimination
 				if(intramolecular && type == 1 && Ewall > DEE_WALL_THRESHOLD){
-					intraclashes.push_back(pair<int,int>(atomcont-fatm,atomcont-fatm));
+					intraclashes.push_back(pair<int,int>(atomzero-fatm,atomcont-fatm));
 				}
-
+				
 				// Treat everything as rigid
 				if ( VC->ca_rec[currindex].dist <= dee_clash*rAB ) { cfs->rclash=1; }
 

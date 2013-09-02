@@ -43,7 +43,7 @@ struct genelimits_struct{
 	double min;
 	double del;
 	double bin;
-    double nbin;
+	double nbin;
 	int map;              // mapping gene (maps into an array)
 };
 typedef struct genelimits_struct genlim;
@@ -57,8 +57,8 @@ typedef struct gene_struct gene;
 struct chromosome_struct{
 	gene*  genes;    // pointer to genes array
 	cfstr  cf;       // function evaluation of chromosome
-    double evalue;   // NOT the apparent cf
-    double app_evalue;   // THE apparent cf
+	double evalue;   // NOT the apparent cf
+	double app_evalue;   // THE apparent cf
 	double fitnes;   // fitness score of chromosome
 	char   status;   /* status, n -> eval is correct 
 			    o -> need to recalculate eval
@@ -72,7 +72,7 @@ struct GB_Global_struct{
 	int          num_chrom;
 	int          num_genes;
 	int          max_generations;
-
+	
 	double        alpha;
 	double        peaks;
 	double        scale;
@@ -85,7 +85,8 @@ struct GB_Global_struct{
 
 	double        pbfrac;
 	int           ssnum;
-    
+	int           intragenes;
+	
 	// adapt Genetic Algorithm operators (mutation,crossover)
 	int          adaptive_ga;
 	double       fit_avg;
@@ -98,7 +99,7 @@ struct GB_Global_struct{
 	int          rrg_skip;
 
 	int          num_print;
-	int	         print_int;
+	int	     print_int;
 
 	char         pop_init_method[9];
 	char         pop_init_file[MAX_PATH__];
@@ -117,10 +118,13 @@ typedef struct GB_Global_struct GB_Global;
 int   GA(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome** chrom_snapshot,genlim** gene_lim,atom* atoms,resid* residue,gridpoint** cleftgrid,char gainpfile[], int* memchrom, cfstr (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int, double*));
 int   check_state(char* pausefile, char* abortfile, char* stopfile, int interval);
 void  QuickSort(chromosome*, int, int, bool);
-void  crossover(gene *john,gene *mary,int num_genes);
+void  crossover(gene *john,gene *mary,int num_genes, int intragenes);
 void  mutate(gene *john,int num_genes,double mut_rate);
 void  bin_print(int dec,int len);
 void  read_gainputs(FA_Global* FA,GB_Global* GB,int*,int*,char file[]);
+int   deelig_search(struct deelig_node_struct* root_node, int* deelig_list, int fdih);
+int   filter_deelig(FA_Global* FA, GB_Global* GB, chromosome* chrom, gene* genes, int ci, atom* atoms, const genlim* gene_lim,
+		   boost::variate_generator< RNGType, boost::uniform_int<> > & dice);
 
 void   set_gene_lim(FA_Global* FA, GB_Global* GB, genlim* gene_lim);
 long int read_pop_init_file(FA_Global* FA, GB_Global* GB, genlim* gene_lim, char* pop_init_file);
@@ -141,6 +145,8 @@ int   remove_dups(chromosome* list, int num_chrom, int num_genes);
 FILE* get_update_file_ptr(FA_Global* FA);
 void close_update_file_ptr(FA_Global* FA, FILE* outfile_ptr);
 
+void  generate_random_individual(FA_Global* FA, GB_Global* GB, atom* atoms, gene* genes, const genlim* gene_lim,
+				 boost::variate_generator< RNGType, boost::uniform_int<> > &, int from_gene, int to_gene);
 void  populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chrom, const genlim* gene_lim, atom* atoms,resid* residue,gridpoint* cleftgrid,char method[], cfstr (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*), char file[], long int at, int offset, int print, boost::variate_generator< RNGType, boost::uniform_int<> > &);
 cfstr eval_chromosome(FA_Global* FA,GB_Global* GB,VC_Global* VC,const genlim* gene_lim,atom* atoms,resid* residue,gridpoint* cleftgrid,gene* john, cfstr (*function)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*));
 void  calculate_fitness(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chrom, const genlim* gene_lim,atom* atoms,resid* residue,gridpoint* cleftgrid,char method[],int pop_size, int print, cfstr (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int, double*));

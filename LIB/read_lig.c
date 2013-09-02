@@ -132,7 +132,8 @@ void read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]){
 			FA->num_het++;
 			FA->het_res[FA->num_het]=FA->res_cnt;
 			(*residue)[FA->res_cnt].bonded=NULL;
-			//(*residue)[FA->res_cnt].shortpath=NULL;
+			(*residue)[FA->res_cnt].shortpath=NULL;
+			(*residue)[FA->res_cnt].shortflex=NULL;
 			
 			(*residue)[FA->res_cnt].type=1;
 			strcpy((*residue)[FA->res_cnt].name,rnam);
@@ -427,12 +428,12 @@ void read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]){
 	//PAUSE;
 
 	printf("the protein center of coordinates is: %8.3f %8.3f %8.3f\n", FA->ori[0],FA->ori[1],FA->ori[2]);
-
+	
 	// creates list of atoms in ligand to create cc
 	buildlist(FA,*atoms,*residue,FA->res_cnt,0,&natm,list);
 	//  for(i=1;i<=residue[res_cnt].fdih;i++)
 	//printf("%2d=%6d%6d%6d\n",i,altfdih[i][0],altfdih[i][1],altfdih[i][2]);
-
+	
 	if((*residue)[FA->res_cnt].fdih > 0){
 		assign_shift(*atoms,*residue,FA->res_cnt,natm,list,altfdih);
 	}
@@ -455,24 +456,24 @@ void read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]){
 		  printf("\n");
 		*/
 	}
-  
-	shortest_path(&(*residue)[FA->res_cnt],natm,*atoms);
-	assign_shortflex(&(*residue)[FA->res_cnt],natm,(*residue)[FA->res_cnt].fdih,*atoms);
 
 	// prints bonded matrix
 	/*
 	  for(i=0;i<natm;i++){
-	  printf("\t%5d\t",i);
-	  for(j=0;j<natm;j++){
-	  printf("%2d",(*residue)[FA->res_cnt].bonded[i][j]);
-	  }
-	  printf("\n");
+		  printf("\t%5d\t",(*atoms)[(*residue)[FA->res_cnt].fatm[0]+i].number);
+		  for(j=0;j<natm;j++){
+			  printf("%3d",(*residue)[FA->res_cnt].bonded[i][j]);
+		  }
+		  printf("\n");
 	  }
 	  getchar();
 	*/
 	
+	shortest_path(&(*residue)[FA->res_cnt],natm,*atoms);
+	assign_shortflex(&(*residue)[FA->res_cnt],natm,(*residue)[FA->res_cnt].fdih,*atoms);
+	
 	FA->num_optres++;
-
+	
 	buildcc(FA,*atoms,natm,list);
 	
 	for(i=(*residue)[FA->res_cnt].fatm[0];i<=(*residue)[FA->res_cnt].latm[0];i++){
