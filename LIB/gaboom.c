@@ -19,7 +19,7 @@ using namespace std;
 /*        1         2         3         4         5         6         7*/
 /***********************************************************************/
 int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome** chrom_snapshot,
-       genlim** gene_lim,atom* atoms,resid* residue,gridpoint** cleftgrid,char gainpfile[], 
+       genlim** gene_lim,atom* atoms,resid* residue,gridpoint** cleftgrid,char gainpfile[],
        int* memchrom, cfstr (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*)){
   
 	int i;
@@ -742,7 +742,7 @@ void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom, con
 		calculate_fitness(FA,GB,VC,chrom,gene_lim,atoms,residue,cleftgrid,GB->fitness_model,GB->num_chrom+nnew,print,target);
     	}
 
-	printf("number of conformers rejected: %d\n", nrejected);
+	//printf("number of conformers rejected: %d\n", nrejected);
 	
 	return;
 }
@@ -754,7 +754,7 @@ void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom, con
 /***********************************************************************/
 int filter_deelig(FA_Global* FA, GB_Global* GB, chromosome* chrom, gene* genes, int ci, atom* atoms, const genlim* gene_lim,
 		   boost::variate_generator< RNGType, boost::uniform_int<> > & dice)
-{	
+{
 	int nrejected = 0;
 	
 	if(FA->nflexbonds){

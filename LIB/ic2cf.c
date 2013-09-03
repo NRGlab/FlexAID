@@ -199,8 +199,7 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cl
 					}
 				}
 				
-				if(add) nbranch++;
-				//cout << "total branches " << nbranch << endl;
+				//if(add) { nbranch++; cout << "total branches " << nbranch << endl; }
 			}
 			
 		}

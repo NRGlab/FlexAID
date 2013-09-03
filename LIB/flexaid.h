@@ -58,7 +58,7 @@
 #define KWALL    1.0e6
 #define KANGLE   1.0e2
 #define KDIST    1.0e3
-#define DEE_WALL_THRESHOLD 100.0
+#define DEE_WALL_THRESHOLD 50.0
 
 #define PI 3.141592
 #define E  2.718281
