@@ -6,14 +6,15 @@
 
 using namespace std;
 
-void read_emat(FA_Global* FA, char* scr_bin_file)
+void read_emat(FA_Global* FA, char* emat_file)
 {
+	
 	FILE* infile_ptr;
-	char buffer[40];
+	char buffer[100];
 	
 	infile_ptr=NULL;
-	if (!OpenFile_B(scr_bin_file,"r",&infile_ptr)){
-		fprintf(stderr,"ERROR: Could not read input file: %s\n", scr_bin_file);
+	if (!OpenFile_B(emat_file,"r",&infile_ptr)){
+		fprintf(stderr,"ERROR: Could not read input file: %s\n", emat_file);
 		Terminate(8);
 	}
 	
@@ -29,19 +30,19 @@ void read_emat(FA_Global* FA, char* scr_bin_file)
 		}
 	}
 	
-	printf("read %d lines in <%s>\n", (int)lines.size(), scr_bin_file);
+	printf("read %d lines in <%s>\n", (int)lines.size(), emat_file);
 	
 	float z = zero(1.0/2.0f, 1.0/2.0f, (float)(-(int)lines.size()));
 	if(fabs(z - (float)((int)z)) > 0.001) {
 		fprintf(stderr,"ERROR: Number of lines read in energy matrix file <%s> is incorrect (%d)\n", 
-			scr_bin_file, (int)lines.size());
+			emat_file, (int)lines.size());
 		Terminate(12);
 	}
 	
 	FA->ntypes = (int)(z + 0.001);
 	printf("number of atom types: %d\n", FA->ntypes);
 	
-	FA->energy_matrix = (struct energy_matrix*)malloc((int)lines.size()*sizeof(struct energy_matrix));
+	FA->energy_matrix = (struct energy_matrix*)malloc(FA->ntypes*FA->ntypes*sizeof(struct energy_matrix));
 	if(!FA->energy_matrix){
 		fprintf(stderr,"ERROR: could not allocate memory for energy_matrix\n");
 		Terminate(2);
@@ -62,9 +63,12 @@ void read_emat(FA_Global* FA, char* scr_bin_file)
 			
 			FA->energy_matrix[i*FA->ntypes+j].type1 = i;
 			FA->energy_matrix[i*FA->ntypes+j].type2 = j;
+			FA->energy_matrix[j*FA->ntypes+i].type1 = j;
+			FA->energy_matrix[j*FA->ntypes+i].type2 = i;
 			
 			if(values.size() == 1){
 				FA->energy_matrix[i*FA->ntypes+j].weight = 1;
+				FA->energy_matrix[j*FA->ntypes+i].weight = 1;
 
 				struct energy_values* weightval = (struct energy_values*)malloc(sizeof(struct energy_values));
 				if(!weightval){
@@ -72,10 +76,16 @@ void read_emat(FA_Global* FA, char* scr_bin_file)
 					Terminate(2);
 				}
 
+				weightval->x = -1;
+				weightval->y = atof((*values.begin()).c_str());
+				weightval->next_value = NULL;
+					
 				FA->energy_matrix[i*FA->ntypes+j].energy_values = weightval;
+				FA->energy_matrix[j*FA->ntypes+i].energy_values = weightval;
 				
 			}else if(values.size() % 2 == 0){
 				FA->energy_matrix[i*FA->ntypes+j].weight = 0;
+				FA->energy_matrix[j*FA->ntypes+i].weight = 0;
 				
 				struct energy_values* xyval_prev = NULL;
 				
@@ -89,14 +99,21 @@ void read_emat(FA_Global* FA, char* scr_bin_file)
 						Terminate(2);
 					}
 					
-					xyval->pf_x = atof((*xit).c_str());
-					xyval->pf_y = atof((*yit).c_str());
+					xyval->x = atof((*xit).c_str());
+					xyval->y = atof((*yit).c_str());
 					xyval->next_value = NULL;
+					/*
+					printf("new entry[%d][%d]: x=%.3f y=%.3f\n", i+1, j+1,
+					       xyval->x, xyval->y);
+					*/
 					
 					// second or more xy values
 					if(xyval_prev != NULL)
 						xyval_prev->next_value = xyval;
-					else FA->energy_matrix[i*FA->ntypes+j].energy_values = xyval; // first xy values
+					else { 
+						FA->energy_matrix[i*FA->ntypes+j].energy_values = xyval; // first xy values
+						FA->energy_matrix[j*FA->ntypes+i].energy_values = xyval; // first xy values
+					}
 					
 					xyval_prev = xyval;
 
@@ -107,8 +124,7 @@ void read_emat(FA_Global* FA, char* scr_bin_file)
 			}
 		}
 	}
-
-
+	
 	CloseFile_B(&infile_ptr,"r");
 	
 }

@@ -47,7 +47,6 @@
 #define MAX_SPHERE_POINTS 610       // Total number of points in atom surface sphere 
 #define MAX_OPT_RES 1               // max number of residues to be optimized 
 #define CLASH_PENALTY_VALUE 1e9f    // skipped individuals WAL term penaly
-#define NTYPES 10                   // number of atom types 
 #define MBNDS 4                     // max number of cov bonds an atom can have 
 #define MAX_BONDED 20               // max number of bonded atom list
 #define MAX_PAR 100                 // max number of parameters for simplex optimization, not used at the moment
@@ -126,8 +125,8 @@ struct OptRes_struct{
 typedef struct OptRes_struct OptRes;
 
 struct energy_values {
-	float pf_x;
-	float pf_y;
+	float x;
+	float y;
 	struct energy_values* next_value;
 };
 

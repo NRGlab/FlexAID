@@ -50,7 +50,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 		dice(rng, one_to_max_int32);
     
 	*memchrom=0; //num chrom allocated in memory
-
+	
 	// for generation random doubles from [0,1[ (mutation crossover operators)
 	srand((unsigned)time(0));
     
