@@ -54,8 +54,6 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 	// opt lines counter
 	int nopt=0;
 
-	int by_solventtype=-1;
-	int metaltype=-1;
 	sphere *spheres, * _sphere;
 	
 	flexscfile[0]='\0';
@@ -78,7 +76,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 
 	while (fgets(buffer, sizeof(buffer),infile_ptr)){
 
-        buffer[strlen(buffer)-1] = '\0';
+		buffer[strlen(buffer)-1] = '\0';
         
 		for(i=0;i<6;++i) field[i]=buffer[i];
 		field[6]='\0';
@@ -108,8 +106,6 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		if(strcmp(field,"VARDIH") == 0){sscanf(buffer,"%s %lf",field,&FA->delta_dihedral);}
 		if(strcmp(field,"VARFLX") == 0){sscanf(buffer,"%s %lf",field,&FA->delta_flexible);}
 		if(strcmp(field,"SLVPEN") == 0){sscanf(buffer,"%s %f",field,&FA->solventterm);}
-		if(strcmp(field,"SLVTYP") == 0){sscanf(buffer,"%s %d",field,&by_solventtype);}
-		if(strcmp(field,"METTYP") == 0){sscanf(buffer,"%s %d",field,&metaltype);}
 		if(strcmp(field,"OUTRNG") == 0){FA->output_range=1;}
 		if(strcmp(field,"USEDEE") == 0){FA->useflexdee=1;}
 		if(strcmp(field,"IMATRX") == 0){strcpy(emat_forced,&buffer[7]);}
@@ -144,12 +140,12 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 	}
     
 	// temporary pdb name
-    strcpy(tmpprotname,FA->temp_path);
+	strcpy(tmpprotname,FA->temp_path);
     
 #ifdef _WIN32
-    strcat(tmpprotname,"\\target.pdb");
+	strcat(tmpprotname,"\\target.pdb");
 #else
-    strcat(tmpprotname,"/target.pdb");
+	strcat(tmpprotname,"/target.pdb");
 #endif
 
 
@@ -168,9 +164,9 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 #ifdef _WIN32
 		strcat(emat,"\\M6_cons_3.dat");
 #else
-        strcat(emat,"/M6_cons_3.dat");
+		strcat(emat,"/M6_cons_3.dat");
 #endif
-    }else{
+	}else{
 		// use forced matrix
 		strcpy(emat,emat_forced);
 	}
@@ -178,11 +174,11 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 	printf("interaction matrix is <%s>\n", emat);
 	read_emat(FA,emat);
 
-    printf("pdb target is <%s>\n", pdb_name);
-    if(rna_structure(pdb_name)){
-        printf("target molecule is a RNA structure\n");
-        FA->is_protein = 0;
-    }
+	printf("pdb target is <%s>\n", pdb_name);
+	if(rna_structure(pdb_name)){
+		printf("target molecule is a RNA structure\n");
+		FA->is_protein = 0;
+	}
 	
 	/************************************************************/
 	/********          DEFINITION OF TYPES             **********/
@@ -196,72 +192,21 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 			strcpy(deftyp,FA->dependencies_path);
 		}
 		
-		if(FA->ntypes == 8){
-			if(FA->is_protein){
-#ifdef _WIN32
-				strcat(deftyp,"\\AMINO8.def");
-#else
-				strcat(deftyp,"/AMINO8.def");
-#endif
-			}else{
-#ifdef _WIN32
-				strcat(deftyp,"\\NUCLEOTIDES8.def");
-#else
-				strcat(deftyp,"/NUCLEOTIDES8.def");
-#endif
-			}
-			
-		}else if(FA->ntypes == 12 || FA->ntypes == 13){ //      -/+ solvent term
-			if(FA->is_protein){
-#ifdef _WIN32
-				strcat(deftyp,"\\AMINO12.def");
-#else
-				strcat(deftyp,"/AMINO12.def");
-#endif
-			}else{
-
-#ifdef _WIN32
-				strcat(deftyp,"\\NUCLEOTIDES12.def");
-#else
-				strcat(deftyp,"/NUCLEOTIDES12.def");
-#endif
-			}
 		
-		}else if(FA->ntypes == 26 || FA->ntypes == 27){ //      -/+ solvent term
-			if(FA->is_protein){
+		if(FA->is_protein){
 #ifdef _WIN32
-				strcat(deftyp,"\\AMINO26.def");
+			strcat(deftyp,"\\AMINO.def");
 #else
-				strcat(deftyp,"/AMINO26.def");
+			strcat(deftyp,"/AMINO.def");
 #endif
-			}else{
-#ifdef _WIN32
-				strcat(deftyp,"\\NUCLEOTIDES26.def");
-#else
-				strcat(deftyp,"/NUCLEOTIDES26.def");
-#endif
-			}
-		
-		}else if(FA->ntypes == 39 || FA->ntypes == 40){ //      -/+ solvent term
-			if(FA->is_protein){
-#ifdef _WIN32
-				strcat(deftyp,"\\AMINO.def");
-#else
-				strcat(deftyp,"/AMINO.def");
-#endif
-			}else{
-#ifdef _WIN32
-				strcat(deftyp,"\\NUCLEOTIDES.def");
-#else
-				strcat(deftyp,"/NUCLEOTIDES.def");
-#endif
-			}
-		
 		}else{
-			fprintf(stderr, "ERROR: Invalid number of atom types read in energy matrix (%s)\n", emat);
-			Terminate(20);
+#ifdef _WIN32
+			strcat(deftyp,"\\NUCLEOTIDES.def");
+#else
+			strcat(deftyp,"/NUCLEOTIDES.def");
+#endif
 		}
-
+		
 	}else{
 		// use forced definition of types
 		strcpy(deftyp,deftyp_forced);
@@ -271,32 +216,11 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 
 	///////////////////////////////////////////////
   
-	// Alter solvent type
-	if(by_solventtype != -1){
-		if(by_solventtype >= 1 && 
-		   by_solventtype <= FA->ntypes){
-			FA->by_solventtype = by_solventtype;
-		}else{
-			printf("invalid solvent type entered. solvent type is then 0\n");
-		}
-	}
-
-	if(metaltype != -1){
-		if(metaltype >= 1 && 
-		   metaltype <= FA->ntypes){
-			FA->metaltype = metaltype;
-		}else{
-			printf("invalid metal type entered. solvent type is set to default (neutral=9)\n");
-		}
-	}
-    
-	///////////////////////////////////////////////
-
 	printf("read PDB file <%s>\n",pdb_name);
 
 	modify_pdb(pdb_name,tmpprotname,FA->exclude_het,FA->remove_water,FA->is_protein);
 	read_pdb(FA,atoms,residue,tmpprotname);
-  
+	
 	(*residue)[FA->res_cnt].latm[0]=FA->atm_cnt;
 	for(k=1;k<=FA->res_cnt;k++){
 		FA->atm_cnt_real += (*residue)[k].latm[0]-(*residue)[k].fatm[0]+1;
@@ -315,7 +239,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 
 	//////////////////////////////////////////////
 	
-    assign_radii_types(FA,(*atoms),(*residue));    
+	assign_radii_types(FA,(*atoms),(*residue));    
 	printf("radii are now assigned\n");
     
 	if(strcmp(rmsd_file,"")){
@@ -361,7 +285,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 #ifdef _WIN32
 			strcat(rotobs_file,"\\rotobs.lst");
 #else
-            strcat(rotobs_file,"/rotobs.lst");
+			strcat(rotobs_file,"/rotobs.lst");
 #endif
             
 			printf("read rotamer observations <%s>\n",rotobs_file);
@@ -378,7 +302,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 #ifdef _WIN32
 			strcat(rotlib_file,"\\Lovell_LIB.dat");
 #else
-            strcat(rotlib_file,"/Lovell_LIB.dat");
+			strcat(rotlib_file,"/Lovell_LIB.dat");
 #endif
             
 			printf("read rotamer library <%s>\n",rotlib_file);
@@ -395,7 +319,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 	//////////////////////////////////////////////
 
 	if(strcmp(constraint_file,"")){
-        printf("read constraint_file <%s>\n", constraint_file);
+		printf("read constraint_file <%s>\n", constraint_file);
 		read_constraints(FA,*atoms,*residue,constraint_file);
 		assign_constraint_threshold(FA,*atoms,FA->constraints,FA->num_constraints);
 
@@ -426,9 +350,9 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
         
 	}else if(!strcmp(rngopt,"LOCCLF")){
         
-        //RNGOPT LOCCLF filename.pdb
+		//RNGOPT LOCCLF filename.pdb
 		strcpy(FA->rngopt,"locclf");
-        strcpy(clf_file,&rngoptline[14]);
+		strcpy(clf_file,&rngoptline[14]);
         
 		printf("read binding-site grid <%s>\n",clf_file);
 		spheres = read_spheres(clf_file);
@@ -437,13 +361,13 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		calc_cleftic(FA,*cleftgrid);
 	}
     
-    //printf("IC bounds...\n");
+	//printf("IC bounds...\n");
 	ic_bounds(FA,FA->rngopt);
 
-    ///////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////
     
 	for(i=0;i<nopt;i++){
-        //printf("%s\n", optline[i]);
+		//printf("%s\n", optline[i]);
 		if(i==MAX_PAR){
 			printf("WARNING: number of params allowed was reached (100). other params will be skipped.\n");
 			break;
@@ -462,15 +386,15 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 
 	}
 
-    add2_optimiz_vec(FA,*atoms,*residue,opt,chain,"SC");
-    add2_optimiz_vec(FA,*atoms,*residue,opt,chain,"NM");
+	add2_optimiz_vec(FA,*atoms,*residue,opt,chain,"SC");
+	add2_optimiz_vec(FA,*atoms,*residue,opt,chain,"NM");
     
 	//////////////////////////////////////////////
     
-    if(FA->translational && strcmp(rngopt,"LOCCEN") && strcmp(rngopt,"LOCCLF")){
-        fprintf(stderr,"ERROR: the binding-site is not defined\n");
-        Terminate(2);
-    }
+	if(FA->translational && strcmp(rngopt,"LOCCEN") && strcmp(rngopt,"LOCCLF")){
+		fprintf(stderr,"ERROR: the binding-site is not defined\n");
+		Terminate(2);
+	}
     
 	if(FA->output_range){		
         
@@ -480,31 +404,31 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		strcpy(gridfilename,"/grid.sta.pdb");
 #endif
         
-        strcpy(gridfile,FA->temp_path);
-        strcat(gridfile,gridfilename);
+		strcpy(gridfile,FA->temp_path);
+		strcat(gridfile,gridfilename);
         
 		write_grid(FA,*cleftgrid,gridfile);
 	}
     
-    if(FA->translational && FA->num_grd==1){
-        fprintf(stderr,"ERROR: the binding-site has no anchor points\n");
-        Terminate(2);
-    }
+	if(FA->translational && FA->num_grd==1){
+		fprintf(stderr,"ERROR: the binding-site has no anchor points\n");
+		Terminate(2);
+	}
     
 	// fill in optres pointer in atoms struct.
 	update_optres(*atoms,FA->atm_cnt,FA->optres,FA->num_optres);
   	
-    if(FA->nrg_suite){
-        if(FA->translational){
-            for(i=1; i<FA->num_grd; i++){
-                printf("Grid[%d]=%8.3f%8.3f%8.3f\n", i, (*cleftgrid)[i].coor[0], (*cleftgrid)[i].coor[1], (*cleftgrid)[i].coor[2]);
-                if(i % 1000 == 0){
-                    fflush(stdout);
-                }
-                fflush(stdout);
-            }
-        }
-    }
+	if(FA->nrg_suite){
+		if(FA->translational){
+			for(i=1; i<FA->num_grd; i++){
+				printf("Grid[%d]=%8.3f%8.3f%8.3f\n", i, (*cleftgrid)[i].coor[0], (*cleftgrid)[i].coor[1], (*cleftgrid)[i].coor[2]);
+				if(i % 1000 == 0){
+					fflush(stdout);
+				}
+				fflush(stdout);
+			}
+		}
+	}
     
 	/* FREE SPHERES LINKED-LIST */
 	while(spheres != NULL){

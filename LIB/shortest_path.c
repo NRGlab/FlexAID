@@ -22,20 +22,18 @@ void shortest_path(resid* residue, int tot, atom* atoms)
 	}
 	
 	for(int i=0; i<tot; i++){
-		if(residue->shortpath[i] == NULL){
-			residue->shortpath[i] = (char**)malloc(tot*sizeof(char*));
-			if(!residue->shortpath[i]){
-				fprintf(stderr,"ERROR: Could not allocate memory for residue->shortpath[%d]\n", i);
-				Terminate(2);
-			}else{
-				for(int j=0; j<tot; j++){
-					// 90001-90002
-					residue->shortpath[i][j] = (char*)malloc(MAX_SHORTEST_PATH*6*sizeof(char));
-					if(!residue->shortpath[i][j]){
-						fprintf(stderr,
-							"ERROR: Could not allocate memory for residue->shortpath[%d][%d]\n", i,j);
-						Terminate(2);
-					}
+		residue->shortpath[i] = (char**)malloc(tot*sizeof(char*));
+		if(!residue->shortpath[i]){
+			fprintf(stderr,"ERROR: Could not allocate memory for residue->shortpath[%d]\n", i);
+			Terminate(2);
+		}else{
+			for(int j=0; j<tot; j++){
+				// 90001-90002
+				residue->shortpath[i][j] = (char*)malloc(MAX_SHORTEST_PATH*6*sizeof(char));
+				if(!residue->shortpath[i][j]){
+					fprintf(stderr,
+						"ERROR: Could not allocate memory for residue->shortpath[%d][%d]\n", i,j);
+					Terminate(2);
 				}
 			}
 		}
@@ -52,8 +50,8 @@ void shortest_path(resid* residue, int tot, atom* atoms)
 				ss << fatm+i;
 				strcpy(residue->shortpath[i][j], ss.str().c_str());
 				/*
-				printf("shortest path from %d to %d is %s\n",
-				       atoms[fatm+j].number, atoms[fatm+i].number, residue->shortpath[i][j]);
+				  printf("shortest path from %d to %d is %s\n",
+				  atoms[fatm+j].number, atoms[fatm+i].number, residue->shortpath[i][j]);
 				*/
 				continue;
 			}
@@ -84,8 +82,8 @@ void shortest_path(resid* residue, int tot, atom* atoms)
 					}
 					strcpy(residue->shortpath[j][qa],mark[qa].c_str());
 					/*
-					printf("shortest path from %d to %d is %s\n",
-					       atoms[fatm+j].number, atoms[fatm+qa].number, mark[qa].c_str());
+					  printf("shortest path from %d to %d is %s\n",
+					  atoms[fatm+j].number, atoms[fatm+qa].number, mark[qa].c_str());
 					*/
 					break;
 				}
@@ -93,10 +91,10 @@ void shortest_path(resid* residue, int tot, atom* atoms)
 				for(int k=0; k<tot; k++){
 					// add all atoms bonded to atom j 
 					/*
-					printf("bonded[%d][%d]=%d\n", 
-					       atoms[fatm+qa].number, 
-					       atoms[fatm+k].number,
-					       residue->bonded[qa][k]);
+					  printf("bonded[%d][%d]=%d\n", 
+					  atoms[fatm+qa].number, 
+					  atoms[fatm+k].number,
+					  residue->bonded[qa][k]);
 					*/
 					if(residue->bonded[qa][k] == 1){
 						// unless atom has already been visited (marked)
@@ -118,18 +116,18 @@ void shortest_path(resid* residue, int tot, atom* atoms)
 }
 
 /* BFS algorithm
-1  procedure BFS(G,v):
-2      create a queue Q
-3      enqueue v onto Q
-4      mark v
-5      while Q is not empty:
-6          t ← Q.dequeue()
-7          if t is what we are looking for:
-8              return t
-9          for all edges e in G.adjacentEdges(t) do
-10             u ← G.adjacentVertex(t,e)
-11             if u is not marked:
-12                  mark u
-13                  enqueue u onto Q
-14     return none
+   1  procedure BFS(G,v):
+   2      create a queue Q
+   3      enqueue v onto Q
+   4      mark v
+   5      while Q is not empty:
+   6          t ← Q.dequeue()
+   7          if t is what we are looking for:
+   8              return t
+   9          for all edges e in G.adjacentEdges(t) do
+   10             u ← G.adjacentVertex(t,e)
+   11             if u is not marked:
+   12                  mark u
+   13                  enqueue u onto Q
+   14     return none
 */

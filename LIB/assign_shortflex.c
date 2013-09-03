@@ -15,8 +15,6 @@ using namespace std;
 
 void assign_shortflex(resid* residue, int tot, int fdih, atom* atoms)
 {
-	int fatm = residue->fatm[0];
-	
 	residue->shortflex = (int***)malloc(tot*sizeof(int**));
 	if(!residue->shortflex){
 		fprintf(stderr,"ERROR: Could not allocate memory for residue->shortflex\n");

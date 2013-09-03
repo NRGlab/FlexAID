@@ -203,14 +203,19 @@ void read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]){
 			}
 			(*residue)[FA->res_cnt].latm[0]=FA->atm_cnt;
             
-            // dummy atom type by default
-            (*atoms)[FA->atm_cnt].type = 39;
+			// dummy atom type by default
+			(*atoms)[FA->atm_cnt].type = FA->ntypes-1;
             
 			help[0]=buffer[11];
 			help[1]=buffer[12];
 			help[2]='\0';
-			sscanf(help,"%d",&(*atoms)[FA->atm_cnt].type);
-            //printf("atom[%d].type=%d\n", (*atoms)[FA->atm_cnt].number, (*atoms)[FA->atm_cnt].type);
+			
+			int type = atoi(help);
+			if(type && type >= 1 && type <= FA->ntypes)
+				(*atoms)[FA->atm_cnt].type = type;
+			else fprintf(stderr, "Invalid or unknown atom type for ligand atom number %d\n", (*atoms)[FA->atm_cnt].number);
+
+			//printf("atom[%d].type=%d\n", (*atoms)[FA->atm_cnt].number, (*atoms)[FA->atm_cnt].type);
             
 			for (i=0;i<4;i++){(*atoms)[FA->atm_cnt].name[i]=buffer[14+i];}
 			(*atoms)[FA->atm_cnt].name[4]='\0';
@@ -460,11 +465,11 @@ void read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]){
 	// prints bonded matrix
 	/*
 	  for(i=0;i<natm;i++){
-		  printf("\t%5d\t",(*atoms)[(*residue)[FA->res_cnt].fatm[0]+i].number);
-		  for(j=0;j<natm;j++){
-			  printf("%3d",(*residue)[FA->res_cnt].bonded[i][j]);
-		  }
-		  printf("\n");
+	  printf("\t%5d\t",(*atoms)[(*residue)[FA->res_cnt].fatm[0]+i].number);
+	  for(j=0;j<natm;j++){
+	  printf("%3d",(*residue)[FA->res_cnt].bonded[i][j]);
+	  }
+	  printf("\n");
 	  }
 	  getchar();
 	*/

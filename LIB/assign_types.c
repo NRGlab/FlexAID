@@ -112,30 +112,6 @@ void assign_types(FA_Global* FA,atom* atoms,resid* residue,char aminofile[]){
 			if(strcmp(residue[atoms[i].ofres].name,"HOH") == 0){atoms[i].type = 1;}
 		}
 	}
-
-	// Set a '' type for Metals in general
-	for(k=1;k<=FA->res_cnt;k++){ 
-		rot=residue[k].rot;
-	   
-		for(i=residue[k].fatm[rot];i<=residue[k].latm[rot];i++){ 
-			if(strcmp(residue[atoms[i].ofres].name,"FE ") == 0 ||
-			   strcmp(residue[atoms[i].ofres].name,"CU ") == 0 ||
-			   strcmp(residue[atoms[i].ofres].name,"ZN ") == 0 ||
-			   strcmp(residue[atoms[i].ofres].name,"MG ") == 0 ||
-			   strcmp(residue[atoms[i].ofres].name,"CO ") == 0 ||
-			   strcmp(residue[atoms[i].ofres].name,"NI ") == 0 ||
-			   strcmp(residue[atoms[i].ofres].name,"MN ") == 0){
-				atoms[i].type = FA->metaltype;
-
-				printf("metal %s%d%c set to type %d\n",
-				       residue[atoms[i].ofres].name,
-				       residue[atoms[i].ofres].number,
-				       residue[atoms[i].ofres].chn,
-				       FA->metaltype);
-
-			}
-		}
-	}
-
+	
 	return;
 }

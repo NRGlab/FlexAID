@@ -50,7 +50,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 		dice(rng, one_to_max_int32);
     
 	*memchrom=0; //num chrom allocated in memory
-
+	
 	// for generation random doubles from [0,1[ (mutation crossover operators)
 	srand((unsigned)time(0));
     
@@ -221,7 +221,8 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	*/
     
 	int save_num_chrom = (int)(GB->num_chrom*SAVE_CHROM_FRACTION);
-    
+	int nrejected = 0;
+	
 	for(i=0;i<GB->max_generations;i++){
 
 		///////////////////////////////////////////////////
@@ -308,7 +309,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 		  }
 		*/
 		
-		reproduce(FA,GB,VC,(*chrom),(*gene_lim),atoms,residue,(*cleftgrid),GB->rep_model,GB->mut_rate,GB->cross_rate,print,dice,target);
+		nrejected = reproduce(FA,GB,VC,(*chrom),(*gene_lim),atoms,residue,(*cleftgrid),GB->rep_model,GB->mut_rate,GB->cross_rate,print,dice,target);
 		
 		save_snapshot(&(*chrom_snapshot)[i*GB->num_chrom],(*chrom),save_num_chrom,GB->num_genes);
 		n_chrom_snapshot += save_num_chrom;
@@ -323,6 +324,8 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 			}
 		}
 	}
+	
+	printf("%d ligand conformers rejected\n", nrejected);
 	
 	QuickSort((*chrom),0,GB->num_chrom-1,true);
 
@@ -486,7 +489,7 @@ void adapt_prob(GB_Global* GB,double fit1, double fit2, double* mutp, double* cr
 /*234567890123456789012345678901234567890123456789012345678901234567890*/
 /*        1         2         3         4         5         6         7*/
 /***********************************************************************/
-void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom, const genlim* gene_lim,
+int reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom, const genlim* gene_lim,
                atom* atoms,resid* residue,gridpoint* cleftgrid,char* repmodel, 
                double mutprob, double crossprob, int print,
                boost::variate_generator< RNGType, boost::uniform_int<> > & dice, 
@@ -744,7 +747,7 @@ void reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom, con
 
 	//printf("number of conformers rejected: %d\n", nrejected);
 	
-	return;
+	return nrejected;
 }
 
 /***********************************************************************/

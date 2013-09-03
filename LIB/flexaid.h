@@ -33,6 +33,7 @@
 //const int endian_t = 1;
 //#define IS_BIG_ENDIAN() ( ( *(char *) &endian_t ) == 0 ) // cross-platform development
 
+#define MAX_ENERGY_POINTS 5000      // probability function distribution
 #define MAX_SHORTEST_PATH 25        // max number of atom to reach any atom of the same molecule
 #define MAX_PATH__ 250              // max size of path length
 #define MAX_REMARK 5000             // max size of comment length
@@ -46,7 +47,6 @@
 #define MAX_SPHERE_POINTS 610       // Total number of points in atom surface sphere 
 #define MAX_OPT_RES 1               // max number of residues to be optimized 
 #define CLASH_PENALTY_VALUE 1e9f    // skipped individuals WAL term penaly
-#define NTYPES 10                   // number of atom types 
 #define MBNDS 4                     // max number of cov bonds an atom can have 
 #define MAX_BONDED 20               // max number of bonded atom list
 #define MAX_PAR 100                 // max number of parameters for simplex optimization, not used at the moment
@@ -123,6 +123,19 @@ struct OptRes_struct{
 	cfstr   cf;        // cf value
 };
 typedef struct OptRes_struct OptRes;
+
+struct energy_values {
+	float x;
+	float y;
+	struct energy_values* next_value;
+};
+
+struct energy_matrix {
+	int type1;
+	int type2;
+	int weight;        // weights surface in contact vs. probability functions
+	struct energy_values* energy_values;
+};
 
 struct constraint_str{
 	int  rnum1;
@@ -308,9 +321,6 @@ struct FA_Global_struct{
 	float permeability;                  // allow permeability or not between atoms
 	int   intramolecular;                // consider intramolecular forces (ligand only)
 	float solventterm;                   // solvent penalty term
-	int   by_solventtype;                // solvent type - also serves as flag
-	int   metaltype;                     // type of metals
-
 	float intrafraction;                 // intramolecular fraction interaction
 
 	constraint* constraints;             // list of constraints
@@ -359,10 +369,10 @@ struct FA_Global_struct{
 	int   refstructure;                  // reference structure for rmsd calculation
   
 	int* contacts;                       // matrix used for not calculating the same interaction twice
-	float** energy;                      // potential energy parameters
-	int    ntypes;	               // number of atom types
+	struct energy_matrix* energy_matrix;        // potential energy parameters
+	int   ntypes;	                     // number of atom types
 	int   tspoints;                      // actual number of sphere points
-	//long long seed_ini;                  // initial seed for random num generator
+	//long long seed_ini;                // initial seed for random num generator
 	int   recalci;                       // recalculations counter (VCT)
 	int   skipped;                       // atoms skipped due to clashes
     
@@ -541,6 +551,8 @@ int is_rna_structure(char* infile);
 int is_natural_amino(char* res);
 int is_natural_nucleic(char* res);
 void rewrite_residue2(char lines[][100], int nlines, int* wrote, FILE* outfile_ptr); // rewrite ordered residue
+
+double get_yval(struct energy_matrix* energy_matrix, double area);
 
 /*
   #ifdef __cplusplus

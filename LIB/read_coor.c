@@ -48,7 +48,8 @@ void read_coor(FA_Global* FA,atom** atoms,resid** residue,char line[], char res_
 		}
     
 		// dummy atom type by default
-		(*atoms)[FA->atm_cnt].type = 39;
+		// dummy type is always second last (solvent is last)
+		(*atoms)[FA->atm_cnt].type = FA->ntypes-1;
         
 		(*atoms)[FA->atm_cnt].eigen = NULL;
 		(*atoms)[FA->atm_cnt].ncons=0;
@@ -76,9 +77,12 @@ void read_coor(FA_Global* FA,atom** atoms,resid** residue,char line[], char res_
     
 
 		//(*atoms)[FA->atm_cnt].radius=assign_radius((*atoms)[FA->atm_cnt].name);
-    
-		(*atoms)[FA->atm_cnt].type = atoi(&line[76]);
-        
+		
+		int type = atoi(&line[76]);
+		if(type && type >= 1 && type <= FA->ntypes)
+			(*atoms)[FA->atm_cnt].type = type;
+		else fprintf(stderr, "Invalid or unknown atom type for target atom number %d\n", (*atoms)[FA->atm_cnt].number);
+		
 		for(j=0;j<=4;j++){num_char[j]=line[j+6];}
 		num_char[5]='\0';
 		sscanf(num_char,"%d",&i);
