@@ -150,7 +150,7 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cl
       
 		}else{
 			
-			int fatm = res->fatm[0];
+			//int fatm = res->fatm[0];
 			
 			vector< pair<int,int> >::iterator it;
 			for(it=intraclashes.begin(); it!=intraclashes.end(); ++it)

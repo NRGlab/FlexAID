@@ -33,6 +33,7 @@
 //const int endian_t = 1;
 //#define IS_BIG_ENDIAN() ( ( *(char *) &endian_t ) == 0 ) // cross-platform development
 
+#define MAX_ENERGY_POINTS 5000      // probability function distribution
 #define MAX_SHORTEST_PATH 25        // max number of atom to reach any atom of the same molecule
 #define MAX_PATH__ 250              // max size of path length
 #define MAX_REMARK 5000             // max size of comment length
@@ -123,6 +124,19 @@ struct OptRes_struct{
 	cfstr   cf;        // cf value
 };
 typedef struct OptRes_struct OptRes;
+
+struct energy_values {
+	float pf_x;
+	float pf_y;
+	struct energy_values* next_value;
+};
+
+struct energy_matrix {
+	int type1;
+	int type2;
+	int weight;        // weights surface in contact vs. probability functions
+	struct energy_values* energy_values;
+};
 
 struct constraint_str{
 	int  rnum1;
@@ -359,10 +373,10 @@ struct FA_Global_struct{
 	int   refstructure;                  // reference structure for rmsd calculation
   
 	int* contacts;                       // matrix used for not calculating the same interaction twice
-	float** energy;                      // potential energy parameters
-	int    ntypes;	               // number of atom types
+	struct energy_matrix* energy_matrix;        // potential energy parameters
+	int   ntypes;	                     // number of atom types
 	int   tspoints;                      // actual number of sphere points
-	//long long seed_ini;                  // initial seed for random num generator
+	//long long seed_ini;                // initial seed for random num generator
 	int   recalci;                       // recalculations counter (VCT)
 	int   skipped;                       // atoms skipped due to clashes
     

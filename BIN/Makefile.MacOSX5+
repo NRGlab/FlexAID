@@ -63,7 +63,6 @@ OBJ =	top.o			\
     	buildic.o 		\
     	Vcontacts.o             \
         vcfunction.o            \
-	spfunction.o		\
 	create_rebuild_list.o 	\
 	build_close.o	 	\
 	print_surfmat.o 	\
@@ -164,9 +163,6 @@ ic2cf.o: $I/ic2cf.c $I/flexaid.h $I/gaboom.h
 
 vcfunction.o: $I/vcfunction.c $I/flexaid.h $I/Vcontacts.h
 	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/vcfunction.c
-
-spfunction.o: $I/spfunction.c $I/flexaid.h $I/Vcontacts.h
-	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/spfunction.c
 
 create_rebuild_list.o: $I/create_rebuild_list.c $I/flexaid.h $I/boinc.h
 	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/create_rebuild_list.c $(INCLUDES)

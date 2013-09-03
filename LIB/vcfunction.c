@@ -247,7 +247,8 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 			if(VC->Calc[i].type == 0 || VC->Calc[VC->ca_rec[currindex].atom].type == 0){
 				complementarity = 0.0;
 			}else{
-				complementarity = (double)FA->energy[VC->Calc[i].type][VC->Calc[VC->ca_rec[currindex].atom].type];
+				//complementarity = (double)FA->energy[VC->Calc[i].type][VC->Calc[VC->ca_rec[currindex].atom].type];
+				;
 			}
       
 			radB  = (double)VC->Calc[VC->ca_rec[currindex].atom].radius;
@@ -409,10 +410,10 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 		if(SAS < 0.0){ SAS = 0.0; }
 
 		if(FA->by_solventtype){
-			cfs->sas += (double)FA->energy[VC->Calc[i].type][FA->by_solventtype] * SAS;
+			//cfs->sas += (double)FA->energy[VC->Calc[i].type][FA->by_solventtype] * SAS;
 			
 #if DEBUG_LEVEL > 0
-			cf_atom.sas += (double)FA->energy[VC->Calc[i].type][FA->by_solventtype] * SAS;
+			//cf_atom.sas += (double)FA->energy[VC->Calc[i].type][FA->by_solventtype] * SAS;
 #endif
 		}else{
 			cfs->sas += (double)FA->solventterm * SAS;

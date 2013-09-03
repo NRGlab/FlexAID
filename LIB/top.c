@@ -449,10 +449,10 @@ int main(int argc, char **argv){
 	}
   
 	free(FA->num_atm);
-  
-	for(i=1; i<=FA->ntypes; i++)
-		free(FA->energy[i]);
-	free(FA->energy);
+	
+	// loop through energy_matrix to de-allocate energy_values
+	free(FA->energy_matrix);
+	// de-allocate energy_values <HERE>
 
 	// Constraints
 	if(FA->constraints != NULL) free(FA->constraints);
