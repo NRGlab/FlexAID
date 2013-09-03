@@ -149,30 +149,7 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 			
 			struct energy_matrix* energy_matrix = &FA->energy_matrix[(VC->Calc[i].type-1)*FA->ntypes +
 										 (VC->Calc[VC->ca_rec[currindex].atom].type-1)];
-			double yval = 0.0;
-			if(energy_matrix->weight)
-				yval = energy_matrix->energy_values->y;
-			else {
-				struct energy_values* xyval = energy_matrix->energy_values;
-				yval = xyval->y;
-				while(area > xyval->x && xyval->next_value != NULL){
-					/*
-					printf("x=%.3f next_value.x=%.3f next_value.y=%.3f\n",
-					       xyval->x, xyval->next_value->x, xyval->next_value->y);
-					*/
-					yval = xyval->y;
-					xyval = xyval->next_value;
-				}
-				yval += xyval->y;
-				yval /= 2.0;
-				
-				/*
-				printf("stopped at x=%.3f with y=%.3f\n", xyval->x, xyval->y);
-				printf("prob func. yval=%.3f for area %.3f for [%d][%d]\n", yval, area,
-				       VC->Calc[i].type, VC->Calc[VC->ca_rec[currindex].atom].type);
-				printf("calculated y=%.3f\n", yval);
-				*/
-			}
+			double yval = get_yval(energy_matrix,area);
 			
 			SAS -= area;
 			
@@ -397,24 +374,19 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
     
 		if(SAS < 0.0){ SAS = 0.0; }
 
-		if(FA->by_solventtype){
-			//cfs->sas += (double)FA->energy[VC->Calc[i].type][FA->by_solventtype] * SAS;
-			
-#if DEBUG_LEVEL > 0
-			//cfs_atom.sas += (double)FA->energy[VC->Calc[i].type][FA->by_solventtype] * SAS;
-#endif
-		}else{
+		if(FA->solventterm)
 			cfs->sas += (double)FA->solventterm * SAS;
-
-#if DEBUG_LEVEL > 0
-			cfs_atom.sas += (double)FA->solventterm * SAS;
-#endif
+		else {
+			struct energy_matrix* energy_matrix = &FA->energy_matrix[(VC->Calc[i].type-1)*FA->ntypes +
+										 (FA->ntypes-1)];
+			double yval = get_yval(energy_matrix,SAS);
+			
+			if(energy_matrix->weight)
+				cfs->sas += yval * SAS;
+			else cfs->sas += yval;
 		}
 		
-		
 		FA->contacts[VC->Calc[i].atomnum] = 1;
-		//printf("%d calculated\n", VC->Calc[i].atomnum);
-
 		
 #if DEBUG_LEVEL > 1
 		printf("CF.SAS is %.3f (Area=%.3f) for %d contacts\n", 
@@ -447,4 +419,36 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
   
 	return(0);
   
+}
+
+double get_yval(struct energy_matrix* energy_matrix, double area)
+{
+	double yval = 0.0;
+	if(energy_matrix->weight)
+		yval = energy_matrix->energy_values->y;
+	else {
+		struct energy_values* xyval = energy_matrix->energy_values;
+		yval = xyval->y;
+		while(area > xyval->x && xyval->next_value != NULL){
+			/*
+			  printf("x=%.3f next_value.x=%.3f next_value.y=%.3f\n",
+			  xyval->x, xyval->next_value->x, xyval->next_value->y);
+			*/
+			yval = xyval->y;
+			xyval = xyval->next_value;
+		}
+		yval += xyval->y;
+		yval /= 2.0;
+		
+		/*
+		if(energy_matrix->type2 == 40){
+			printf("stopped at x=%.3f with y=%.3f\n", xyval->x, xyval->y);
+			printf("prob func. yval=%.3f for area %.3f for [%d][%d]\n", yval, area,
+			       energy_matrix->type1, energy_matrix->type2);
+			printf("calculated y=%.3f\n", yval);
+		}
+		*/
+	}
+
+	return yval;
 }

@@ -61,10 +61,10 @@ void read_emat(FA_Global* FA, char* emat_file)
 			boost::trim_if( line, boost::is_any_of(" \t\n") );
 			boost::split( values, line, boost::is_any_of(" \t\n"), boost::token_compress_on );
 			
-			FA->energy_matrix[i*FA->ntypes+j].type1 = i;
-			FA->energy_matrix[i*FA->ntypes+j].type2 = j;
-			FA->energy_matrix[j*FA->ntypes+i].type1 = j;
-			FA->energy_matrix[j*FA->ntypes+i].type2 = i;
+			FA->energy_matrix[i*FA->ntypes+j].type1 = i+1;
+			FA->energy_matrix[i*FA->ntypes+j].type2 = j+1;
+			FA->energy_matrix[j*FA->ntypes+i].type1 = j+1;
+			FA->energy_matrix[j*FA->ntypes+i].type2 = i+1;
 			
 			if(values.size() == 1){
 				FA->energy_matrix[i*FA->ntypes+j].weight = 1;
@@ -79,6 +79,9 @@ void read_emat(FA_Global* FA, char* emat_file)
 				weightval->x = -1;
 				weightval->y = atof((*values.begin()).c_str());
 				weightval->next_value = NULL;
+				
+				// multiply by a factor otherwise only conformer-driven
+				weightval->y *= 10.0;
 					
 				FA->energy_matrix[i*FA->ntypes+j].energy_values = weightval;
 				FA->energy_matrix[j*FA->ntypes+i].energy_values = weightval;

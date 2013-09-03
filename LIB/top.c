@@ -136,9 +136,7 @@ int main(int argc, char **argv){
         FA->output_scored_only=0;
 	FA->permeability=1.0;
 	FA->intramolecular=1;
-	FA->solventterm=-2.0;
-	FA->by_solventtype=0;
-	FA->metaltype=9;        // neutral (AMINO12.def)
+	FA->solventterm=0.0f;
     
 	FA->useflexdee=0;
 	FA->num_constraints=0;

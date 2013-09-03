@@ -321,9 +321,6 @@ struct FA_Global_struct{
 	float permeability;                  // allow permeability or not between atoms
 	int   intramolecular;                // consider intramolecular forces (ligand only)
 	float solventterm;                   // solvent penalty term
-	int   by_solventtype;                // solvent type - also serves as flag
-	int   metaltype;                     // type of metals
-
 	float intrafraction;                 // intramolecular fraction interaction
 
 	constraint* constraints;             // list of constraints
@@ -554,6 +551,8 @@ int is_rna_structure(char* infile);
 int is_natural_amino(char* res);
 int is_natural_nucleic(char* res);
 void rewrite_residue2(char lines[][100], int nlines, int* wrote, FILE* outfile_ptr); // rewrite ordered residue
+
+double get_yval(struct energy_matrix* energy_matrix, double area);
 
 /*
   #ifdef __cplusplus

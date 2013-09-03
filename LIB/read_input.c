@@ -54,8 +54,6 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 	// opt lines counter
 	int nopt=0;
 
-	int by_solventtype=-1;
-	int metaltype=-1;
 	sphere *spheres, * _sphere;
 	
 	flexscfile[0]='\0';
@@ -108,8 +106,6 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		if(strcmp(field,"VARDIH") == 0){sscanf(buffer,"%s %lf",field,&FA->delta_dihedral);}
 		if(strcmp(field,"VARFLX") == 0){sscanf(buffer,"%s %lf",field,&FA->delta_flexible);}
 		if(strcmp(field,"SLVPEN") == 0){sscanf(buffer,"%s %f",field,&FA->solventterm);}
-		if(strcmp(field,"SLVTYP") == 0){sscanf(buffer,"%s %d",field,&by_solventtype);}
-		if(strcmp(field,"METTYP") == 0){sscanf(buffer,"%s %d",field,&metaltype);}
 		if(strcmp(field,"OUTRNG") == 0){FA->output_range=1;}
 		if(strcmp(field,"USEDEE") == 0){FA->useflexdee=1;}
 		if(strcmp(field,"IMATRX") == 0){strcpy(emat_forced,&buffer[7]);}
@@ -211,74 +207,6 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 #endif
 		}
 		
-		/*
-		if(FA->ntypes == 8){
-			if(FA->is_protein){
-#ifdef _WIN32
-				strcat(deftyp,"\\AMINO8.def");
-#else
-				strcat(deftyp,"/AMINO8.def");
-#endif
-			}else{
-#ifdef _WIN32
-				strcat(deftyp,"\\NUCLEOTIDES8.def");
-#else
-				strcat(deftyp,"/NUCLEOTIDES8.def");
-#endif
-			}
-			
-		}else if(FA->ntypes == 12 || FA->ntypes == 13){ //      -/+ solvent term
-			if(FA->is_protein){
-#ifdef _WIN32
-				strcat(deftyp,"\\AMINO12.def");
-#else
-				strcat(deftyp,"/AMINO12.def");
-#endif
-			}else{
-
-#ifdef _WIN32
-				strcat(deftyp,"\\NUCLEOTIDES12.def");
-#else
-				strcat(deftyp,"/NUCLEOTIDES12.def");
-#endif
-			}
-		
-		}else if(FA->ntypes == 26 || FA->ntypes == 27){ //      -/+ solvent term
-			if(FA->is_protein){
-#ifdef _WIN32
-				strcat(deftyp,"\\AMINO26.def");
-#else
-				strcat(deftyp,"/AMINO26.def");
-#endif
-			}else{
-#ifdef _WIN32
-				strcat(deftyp,"\\NUCLEOTIDES26.def");
-#else
-				strcat(deftyp,"/NUCLEOTIDES26.def");
-#endif
-			}
-		
-		}else if(FA->ntypes == 39 || FA->ntypes == 40){ //      -/+ solvent term
-			if(FA->is_protein){
-#ifdef _WIN32
-				strcat(deftyp,"\\AMINO.def");
-#else
-				strcat(deftyp,"/AMINO.def");
-#endif
-			}else{
-#ifdef _WIN32
-				strcat(deftyp,"\\NUCLEOTIDES.def");
-#else
-				strcat(deftyp,"/NUCLEOTIDES.def");
-#endif
-			}
-		
-		}else{
-			fprintf(stderr, "ERROR: Invalid number of atom types read in energy matrix (%s)\n", emat);
-			Terminate(20);
-		}
-		*/
-
 	}else{
 		// use forced definition of types
 		strcpy(deftyp,deftyp_forced);
@@ -288,27 +216,6 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 
 	///////////////////////////////////////////////
   
-	// Alter solvent type
-	if(by_solventtype != -1){
-		if(by_solventtype >= 1 && 
-		   by_solventtype <= FA->ntypes){
-			FA->by_solventtype = by_solventtype;
-		}else{
-			printf("invalid solvent type entered. solvent type is then 0\n");
-		}
-	}
-
-	if(metaltype != -1){
-		if(metaltype >= 1 && 
-		   metaltype <= FA->ntypes){
-			FA->metaltype = metaltype;
-		}else{
-			printf("invalid metal type entered. solvent type is set to default (neutral=9)\n");
-		}
-	}
-    
-	///////////////////////////////////////////////
-
 	printf("read PDB file <%s>\n",pdb_name);
 
 	modify_pdb(pdb_name,tmpprotname,FA->exclude_het,FA->remove_water,FA->is_protein);
