@@ -151,55 +151,56 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cl
 		}else{
 			
 			//int fatm = res->fatm[0];
-			
-			vector< pair<int,int> >::iterator it;
-			for(it=intraclashes.begin(); it!=intraclashes.end(); ++it)
-			{
-				for(k=1; k<=res->fdih; k++){
-					deelig_list[k] = -1000;
-				}
-				
-				// flex bonds list
-				int fbindex = 0;
-				int* fblist = res->shortflex[it->first][it->second];
-				
-				//printf("between[%d][%d]\n", atoms[it->first+fatm].number, atoms[it->second+fatm].number);
-				//cout << fblist[fbindex] << endl;
-				
-				while(fblist[fbindex] != -1){
-					if(atoms[res->bond[fblist[fbindex]]].par != NULL){
-						deelig_list[fblist[fbindex]] =
-							(int)(atoms[res->bond[fblist[fbindex]]].dih + 0.5);
+			if(FA->deelig_flex){
+				vector< pair<int,int> >::iterator it;
+				for(it=intraclashes.begin(); it!=intraclashes.end(); ++it)
+				{
+					for(k=1; k<=res->fdih; k++){
+						deelig_list[k] = -1000;
 					}
-					fbindex++;
-				}
-				
-				struct deelig_node_struct* node = FA->deelig_root_node;
-				
-				bool add = false;
-				for(k=1; k<=res->fdih; k++){
-					std::map<int, struct deelig_node_struct*>::iterator it;
-					it = node->childs.find(deelig_list[k]);
 					
-					if(it == node->childs.end()){
-						struct deelig_node_struct* deelig_child_node = new struct deelig_node_struct;
-						if(!deelig_child_node){
-							fprintf(stderr, "ERROR: memory allocation error for deelig_child_node\n");
-							Terminate(2);
+					// flex bonds list
+					int fbindex = 0;
+					int* fblist = res->shortflex[it->first][it->second];
+					
+					//printf("between[%d][%d]\n", atoms[it->first+fatm].number, atoms[it->second+fatm].number);
+					//cout << fblist[fbindex] << endl;
+					
+					while(fblist[fbindex] != -1){
+						if(atoms[res->bond[fblist[fbindex]]].par != NULL){
+							deelig_list[fblist[fbindex]] =
+								(int)(atoms[res->bond[fblist[fbindex]]].dih + 0.5);
 						}
-						
-						//if(k==1) cout << "new node added " << deelig_list[k] << endl;
-						node->childs[deelig_list[k]] = deelig_child_node;
-						
-						deelig_child_node->parent = node;
-						node = deelig_child_node;
-						add = true;
-					}else{
-						node = it->second;
+						fbindex++;
 					}
+					
+					struct deelig_node_struct* node = FA->deelig_root_node;
+					
+					bool add = false;
+					for(k=1; k<=res->fdih; k++){
+						std::map<int, struct deelig_node_struct*>::iterator it;
+						it = node->childs.find(deelig_list[k]);
+						
+						if(it == node->childs.end()){
+							struct deelig_node_struct* deelig_child_node = new struct deelig_node_struct;
+							if(!deelig_child_node){
+								fprintf(stderr, "ERROR: memory allocation error for deelig_child_node\n");
+								Terminate(2);
+							}
+							
+							//if(k==1) cout << "new node added " << deelig_list[k] << endl;
+							node->childs[deelig_list[k]] = deelig_child_node;
+							
+							deelig_child_node->parent = node;
+							node = deelig_child_node;
+							add = true;
+						}else{
+							node = it->second;
+						}
+					}
+					
+					//if(add) { nbranch++; cout << "total branches " << nbranch << endl; }
 				}
-				
-				//if(add) { nbranch++; cout << "total branches " << nbranch << endl; }
 			}
 			
 		}

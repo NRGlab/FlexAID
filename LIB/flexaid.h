@@ -299,7 +299,8 @@ struct FA_Global_struct{
 
  	double*  opt_par;                // optimization parameters  
 	struct deelig_node_struct* deelig_root_node;   // termination criteria for ligand flexible
-	
+	int   deelig_flex;
+
 	int    npar;                         // number of parameters
 	int*  num_atm;                       // PDB num --> internal num mapping
     

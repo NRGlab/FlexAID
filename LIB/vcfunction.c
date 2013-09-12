@@ -92,6 +92,7 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 		double radoA = radA + Rw;
 		
 		double SAS = 4.0*PI*radoA*radoA;
+		double surfA = SAS;
 		
 #if DEBUG_LEVEL > 0
 		cfs_atom.sas = 0.0;
@@ -144,12 +145,18 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 
 		while(currindex != -1) {
 			
+			double radB  = (double)VC->Calc[VC->ca_rec[currindex].atom].radius;
+			double radoB = radB + Rw;
+			double surfB = 4.0*PI*radoB*radoB;
+			
+			double rAB   = radA+radB;
+			
 			//double complementarity = 0.0;
 			double area = VC->ca_rec[currindex].area;
 			
 			struct energy_matrix* energy_matrix = &FA->energy_matrix[(VC->Calc[i].type-1)*FA->ntypes +
 										 (VC->Calc[VC->ca_rec[currindex].atom].type-1)];
-			double yval = get_yval(energy_matrix,area);
+			double yval = get_yval(energy_matrix,area/((surfA+surfB)/2.0));
 			
 			SAS -= area;
 			
@@ -207,10 +214,7 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 
 			// number of constraints for contact atom
 			int nconscont = atoms[atomcont].ncons;
-      
-			double radB  = (double)VC->Calc[VC->ca_rec[currindex].atom].radius;
-			double rAB   = radA+radB;
-			double dist_opt = 0.0;
+      			double dist_opt = 0.0;
 			
 			// do contacting atoms have the same constraint
 			constraint* cons = NULL;
@@ -379,7 +383,7 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 		else {
 			struct energy_matrix* energy_matrix = &FA->energy_matrix[(VC->Calc[i].type-1)*FA->ntypes +
 										 (FA->ntypes-1)];
-			double yval = get_yval(energy_matrix,SAS);
+			double yval = get_yval(energy_matrix,SAS/surfA);
 			
 			if(energy_matrix->weight)
 				cfs->sas += yval * SAS;
@@ -421,7 +425,7 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
   
 }
 
-double get_yval(struct energy_matrix* energy_matrix, double area)
+double get_yval(struct energy_matrix* energy_matrix, double relative_area)
 {
 	double yval = 0.0;
 	if(energy_matrix->weight)
@@ -429,7 +433,7 @@ double get_yval(struct energy_matrix* energy_matrix, double area)
 	else {
 		struct energy_values* xyval = energy_matrix->energy_values;
 		yval = xyval->y;
-		while(area > xyval->x && xyval->next_value != NULL){
+		while(relative_area > xyval->x && xyval->next_value != NULL){
 			/*
 			  printf("x=%.3f next_value.x=%.3f next_value.y=%.3f\n",
 			  xyval->x, xyval->next_value->x, xyval->next_value->y);
@@ -443,7 +447,7 @@ double get_yval(struct energy_matrix* energy_matrix, double area)
 		/*
 		if(energy_matrix->type2 == 40){
 			printf("stopped at x=%.3f with y=%.3f\n", xyval->x, xyval->y);
-			printf("prob func. yval=%.3f for area %.3f for [%d][%d]\n", yval, area,
+			printf("prob func. yval=%.3f for relative_area %.3f for [%d][%d]\n", yval, relative_area,
 			       energy_matrix->type1, energy_matrix->type2);
 			printf("calculated y=%.3f\n", yval);
 		}

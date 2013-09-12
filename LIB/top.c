@@ -116,6 +116,7 @@ int main(int argc, char **argv){
 	FA->delta_flexible=10.0;
 	FA->delta_index=1.0;
 	FA->max_results=10;
+	FA->deelig_flex = 0;
 
 	GB->outgen=0;
 	FA->num_grd=0;

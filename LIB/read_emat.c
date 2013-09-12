@@ -80,9 +80,6 @@ void read_emat(FA_Global* FA, char* emat_file)
 				weightval->y = atof((*values.begin()).c_str());
 				weightval->next_value = NULL;
 				
-				// multiply by a factor otherwise only conformer-driven
-				weightval->y *= 10.0;
-					
 				FA->energy_matrix[i*FA->ntypes+j].energy_values = weightval;
 				FA->energy_matrix[j*FA->ntypes+i].energy_values = weightval;
 				
@@ -105,9 +102,13 @@ void read_emat(FA_Global* FA, char* emat_file)
 					xyval->x = atof((*xit).c_str());
 					xyval->y = atof((*yit).c_str());
 					xyval->next_value = NULL;
+				
+					// multiply by a factor otherwise only conformer-driven
+					//xyval->y *= 10.0;
+					
 					/*
-					printf("new entry[%d][%d]: x=%.3f y=%.3f\n", i+1, j+1,
-					       xyval->x, xyval->y);
+					  printf("new entry[%d][%d]: x=%.3f y=%.3f\n", i+1, j+1,
+					         xyval->x, xyval->y);
 					*/
 					
 					// second or more xy values

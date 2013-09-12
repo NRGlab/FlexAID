@@ -80,16 +80,16 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
         
 		for(i=0;i<6;++i) field[i]=buffer[i];
 		field[6]='\0';
-        
+		
 		if(strcmp(field,"PDBNAM") == 0){strcpy(pdb_name,&buffer[7]);}
 		if(strcmp(field,"INPLIG") == 0){strcpy(lig_file,&buffer[7]);}
 		if(strcmp(field,"METOPT") == 0){sscanf(buffer,"%s %s",a,FA->metopt);}
+		if(strcmp(field,"DEEFLX") == 0){FA->deelig_flex=1;}
 		if(strcmp(field,"BPKENM") == 0){sscanf(buffer,"%s %s",a,FA->bpkenm);}
 		if(strcmp(field,"COMPLF") == 0){sscanf(buffer,"%s %s",a,FA->complf);}
 		if(strcmp(field,"VCTSCO") == 0){sscanf(buffer,"%s %s",a,FA->vcontacts_self_consistency);}
 		if(strcmp(field,"RNGOPT") == 0){strcpy(rngoptline,buffer);for(i=0;i<6;i++)rngopt[i]=buffer[7+i];rngopt[6]='\0';}
 		if(strcmp(field,"OPTIMZ") == 0){strcpy(optline[nopt++],buffer);}
-		//if(strcmp(field,"NUCLEA") == 0){FA->is_protein=0;}
 		if(strcmp(field,"DEFTYP") == 0){strcpy(deftyp_forced,&buffer[7]);}
 		if(strcmp(field,"FLEXSC") == 0){strcpy(flexscfile,&buffer[7]);}
 		if(strcmp(field,"NMAMOD") == 0){sscanf(buffer,"%s %d",a,&FA->normal_modes);}
