@@ -53,9 +53,9 @@ void read_emat(FA_Global* FA, char* emat_file)
 			string line = *lines.begin();
 			lines.erase(lines.begin());
 			
-			unsigned pos = line.find("=");
-			if(pos != string::npos)
-				line = line.substr(pos+1);
+			if(line.find("=") != string::npos){
+				line = line.substr(line.find("=")+1);
+			}
 			
 			vector<string> values;
 			boost::trim_if( line, boost::is_any_of(" \t\n") );
