@@ -329,9 +329,12 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	
 	QuickSort((*chrom),0,GB->num_chrom-1,true);
 
+#ifndef ENABLE_BOINC
+        // do not write binary files to continue simulations
 	strcpy(outfile,FA->rrgfile);
 	strcat(outfile,"_par.res");
 	write_par((*chrom),(*gene_lim),i+1,outfile,GB->num_chrom,GB->num_genes);
+#endif
 	
 	//quicksort_app_evalue((*chrom_snapshot),0,n_chrom_snapshot-1);
 	QuickSort((*chrom_snapshot),0,n_chrom_snapshot-1,true);

@@ -39,7 +39,7 @@ void Terminate(int status){
 //Thus, filename has to be resolved for each file
 
 int OpenFile_B(char* filename, const char* mode, FILE **f){
-  char  mode_[2];
+  char  mode_[3];
   int   read_only;
   char  filename_old[MAX_PATH__];
   char  resolved_name[MAX_PATH__];
