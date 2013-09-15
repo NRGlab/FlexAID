@@ -313,7 +313,8 @@ struct FA_Global_struct{
 	int   nflexbonds;                    // number of ligand flexible bonds
 	
 	int   is_protein;                    // PDBNAM is a protein molecule
-	//int   is_nucleicacid;                // PDBNAM is a DNA/RNA molecule
+	resid* resligand;                    // pointer to the ligand
+	//int   is_nucleicacid;              // PDBNAM is a DNA/RNA molecule
 
 	float ori[3];                        // coordinates of center of geometry of protein (PCG)
 	float maxdst;                        // max distance from a protein atom to PCG 

@@ -223,6 +223,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	int save_num_chrom = (int)(GB->num_chrom*SAVE_CHROM_FRACTION);
 	int nrejected = 0;
 	
+	
 	for(i=0;i<GB->max_generations;i++){
 
 		///////////////////////////////////////////////////
@@ -597,7 +598,7 @@ int reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom, cons
 				cmp_chrom2rotlist(FA->psFlexDEENode,chrom,gene_lim,num_genes_wo_sc,
 						  FA->nflxsc_real,GB->num_chrom,FA->FlexDEE_Nodes)==0){
 				*/
-	  
+				
 				nrejected += filter_deelig(FA,GB,chrom,chrop1_gen,GB->num_chrom+i,atoms,gene_lim,dice);
 				memcpy(chrom[GB->num_chrom+i].genes,chrop1_gen,GB->num_genes*sizeof(gene));
 
@@ -644,11 +645,10 @@ int reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom, cons
 		nnew=(int)(GB->pbfrac*(double)GB->num_chrom);
 		i=0;
 		while(i<nnew){
-
 			/************************************/
 			/****** SELECTION OF PARENTS ********/
 			/************************************/
-
+			
 			p1=roullete_wheel(chrom,GB->num_chrom);
 			p2=roullete_wheel(chrom,GB->num_chrom);
 			if (GB->adaptive_ga) { adapt_prob(GB,chrom[p1].fitnes,chrom[p2].fitnes,&mutprob,&crossprob); }
@@ -659,7 +659,7 @@ int reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom, cons
 
 			memcpy(chrop1_gen,chrom[p1].genes,GB->num_genes*sizeof(gene));
 			memcpy(chrop2_gen,chrom[p2].genes,GB->num_genes*sizeof(gene));
-
+			
 			if(RandomDouble() < crossprob) {
 				crossover(chrop1_gen,chrop2_gen,GB->num_genes,GB->intragenes);
 			}
@@ -709,7 +709,10 @@ int reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom, cons
 						  FA->nflxsc_real,GB->num_chrom,FA->FlexDEE_Nodes)==0){
 				*/
 				
-				nrejected += filter_deelig(FA,GB,chrom,chrop1_gen,GB->num_chrom+i,atoms,gene_lim,dice);
+				if(FA->deelig_flex) {
+					nrejected += filter_deelig(FA,GB,chrom,chrop1_gen,GB->num_chrom+i,atoms,gene_lim,dice);
+				}
+
 				memcpy(chrom[GB->num_chrom+i].genes,chrop1_gen,GB->num_genes*sizeof(gene));
 				
 				chrom[GB->num_chrom+i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,
@@ -722,7 +725,7 @@ int reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom, cons
 				i++;
 				
 			}
-
+			
 			if(i==nnew) break;
 			
 			if(GB->duplicates || cmp_chrom2pop(chrom,chrop2_gen,GB->num_genes,0,GB->num_chrom+i)==0){
@@ -732,7 +735,10 @@ int reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom, cons
 						  FA->nflxsc_real,GB->num_chrom,FA->FlexDEE_Nodes)==0){
 				*/
 
-				nrejected += filter_deelig(FA,GB,chrom,chrop2_gen,GB->num_chrom+i,atoms,gene_lim,dice);
+				if(FA->deelig_flex) {
+					nrejected += filter_deelig(FA,GB,chrom,chrop2_gen,GB->num_chrom+i,atoms,gene_lim,dice);
+				}
+
 				memcpy(chrom[GB->num_chrom+i].genes,chrop2_gen,GB->num_genes*sizeof(gene));
 
 				chrom[GB->num_chrom+i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,
@@ -763,26 +769,34 @@ int filter_deelig(FA_Global* FA, GB_Global* GB, chromosome* chrom, gene* genes, 
 {
 	int nrejected = 0;
 	
-	if(FA->nflexbonds){
+	if(FA->deelig_flex && FA->nflexbonds){
 		
 		int j,deelig_list[100];
 		
-		for(j=1; j<=FA->nflexbonds; j++)
+		for(j=1; j<=FA->resligand->fdih; j++)
 			deelig_list[j] = -1000;
-			
+		
 		for(j=0; j<GB->num_genes; j++)
 			if(FA->map_par[j].typ == 2 && FA->map_par[j].bnd != -1)
 				deelig_list[FA->map_par[j].bnd] = (int)(genes[j].to_ic+0.5);
-		
-		if(deelig_search(FA->deelig_root_node, &deelig_list[1], FA->nflexbonds)){
-			
+
+		/*
+		printf("searched deelig list = [");
+		for(int k=1; k<=FA->resligand->fdih; k++){
+			printf("%d,", deelig_list[k]);
+		}
+		printf("]\n");
+		*/
+
+		if(deelig_search(FA->deelig_root_node, deelig_list, FA->resligand->fdih)){
 			/*
 			printf("conformer rejected:");
-			for(j=1; j<=FA->nflexbonds; j++)
+			for(j=1; j<=FA->resligand->fdih; j++)
 				printf("%d ", deelig_list[j]);
 			printf("\n");
+			getchar();
 			*/
-			
+
 			// generate a new conformer until the conformer 
 			// has not already been assigned as 'clashing conformer'
 			// and is also not a duplicate
@@ -794,23 +808,31 @@ int filter_deelig(FA_Global* FA, GB_Global* GB, chromosome* chrom, gene* genes, 
 							   FA->map_par_flexbond_first_index,
 							   FA->map_par_flexbond_first_index+FA->nflexbonds);
 				
-				for(j=1; j<=FA->nflexbonds; j++)
+				for(j=1; j<=FA->resligand->fdih; j++)
 					deelig_list[j] = -1000;
 				
 				for(j=0; j<GB->num_genes; j++)
 					if(FA->map_par[j].typ == 2 && FA->map_par[j].bnd != -1)
 						deelig_list[FA->map_par[j].bnd] = (int)(genes[j].to_ic+0.5);
 				/*
-				if(deelig_search(FA->deelig_root_node, &deelig_list[1], FA->nflexbonds)){
+				printf("searched do-while deelig list = [");
+				for(int k=1; k<=FA->resligand->fdih; k++){
+					printf("%d,", deelig_list[k]);
+				}
+				printf("]\n");
+				*/
+
+				/*
+				if(deelig_search(FA->deelig_root_node, deelig_list, FA->resligand->fdih)){
 					printf("do-while conformer rejected:");
-					for(j=1; j<=FA->nflexbonds; j++)
+					for(j=1; j<=FA->resligand->fdih; j++)
 						printf("%d ", deelig_list[j]);
 					printf("\n");
+					getchar();
 				}
 				*/
-				
 			}while((!GB->duplicates && cmp_chrom2pop(chrom,genes,GB->num_genes,0,ci)) ||
-			       (deelig_search(FA->deelig_root_node, &deelig_list[1], FA->nflexbonds)));
+			       (deelig_search(FA->deelig_root_node, deelig_list, FA->resligand->fdih)));
 		}
 		
 	}
@@ -829,10 +851,13 @@ int deelig_search(struct deelig_node_struct* root_node, int* deelig_list, int fd
 	struct deelig_node_struct* node = root_node;
 	
 	for(int i=1; i<=fdih; i++){
+		//printf("[%d]: searching %d\n", i, deelig_list[i]);
 		if((it=node->childs.find(deelig_list[i])) != node->childs.end() ||
 		   (deelig_list[i] != -1000 && (it=node->childs.find(-1000)) != node->childs.end())){
+			//printf("found %d\n", it->first);
 			node = it->second;
 		}else{
+			//printf("not found %d\n", deelig_list[i]);
 			return(0);
 		}
 	}

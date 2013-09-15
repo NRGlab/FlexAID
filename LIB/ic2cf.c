@@ -165,7 +165,16 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cl
 					
 					//printf("between[%d][%d]\n", atoms[it->first+fatm].number, atoms[it->second+fatm].number);
 					//cout << fblist[fbindex] << endl;
+					/*
+					printf("fblist = [");
+					while(fblist[fbindex] != -1){
+						printf("%d,", fblist[fbindex]);
+						fbindex++;
+					}
+					printf("]\n");
+					*/
 					
+					fbindex = 0;
 					while(fblist[fbindex] != -1){
 						if(atoms[res->bond[fblist[fbindex]]].par != NULL){
 							deelig_list[fblist[fbindex]] =
@@ -173,7 +182,7 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cl
 						}
 						fbindex++;
 					}
-					
+										
 					struct deelig_node_struct* node = FA->deelig_root_node;
 					
 					bool add = false;
@@ -188,7 +197,7 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cl
 								Terminate(2);
 							}
 							
-							//if(k==1) cout << "new node added " << deelig_list[k] << endl;
+							if(k==1) cout << "new node added " << deelig_list[k] << endl;
 							node->childs[deelig_list[k]] = deelig_child_node;
 							
 							deelig_child_node->parent = node;
@@ -199,12 +208,21 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cl
 						}
 					}
 					
-					//if(add) { nbranch++; cout << "total branches " << nbranch << endl; }
+					/*
+					if(add) { 
+						printf("deelig list = [");
+						for(k=1; k<=res->fdih; k++){
+							printf("%d,", deelig_list[k]);
+						}
+						printf("]\n");
+						
+						nbranch++; cout << "total branches " << nbranch << endl;
+					}
+					*/
 				}
 			}
-			
 		}
-    
+		
 		/*
 		  printf("optres[%2d].cf  .wal = %.3f\n               .com = %.3f\n               .sas = %.3f\n               .con = %.3f\n",
 		  i,FA->optres[i].cf.wal,FA->optres[i].cf.com,FA->optres[i].cf.sas,FA->optres[i].cf.con);

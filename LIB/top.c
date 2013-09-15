@@ -109,7 +109,7 @@ int main(int argc, char **argv){
 
 	FA->is_protein=1;
 	//FA->is_nucleicacid=0;
-
+	
 	FA->delta_angstron=0.25;
 	FA->delta_angle=5.0;
 	FA->delta_dihedral=5.0;
@@ -117,7 +117,8 @@ int main(int argc, char **argv){
 	FA->delta_index=1.0;
 	FA->max_results=10;
 	FA->deelig_flex = 0;
-
+	FA->resligand = NULL;
+	
 	GB->outgen=0;
 	FA->num_grd=0;
 	FA->exclude_het=0;
@@ -125,7 +126,7 @@ int main(int argc, char **argv){
 	
 	FA->recalci=0;
 	FA->skipped=0;
-  
+	
 	FA->spacer_length=0.375;
 	FA->opt_grid=0;
 
@@ -392,6 +393,7 @@ int main(int argc, char **argv){
 		}
 	}
     
+	printf("free-ing up memory\n");
 
 	//////////////////////////////////////////
 	// free up memory allocated using malloc//
