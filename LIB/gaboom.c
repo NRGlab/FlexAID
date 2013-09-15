@@ -21,7 +21,7 @@ using namespace std;
 int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome** chrom_snapshot,
        genlim** gene_lim,atom* atoms,resid* residue,gridpoint** cleftgrid,char gainpfile[],
        int* memchrom, cfstr (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*)){
-  
+	
 	int i;
 	int print=0;
     
@@ -709,10 +709,8 @@ int reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom, cons
 						  FA->nflxsc_real,GB->num_chrom,FA->FlexDEE_Nodes)==0){
 				*/
 				
-				if(FA->deelig_flex) {
-					nrejected += filter_deelig(FA,GB,chrom,chrop1_gen,GB->num_chrom+i,atoms,gene_lim,dice);
-				}
-
+				nrejected += filter_deelig(FA,GB,chrom,chrop1_gen,GB->num_chrom+i,atoms,gene_lim,dice);
+				
 				memcpy(chrom[GB->num_chrom+i].genes,chrop1_gen,GB->num_genes*sizeof(gene));
 				
 				chrom[GB->num_chrom+i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,
@@ -735,10 +733,8 @@ int reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom, cons
 						  FA->nflxsc_real,GB->num_chrom,FA->FlexDEE_Nodes)==0){
 				*/
 
-				if(FA->deelig_flex) {
-					nrejected += filter_deelig(FA,GB,chrom,chrop2_gen,GB->num_chrom+i,atoms,gene_lim,dice);
-				}
-
+				nrejected += filter_deelig(FA,GB,chrom,chrop2_gen,GB->num_chrom+i,atoms,gene_lim,dice);
+				
 				memcpy(chrom[GB->num_chrom+i].genes,chrop2_gen,GB->num_genes*sizeof(gene));
 
 				chrom[GB->num_chrom+i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,
@@ -836,7 +832,7 @@ int filter_deelig(FA_Global* FA, GB_Global* GB, chromosome* chrom, gene* genes, 
 		}
 		
 	}
-
+	
 	return nrejected;
 }
 
