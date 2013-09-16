@@ -50,7 +50,8 @@ void read_emat(FA_Global* FA, char* emat_file)
 	
 	for(int i=0;i<FA->ntypes;i++){
 		for(int j=i;j<FA->ntypes;j++){
-			string line = *lines.begin();
+			string ori_line, line = *lines.begin();
+			ori_line = line;
 			lines.erase(lines.begin());
 			
 			if(line.find("=") != string::npos){
@@ -67,6 +68,8 @@ void read_emat(FA_Global* FA, char* emat_file)
 			FA->energy_matrix[j*FA->ntypes+i].type2 = i+1;
 			
 			if(values.size() == 1){
+				//cout << "line has only one value" << ori_line << endl;
+				
 				FA->energy_matrix[i*FA->ntypes+j].weight = 1;
 				FA->energy_matrix[j*FA->ntypes+i].weight = 1;
 

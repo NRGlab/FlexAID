@@ -243,11 +243,11 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 						//printf("gaus: %.2f\n",gaus);
 						//getchar();
 						
-						printf("cons->max_dist=%.3f - VC->ca_rec[currindex].dist=%.3f - dist_opt=%.3f - GetValueFromGaussian=%.3f\n", cons->max_dist, VC->ca_rec[currindex].dist, dist_opt,GetValueFromGaussian(VC->ca_rec[currindex].dist,dist_opt,cons->max_dist));
+						//printf("cons->max_dist=%.3f - VC->ca_rec[currindex].dist=%.3f - dist_opt=%.3f - GetValueFromGaussian=%.3f\n", cons->max_dist, VC->ca_rec[currindex].dist, dist_opt,GetValueFromGaussian(VC->ca_rec[currindex].dist,dist_opt,cons->max_dist));
 						
-						printf("before: %.3f\n",cfs->con);
+						//printf("before: %.3f\n",cfs->con);
 						cfs->con -= KDIST * GetValueFromGaussian(VC->ca_rec[currindex].dist,dist_opt,cons->max_dist);
-						printf("after: %.3f\n",cfs->con);
+						//printf("after: %.3f\n",cfs->con);
 						//getchar();
 						
 						/*
@@ -383,6 +383,8 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 		else {
 			struct energy_matrix* energy_matrix = &FA->energy_matrix[(VC->Calc[i].type-1)*FA->ntypes +
 										 (FA->ntypes-1)];
+			//printf("type1: %d\ttype2: %d\n", energy_matrix->type1, energy_matrix->type2);
+			
 			double yval = get_yval(energy_matrix,SAS/surfA);
 			
 			if(energy_matrix->weight)
@@ -432,24 +434,37 @@ double get_yval(struct energy_matrix* energy_matrix, double relative_area)
 		yval = energy_matrix->energy_values->y;
 	else {
 		struct energy_values* xyval = energy_matrix->energy_values;
-		yval = xyval->y;
-		while(relative_area > xyval->x && xyval->next_value != NULL){
+
+		while(xyval->next_value != NULL && relative_area > xyval->next_value->x){
 			/*
 			  printf("x=%.3f next_value.x=%.3f next_value.y=%.3f\n",
 			  xyval->x, xyval->next_value->x, xyval->next_value->y);
 			*/
-			yval = xyval->y;
 			xyval = xyval->next_value;
 		}
-		yval += xyval->y;
-		yval /= 2.0;
+		
+		if(xyval->x > relative_area){
+			// no left bound data
+			yval = 0.0;
+		}else if(xyval->next_value == NULL){
+			// no right bound data
+			yval = 0.0;
+		}else{
+			yval = xyval->y + 
+				( relative_area - xyval->x ) / (xyval->next_value->x - xyval->x ) *
+				( xyval->next_value->y - xyval->y );
+		}
 		
 		/*
 		if(energy_matrix->type2 == 40){
 			printf("stopped at x=%.3f with y=%.3f\n", xyval->x, xyval->y);
+			if(xyval->next_value != NULL){
+				printf("next is x=%.3f with y=%.3f\n", xyval->next_value->x, xyval->next_value->y);
+			}
 			printf("prob func. yval=%.3f for relative_area %.3f for [%d][%d]\n", yval, relative_area,
 			       energy_matrix->type1, energy_matrix->type2);
 			printf("calculated y=%.3f\n", yval);
+			getchar();
 		}
 		*/
 	}

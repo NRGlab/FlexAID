@@ -197,7 +197,7 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cl
 								Terminate(2);
 							}
 							
-							if(k==1) cout << "new node added " << deelig_list[k] << endl;
+							//if(k==1) cout << "new node added " << deelig_list[k] << endl;
 							node->childs[deelig_list[k]] = deelig_child_node;
 							
 							deelig_child_node->parent = node;
