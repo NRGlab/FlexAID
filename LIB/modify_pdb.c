@@ -13,7 +13,6 @@ static char protein_amino[NAA][4]     = { "GLY","ALA","VAL","LEU","ILE","MET",
 					  "ASP","GLU","LYS","ARG","HIS",
 					  "PHE","TRP","TYR" };
 
-
 static char protein_atoms_order[NLIST][5]   = { " N  "," CA "," C  "," O  "," CB ",
 						" CG "," SG "," OG "," CG1"," OG1"," CG2",
 						" CD "," SD "," OD1"," CD1"," ND1"," OD2"," ND2"," CD2",
@@ -21,7 +20,6 @@ static char protein_atoms_order[NLIST][5]   = { " N  "," CA "," C  "," O  "," CB
 						" CZ "," NZ "," CZ1"," CZ2"," CZ3",
 						" CH "," CH1"," CH2"," OH "," NH1"," NH2",
 						" OXT" };
-
 
 void modify_pdb(char* infile, char* outfile, int exclude_het, int remove_water, int is_protein)
 {

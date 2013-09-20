@@ -139,7 +139,6 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 		       atoms[atomzero].radius);
 #endif
 
-
 		int currindex = VC->ca_index[i];
 		int contnum = 0;  // number of contacts (excluding bloops away atoms)
 
@@ -156,7 +155,9 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 			
 			struct energy_matrix* energy_matrix = &FA->energy_matrix[(VC->Calc[i].type-1)*FA->ntypes +
 										 (VC->Calc[VC->ca_rec[currindex].atom].type-1)];
-			double yval = get_yval(energy_matrix,area/((surfA+surfB)/2.0));
+
+			//double yval = get_yval(energy_matrix,area/((surfA+surfB)/2.0));
+			double yval = get_yval(energy_matrix,area/surfA);
 			
 			SAS -= area;
 			
@@ -408,6 +409,9 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 	//printf("FINAL SUM COM=[%8.2f]\tWAL=[%8.2f]\n",com,Ewall);
   
 	//print_surfmat(matrix,"surf.mat");
+
+
+/*
 #if DEBUG_LEVEL > 0
 	printf("\n");
 	printf("CF.sum = %.3f\n", cfs->com + cfs->sas + cfs->wal);
@@ -416,7 +420,9 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 	printf("CF.wal = %.3f\n", cfs->wal);
 	getchar(); 
 #endif
-  	
+*/
+        //getchar();
+	
 	free(VC->ca_rec);
 	//printf("free-ing %p\n",VC->ca_rec);
   

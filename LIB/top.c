@@ -149,7 +149,8 @@ int main(int argc, char **argv){
 	FA->mov[1] = NULL;
     
         strcpy(FA->vcontacts_self_consistency,"MAX");
-    
+	FA->vcontacts_planedef = 'X';
+	
 	// Linux path
 	pch=strrchr(argv[0],'\\');
 	if(pch==NULL) {

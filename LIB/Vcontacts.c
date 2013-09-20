@@ -5,8 +5,9 @@
 int Vcontacts(FA_Global* FA,atom* atoms,resid* residue,VC_Global* VC)
 {  
     
+	VC->planedef = FA->vcontacts_planedef;
 	//VC->planedef = 'X';  // extended radical plane (default)
-	VC->planedef = 'R';  // radical plane
+	//VC->planedef = 'R';  // radical plane
 	//VC->planedef = 'B';  // bisection
     
 	// initialize contact atom index
@@ -30,7 +31,7 @@ int Vcontacts(FA_Global* FA,atom* atoms,resid* residue,VC_Global* VC)
     
 	VC->numcarec=0;
 	// calc volumes for all protein atoms
-    
+	
 	return calc_region(FA,VC,atoms,FA->atm_cnt_real);
     
 }
@@ -54,9 +55,9 @@ int calc_region(FA_Global* FA,VC_Global* VC,atom* atoms,int atmcnt)
 	char   surfatom; // atom type, 'I' internal, 'S' surface
     
 	/*
-     printf("================================\n");
-     printf("Calculating SAS for residue [%d]\n", resnum);
-     */
+	  printf("================================\n");
+	  printf("Calculating SAS for residue [%d]\n", resnum);
+	*/
     
 	for(i=0;i<atmcnt;++i) {
 		// ============= atom contact calculations =============
@@ -91,8 +92,8 @@ int calc_region(FA_Global* FA,VC_Global* VC,atom* atoms,int atmcnt)
         
 		save_areas(VC->cont, VC->contlist, NC, atomzero, VC->Calc,&VC->ca_recsize, &VC->numcarec, &VC->ca_rec, VC->ca_index);
         
-		min_areas(VC->ca_rec, VC->Calc, &VC->Calc[atomzero], FA->vcontacts_self_consistency);
-        
+		//min_areas(VC->ca_rec, VC->Calc, &VC->Calc[atomzero], FA->vcontacts_self_consistency);
+		
 	}
     
     
@@ -395,18 +396,18 @@ RESTART:
 			testpA = VC->vedge[edgei].startplane;
 			testpB = VC->vedge[edgei].endplane;
 			testvalA = cont[testpA].Ai[0]*arcpt0[0] + cont[testpA].Ai[1]*arcpt0[1]
-            + cont[testpA].Ai[2]*arcpt0[2] + cont[testpA].Ai[3];
+				+ cont[testpA].Ai[2]*arcpt0[2] + cont[testpA].Ai[3];
 			testvalB = cont[testpB].Ai[0]*arcpt0[0] + cont[testpB].Ai[1]*arcpt0[1] 
-            + cont[testpB].Ai[2]*arcpt0[2] + cont[testpB].Ai[3];
+				+ cont[testpB].Ai[2]*arcpt0[2] + cont[testpB].Ai[3];
 			if((testvalA < 0.0) && (testvalB < 0.0)) { // point is good
 				add_vertex(VC->poly, vn, arcpt0, VC->vedge[edgei].plane[0], VC->vedge[edgei].plane[1], -1);
 				VC->poly[vn].dist = rado;
 				++vn;
 			}
 			testvalA = cont[testpA].Ai[0]*arcpt1[0] + cont[testpA].Ai[1]*arcpt1[1] 
-            + cont[testpA].Ai[2]*arcpt1[2] + cont[testpA].Ai[3];
+				+ cont[testpA].Ai[2]*arcpt1[2] + cont[testpA].Ai[3];
 			testvalB = cont[testpB].Ai[0]*arcpt1[0] + cont[testpB].Ai[1]*arcpt1[1] 
-            + cont[testpB].Ai[2]*arcpt1[2] + cont[testpB].Ai[3];
+				+ cont[testpB].Ai[2]*arcpt1[2] + cont[testpB].Ai[3];
 			if((testvalA < 0.0) && (testvalB < 0.0)) { // point is good
 				add_vertex(VC->poly, vn, arcpt1, VC->vedge[edgei].plane[0], VC->vedge[edgei].plane[1], -1);
 				VC->poly[vn].dist = rado;
@@ -505,9 +506,9 @@ void get_firstvert(const int* seed,const plane* cont, int *planeA, int *planeB, 
 		for(cai=0; cai<NC+4; ++cai) {
 			if(cai != *planeA) {
 				/*
-                 printf("*planeA: %d\tcai: %d\tNC: %d\n", *planeA, cai, NC);
-                 if(*planeA == -1) { getchar(); }
-                 */
+				  printf("*planeA: %d\tcai: %d\tNC: %d\n", *planeA, cai, NC);
+				  if(*planeA == -1) { getchar(); }
+				*/
 				vectA[0] = cont[*planeA].Ai[1]*cont[cai].Ai[2] - cont[*planeA].Ai[2]*cont[cai].Ai[1];
 				vectA[1] = cont[*planeA].Ai[2]*cont[cai].Ai[0] - cont[*planeA].Ai[0]*cont[cai].Ai[2];
 				vectA[2] = cont[*planeA].Ai[0]*cont[cai].Ai[1] - cont[*planeA].Ai[1]*cont[cai].Ai[0];
@@ -621,7 +622,7 @@ void add_vedge(edgevector vedge[], int edgenum, const plane* cont, int plane0, i
 	testpt[2] = poly[startpt].xi[2] + vedge[edgenum].V[2];
     
 	testval = cont[testplane].Ai[0]*testpt[0] +cont[testplane].Ai[1]*testpt[1] 
-    + cont[testplane].Ai[2]*testpt[2] +cont[testplane].Ai[3];
+		+ cont[testplane].Ai[2]*testpt[2] +cont[testplane].Ai[3];
 	if(testval > 0.0) { // vector is in wrong direction
 		vedge[edgenum].V[0] = -vedge[edgenum].V[0];
 		vedge[edgenum].V[1] = -vedge[edgenum].V[1];
@@ -766,7 +767,7 @@ char order_faces(int atomzero,vertex poly[], const vertex* centerpt, float rado,
 			// calculate cosine between points indexed 1,0,X
 			for(vi=2; vi<surfcount; ++vi) {
 				cos10X[vi] = cosPQR(poly[ptorder[planeX].pt[1]].xi, poly[ptorder[planeX].pt[0]].xi, 
-                                    poly[ptorder[planeX].pt[vi]].xi);
+						    poly[ptorder[planeX].pt[vi]].xi);
 			}
             
 			// order by cosines, decreasing order
@@ -857,11 +858,11 @@ void calc_areas(vertex poly[], const vertex* centerpt, float rado, int NC, int N
 		} else if(NP == 2) {  // only two contact points, check which part of arc
 			if(test_point(centerpt[planeX].xi, cont, NC, rado, planeX, -1, -1) == 'Y') { // area is (cap - arc)
 				cont[planeX].area = 2.0f*PI*rado*(rado-centerpt[planeX].dist)
-                - spherical_arc(&centerpt[planeX], &poly[ptorder[planeX].pt[0]], 
-                                &poly[ptorder[planeX].pt[1]], rado);
+					- spherical_arc(&centerpt[planeX], &poly[ptorder[planeX].pt[0]], 
+							&poly[ptorder[planeX].pt[1]], rado);
 			} else {            // area is arc.
 				cont[planeX].area = spherical_arc(&centerpt[planeX], &poly[ptorder[planeX].pt[0]], 
-                                                  &poly[ptorder[planeX].pt[1]], rado);
+								  &poly[ptorder[planeX].pt[1]], rado);
 			}
 		} else {
             
@@ -873,12 +874,12 @@ void calc_areas(vertex poly[], const vertex* centerpt, float rado, int NC, int N
                 
 				// calculate cosines between adjacent vertices
 				cosNN1[vi] = (( poly[va].xi[0]*poly[vb].xi[0] + poly[va].xi[1]*poly[vb].xi[1] 
-                               + poly[va].xi[2]*poly[vb].xi[2] ) / (poly[va].dist*poly[vb].dist));
+						+ poly[va].xi[2]*poly[vb].xi[2] ) / (poly[va].dist*poly[vb].dist));
                 
 				// calculate cosines between vertex zero and vertex 'vi'
 				if(vi != 0) {
 					cosNzero[vi] = ((poly[v0].xi[0]*poly[va].xi[0] + poly[v0].xi[1]*poly[va].xi[1] 
-                                     + poly[v0].xi[2]*poly[va].xi[2] ) / (poly[v0].dist*poly[va].dist));
+							 + poly[v0].xi[2]*poly[va].xi[2] ) / (poly[v0].dist*poly[va].dist));
 				}
 			}
             
@@ -947,7 +948,7 @@ void calc_areas(vertex poly[], const vertex* centerpt, float rado, int NC, int N
 				   || (pa1 == poly[nextpt].plane[2])) {
 					commplane = pa1;
 				} else if((pa2 == poly[nextpt].plane[0]) || (pa2 == poly[nextpt].plane[1])
-                          || (pa2 == poly[nextpt].plane[2])) { 
+					  || (pa2 == poly[nextpt].plane[2])) { 
 					commplane = pa2;
 				} else {
 					continue;
@@ -1033,58 +1034,66 @@ void min_areas(ca_struct* ca_rec, const atomsas* Calc, const atomsas* atomzero_p
 					// compare contact areas between A and B
 					// FA->vcontacts_self_consistency determines if the mean, min or max contact area is chosen
                     
-                    if(!strcmp(vcontacts_self_consistency,"MEAN")){
+					if(!strcmp(vcontacts_self_consistency,"MEAN")){
                         
-                        ca_rec[currindex].area = (ca_rec[currindex].area + ca_rec[currindex2].area) / 2.0;
-                        ca_rec[currindex2].area = ca_rec[currindex].area;
+						ca_rec[currindex].area = (ca_rec[currindex].area + ca_rec[currindex2].area) / 2.0;
+						ca_rec[currindex2].area = ca_rec[currindex].area;
                         
-                        found = 1;
-                        break;
+						found = 1;
+						break;
                         
-                    }else if(!strcmp(vcontacts_self_consistency,"MIN")){
+					}else if(!strcmp(vcontacts_self_consistency,"MIN")){
                         
-                        if(ca_rec[currindex].area > ca_rec[currindex2].area){
-                            ca_rec[currindex].area = ca_rec[currindex2].area;
-                        }else{
-                            ca_rec[currindex2].area = ca_rec[currindex].area;
-                        }
+						if(ca_rec[currindex].area > ca_rec[currindex2].area){
+							ca_rec[currindex].area = ca_rec[currindex2].area;
+						}else{
+							ca_rec[currindex2].area = ca_rec[currindex].area;
+						}
                         
-                        found = 1;
-                        break;
+						found = 1;
+						break;
                         
-                    }else if(!strcmp(vcontacts_self_consistency,"MAX")){
+					}else if(!strcmp(vcontacts_self_consistency,"MAX")){
                         
-                        if(ca_rec[currindex].area < ca_rec[currindex2].area){
-                            /*
-                             printf("%d --> %d: %.3f now set to %.3f\n", 
-                             Calc[ca_rec[currindex].atom].atomnum,
-                             Calc[ca_rec[currindex2].atom].atomnum,
-                             ca_rec[currindex].area, ca_rec[currindex2].area);
-                             */
-                            ca_rec[currindex].area = ca_rec[currindex2].area;
-                        }else{
-                            /*
-                             printf("%d --> %d: %.3f now set to %.3f\n", 
-                             Calc[ca_rec[currindex2].atom].atomnum,
-                             Calc[ca_rec[currindex].atom].atomnum,
-                             ca_rec[currindex2].area, ca_rec[currindex].area);
-                             */
-                            ca_rec[currindex2].area = ca_rec[currindex].area;
-                        }
+						if(ca_rec[currindex].area < ca_rec[currindex2].area){
+							/*
+							  printf("%d --> %d: %.3f now set to %.3f\n", 
+							  Calc[ca_rec[currindex].atom].atomnum,
+							  Calc[ca_rec[currindex2].atom].atomnum,
+							  ca_rec[currindex].area, ca_rec[currindex2].area);
+							*/
+							ca_rec[currindex].area = ca_rec[currindex2].area;
+						}else{
+							/*
+							  printf("%d --> %d: %.3f now set to %.3f\n", 
+							  Calc[ca_rec[currindex2].atom].atomnum,
+							  Calc[ca_rec[currindex].atom].atomnum,
+							  ca_rec[currindex2].area, ca_rec[currindex].area);
+							*/
+							ca_rec[currindex2].area = ca_rec[currindex].area;
+						}
                         
-                        found = 1;
-                        break;
+						found = 1;
+						break;
                         
-                    }
+					}
                     
-                }
+				}
                 
 				currindex2 = ca_rec[currindex2].prev;
 			}
             
 			// B --> A not found
 			// A --> B should then be 0.0
-			if(!found){ ca_rec[currindex].area = 0.0f; }
+			if(!found){ 
+				/*
+				printf("%d -> %d not found (%.3f)\n",
+				       Calc[ca_rec[currindex].to].atomnum,
+				       Calc[ca_rec[currindex].from].atomnum,
+				       ca_rec[currindex].area);
+				*/
+				ca_rec[currindex].area = 0.0f;
+			}
 		}
         
 		// next contact
@@ -1189,7 +1198,7 @@ void print_areas(atomsas* Calc, int numcarec,ca_struct* ca_rec)
 		Terminate(1);
 	}
     
-    while(nextatom){
+	while(nextatom){
 		atom = nextatom;
 		nextatom = -1;
 		
@@ -1450,7 +1459,7 @@ double cosPQR(const double* ptP,const double* ptQ,const double* ptR)
     
 	//calculate cosine
 	cosine = (QP[0]*QR[0]+ QP[1]*QR[1]+ QP[2]*QR[2])
-    /sqrt((QP[0]*QP[0]+ QP[1]*QP[1]+ QP[2]*QP[2]) * (QR[0]*QR[0]+ QR[1]*QR[1]+ QR[2]*QR[2]));
+		/sqrt((QP[0]*QP[0]+ QP[1]*QP[1]+ QP[2]*QP[2]) * (QR[0]*QR[0]+ QR[1]*QR[1]+ QR[2]*QR[2]));
     
 	return(cosine);
 }
@@ -1620,8 +1629,8 @@ void index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,atomin
 	// count entries per box, assign box number to atom
 	for(atmi=0;atmi<atmcnt;++atmi){
 		boxi = (int)((Calc[atmi].coor[0]-global_min[0])/CELLSIZE)*dim2
-        + (int)((Calc[atmi].coor[1]-global_min[1])/CELLSIZE)*(*dim)
-        + (int)((Calc[atmi].coor[2]-global_min[2])/CELLSIZE);
+			+ (int)((Calc[atmi].coor[1]-global_min[1])/CELLSIZE)*(*dim)
+			+ (int)((Calc[atmi].coor[2]-global_min[2])/CELLSIZE);
 		Calc[atmi].boxnum = boxi;
 		//printf("coor[0]: %8.3f\tcoor[1]: %8.3f\tcoor[2]: %8.3f\n", Calc[atmi].coor[0],Calc[atmi].coor[1],Calc[atmi].coor[2]);
 		//printf("Calc[%d]=%d Boxi=[%d] RNum=[%d]\n",atmi,Calc[atmi].atomnum,boxi,Calc[atmi].resnum);
@@ -1719,8 +1728,8 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
             
             
 			sqrdist = (Calc[atomzero].coor[0]-Calc[atomj].coor[0])*(Calc[atomzero].coor[0]-Calc[atomj].coor[0]) 
-            + (Calc[atomzero].coor[1]-Calc[atomj].coor[1])*(Calc[atomzero].coor[1]-Calc[atomj].coor[1])
-            + (Calc[atomzero].coor[2]-Calc[atomj].coor[2])*(Calc[atomzero].coor[2]-Calc[atomj].coor[2]);
+				+ (Calc[atomzero].coor[1]-Calc[atomj].coor[1])*(Calc[atomzero].coor[1]-Calc[atomj].coor[1])
+				+ (Calc[atomzero].coor[2]-Calc[atomj].coor[2])*(Calc[atomzero].coor[2]-Calc[atomj].coor[2]);
 			neardist =  rado + Calc[atomj].radius + Rw;
             
             
@@ -1742,13 +1751,13 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 	}
     
 	/*
-     if (NC==0) {
-     recalc = 'Y';
-     FA->recalci++;
-     //PAUSE;
-     goto RESTART;
-     }
-     */
+	  if (NC==0) {
+	  recalc = 'Y';
+	  FA->recalci++;
+	  //PAUSE;
+	  goto RESTART;
+	  }
+	*/
     
 	// reset atoms to 'done'
 	currindex = ca_index[atomzero];
