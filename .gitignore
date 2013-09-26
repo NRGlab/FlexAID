@@ -1,20 +1,12 @@
-<<<<<<< HEAD
-*.dat
-*.inp
-*.ic
-*.o
-*.pdb
-*.res
-*.cad
-=======
-*.lst
-*.inp
-*.ic
-*.pdb
-*.mol2
-*FlexAID_Mac*
-*FlexAID_Linux*
-*FlexAID
-*.o
->>>>>>> radii_chimera
-WRK/*/*
+*
+# source files
+!*.cpp
+!*.c
+!*.h
+# dependencies files
+!*AMINO*.def
+!*NUCLEOTIDES*.def
+!*rotobs.lst
+!*Lovell_LIB.dat
+# makefiles
+!*Makefile.*
