@@ -6,7 +6,7 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 {
 	int    rnum=0;
 	int    type=1;
-		
+	
 	// reset all values pointed
 	memset(VC->Calc,0,FA->atm_cnt_real*sizeof(atomsas));
 	memset(VC->Calclist,0,FA->atm_cnt_real*sizeof(int));
@@ -14,7 +14,8 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 	memset(VC->seed,0,3*FA->atm_cnt_real*sizeof(int));
 	memset(VC->contlist,0,10000*sizeof(contactlist));
 	memset(FA->contacts,0,100000*sizeof(int));
-
+	memset(FA->contributions,0.0f,FA->ntypes*FA->ntypes*sizeof(float));
+	
 	// reset CF values
 	for(int j=0; j<FA->num_optres; ++j){
 		FA->optres[j].cf.rclash=0;
@@ -327,13 +328,19 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 				if ( VC->ca_rec[currindex].dist <= dee_clash*rAB ) { cfs->rclash=1; }
 
 			}
-            
-			if( !covalent ) {
+			
+			if( !covalent && (FA->intramolecular || !intramolecular)) {
+				double contribution = 0.0;
 				if(energy_matrix->weight){
-					cfs->com += yval * area;
+					contribution = yval*area;
 				}else{
-					cfs->com += yval;
+					contribution = yval;
 				}
+				cfs->com += contribution;
+				FA->contributions[(VC->Calc[i].type-1)*FA->ntypes+(VC->Calc[VC->ca_rec[currindex].atom].type-1)] += contribution;
+				if((VC->Calc[i].type-1) != (VC->Calc[VC->ca_rec[currindex].atom].type-1))
+					FA->contributions[(VC->Calc[VC->ca_rec[currindex].atom].type-1)*FA->ntypes+(VC->Calc[i].type-1)] += contribution;
+				
 				
 #if DEBUG_LEVEL > 0	
 				if(energy_matrix->weight){
@@ -378,28 +385,39 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 		//    printf("Atom[%d] COM=[%8.2f]\tWAL=[%8.2f]\n",VC->Calc[i].atomnum,com_atm,Ewall_atm);
     
 		if(SAS < 0.0){ SAS = 0.0; }
-
-		if(FA->solventterm)
-			cfs->sas += (double)FA->solventterm * SAS;
-		else {
+		
+		double contribution = 0.0;
+		if(FA->solventterm){
+			contribution = (double)FA->solventterm * SAS;
+			//printf("SP: multiply ST=%.3f with SAS.area=%.3f\n", (double)FA->solventterm, SAS);
+		} else {
 			struct energy_matrix* energy_matrix = &FA->energy_matrix[(VC->Calc[i].type-1)*FA->ntypes +
 										 (FA->ntypes-1)];
 			//printf("type1: %d\ttype2: %d\n", energy_matrix->type1, energy_matrix->type2);
 			
 			double yval = get_yval(energy_matrix,SAS/surfA);
 			
-			if(energy_matrix->weight)
-				cfs->sas += yval * SAS;
-			else cfs->sas += yval;
+			if(energy_matrix->weight){
+				contribution = yval * SAS;
+				//printf("Weight: multiply yval=%.3f by SAS.area=%.3f\n", yval, SAS);
+			}
+			else {
+				contribution = yval;
+				//printf("Density: add yval=%.3f\n", yval);
+			}
 		}
+		cfs->sas += contribution;
+		
+		FA->contributions[(VC->Calc[i].type-1)*FA->ntypes + (FA->ntypes-1)] += contribution;
+		FA->contributions[(FA->ntypes-1)*FA->ntypes + (VC->Calc[i].type-1)] += contribution;
 		
 		FA->contacts[VC->Calc[i].atomnum] = 1;
 		
 #if DEBUG_LEVEL > 1
-		printf("CF.SAS is %.3f (Area=%.3f) for %d contacts\n", 
-		       cfs_atom.sas, SAS, contnum); 
+		printf("CF.SAS is %.3f for %d contacts with contribution %.3f\n", 
+		       SAS, contnum, contribution); 
 #endif
-
+		
 	}
 
 

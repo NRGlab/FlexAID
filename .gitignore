@@ -1,5 +1,7 @@
 *
 # source files
+!LIB
+!WRK
 !*.cpp
 !*.c
 !*.h

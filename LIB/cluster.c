@@ -67,9 +67,10 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 	}
         //printf("n_unclus=%d\n",n_unclus);
         //PAUSE;
-
+	
 	while(n_unclus > 0){
 		for(j=0;j<num_chrom;j++){if(Clus_GAPOP[j]==-1){break;}}
+		//printf("at chromosome j=%d with app_evalue=%.3f\n", j, chrom[j].app_evalue);
 		Clus_GAPOP[j]=j;
 		Clus_RMSDT[j]=0.0;
 		n_unclus--;
@@ -87,6 +88,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 				if(rmsd<=FA->cluster_rmsd){
 					Clus_GAPOP[i]=j;
 					Clus_RMSDT[i]=rmsd;
+					//printf("i=%d belongs to cluster of j=%d because rmsd=%.3f\n", i, j, rmsd);
 					n_unclus--;
 					Clus_ACF[num_of_clusters] += chrom[i].app_evalue;
 					Clus_FRE[num_of_clusters]++;
@@ -96,11 +98,11 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		Clus_ACF[num_of_clusters] /= (double)Clus_FRE[num_of_clusters];
 		num_of_clusters++;
         
-        // quit storing clusters up to N max results
-        if(num_of_clusters == num_of_results){break;}
+		// quit storing clusters up to N max results
+		if(num_of_clusters == num_of_results){break;}
 	}
       
-    // print cluster information
+	// print cluster information
 	sprintf(sufix,".cad");
 	strcpy(tmp_end_strfile,end_strfile);
 	strcat(tmp_end_strfile,sufix);
@@ -130,7 +132,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
         //num_of_results=1;
       
 	printf("num_of_clusters=%d num_of_results=%d\n",num_of_clusters,num_of_results);
-      
+	
         // output results, 10% of the number of chromosomes or 
         // the number of clusters, the smallest.
       

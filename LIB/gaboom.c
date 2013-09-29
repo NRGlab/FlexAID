@@ -173,7 +173,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 		fprintf(stderr,"ERROR: memory allocation error for chrom_snapshot.\n");
 		Terminate(2);
 	}
-
+	
 	for(i=0;i<(GB->num_chrom*GB->max_generations);++i){
 		(*chrom_snapshot)[i].genes = (gene*)malloc(GB->num_genes*sizeof(gene));
 
@@ -345,6 +345,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	  print_par((*chrom_snapshot),(*gene_lim),n_chrom_snapshot,GB->num_genes);
 	*/
 	
+	printf("n_chrom_snapshot=%d\n", n_chrom_snapshot);
 	n_chrom_snapshot = remove_dups((*chrom_snapshot),n_chrom_snapshot,GB->num_genes);
 
 	/*	

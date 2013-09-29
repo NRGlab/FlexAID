@@ -134,7 +134,7 @@ int main(int argc, char **argv){
 	FA->bloops=2;
 
 	FA->rotobs=0;
-
+	FA->contributions=NULL;
         FA->output_scored_only=0;
 	FA->permeability=1.0;
 	FA->intramolecular=1;
@@ -191,8 +191,8 @@ int main(int argc, char **argv){
 	// use boinc_init();
 	Initialize();
   
-	wif083(FA);
-  
+	wif083(FA);  
+	
 	///////////////////////////////////////////////////////////////////////////////
 	// memory allocations for param structures
   
@@ -254,6 +254,12 @@ int main(int argc, char **argv){
 		Terminate(2);
 	}
 	FA->deelig_root_node->parent = NULL;
+	
+	FA->contributions = (float*)malloc(FA->ntypes*FA->ntypes*sizeof(float));
+	if(!FA->contributions){
+		fprintf(stderr,"ERROR: memory allocation error for contributions\n");
+		Terminate(2);
+	}
 	
 	//printf("Create rebuild list...\n");
 	create_rebuild_list(FA,atoms,residue);
@@ -390,6 +396,7 @@ int main(int argc, char **argv){
 			printf("clustering all individuals in GA...\n");
 			fflush(stdout);
             
+			printf("n_chrom_snapshot=%d\n", n_chrom_snapshot);
 			cluster(FA,GB,VC,chrom_snapshot,gene_lim,atoms,residue,cleftgrid,n_chrom_snapshot,end_strfile,tmp_end_strfile,dockinp,gainp);
 		}
 	}

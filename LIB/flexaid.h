@@ -34,6 +34,7 @@
 //#define IS_BIG_ENDIAN() ( ( *(char *) &endian_t ) == 0 ) // cross-platform development
 
 #define MAX_ENERGY_POINTS 5000      // probability function distribution
+#define MAX_CONTRIBUTIONS 10
 #define MAX_SHORTEST_PATH 25        // max number of atom to reach any atom of the same molecule
 #define MAX_PATH__ 250              // max size of path length
 #define MAX_REMARK 5000             // max size of comment length
@@ -232,13 +233,13 @@ struct flexible_sc_struct{ // flexible side chain structure
 typedef struct flexible_sc_struct flxsc;
 
 /*
-class DEELig_Node {
-public:
-	void DEELig_Node(void);
-private:
-	struct deelig_node_struct* parent;
-	std::map<int, struct deelig_node_struct*> childs;
-};
+  class DEELig_Node {
+  public:
+  void DEELig_Node(void);
+  private:
+  struct deelig_node_struct* parent;
+  std::map<int, struct deelig_node_struct*> childs;
+  };
 */
 
 struct deelig_node_struct{
@@ -303,7 +304,8 @@ struct FA_Global_struct{
 
 	int    npar;                         // number of parameters
 	int*  num_atm;                       // PDB num --> internal num mapping
-    
+	float* contributions;                // contributions of interactions from the complexe
+	
 	//atom  ori_ligatm[100];               // array to carry original atomic coordinates of ligand
 	//int   num_ligatm;                    // number of atoms in original ligand
     
@@ -362,13 +364,13 @@ struct FA_Global_struct{
 	//int   natoms_rmsd;                   // number of atoms in atoms_rmsd
 	//int   hrnum;
 
-    int output_scored_only;              // ouptuts the ligand coordinates only in the results file
-    char vcontacts_self_consistency[6];  // A --> B and B --> A contacts self consistency
-    char vcontacts_planedef;             // plane definition for vcontacts
+	int output_scored_only;              // ouptuts the ligand coordinates only in the results file
+	char vcontacts_self_consistency[6];  // A --> B and B --> A contacts self consistency
+	char vcontacts_planedef;             // plane definition for vcontacts
     
-    int   nrg_suite;                     // flag indicating if nrg_suite is enabled
-    int   nrg_suite_timeout;             // specifies the maximum time for the suite to update the visuals (in seconds)
-    int   translational;                 // flag indicating if translation degrees of freedom are enabled
+	int   nrg_suite;                     // flag indicating if nrg_suite is enabled
+	int   nrg_suite_timeout;             // specifies the maximum time for the suite to update the visuals (in seconds)
+	int   translational;                 // flag indicating if translation degrees of freedom are enabled
 	int   refstructure;                  // reference structure for rmsd calculation
   
 	int* contacts;                       // matrix used for not calculating the same interaction twice
@@ -508,6 +510,7 @@ void   create_rebuild_list(FA_Global* FA,atom* atoms,resid* residue);           
 void   bondedlist(atom* atoms,int anum, int nloops, int* nlist_ptr, int* blist, int* nnbr); // determines bonded atoms for cffunction
 void   assign_shift(atom* atoms,resid* residue,int rnum, int natm, int *list, int **fdihlist);      // assigns shift atoms internally
 int    write_pdb(FA_Global* FA,atom *atoms,resid* residue,char outfile[], char remark[]);           // writes PDB files
+void   write_contributions(FA_Global* FA, FILE* outfile_ptr, bool positive);
 void   write_grid(FA_Global* FA, const gridpoint* cleftgrid,char filename[]);                        // writes starting grid to PDB viewable format with 'grid' ext. PYTHON function
 void   calc_center(FA_Global* FA,atom* atoms,resid* residue);            // calculates center of geometry of protein
 float  calc_rmsd(FA_Global* FA,atom* atoms,resid* residue, gridpoint* cleftgrid, int npar, const double* icv);       // calculates rmsd

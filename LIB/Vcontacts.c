@@ -63,12 +63,12 @@ int calc_region(FA_Global* FA,VC_Global* VC,atom* atoms,int atmcnt)
 		// ============= atom contact calculations =============
 		atomzero = VC->Calclist[i];
 		boxi = VC->Calc[atomzero].boxnum;
-        
+		
 		if(!VC->Calc[atomzero].score){continue;}
-        
+		
 		//printf("Get_contacts for %d\n",VC->Calc[atomzero].atomnum);   
 		rado = VC->Calc[atomzero].radius + Rw;
-        
+		
 		NC = get_contlist4(atoms,atomzero, VC->contlist, atmcnt, rado, VC->dim, VC->Calc, VC->Calclist, VC->box,VC->ca_rec, VC->ca_index);
         
 		// invalid write/read when NC = 0
