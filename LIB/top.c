@@ -306,6 +306,8 @@ int main(int argc, char **argv){
 		strcat(remark,tmpremark);
 		sprintf(tmpremark,"REMARK CF.con=%8.5f\n",cf_ptr->con);
 		strcat(remark,tmpremark);
+		sprintf(tmpremark,"REMARK Residue has an overall SAS of %.3f\n",cf_ptr->totsas);
+		strcat(remark,tmpremark);
 		
 	}
 	

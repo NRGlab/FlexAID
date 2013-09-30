@@ -103,6 +103,7 @@ struct cf_str{  // Complementarity Function value structure
 	double con;    // constraint value
 	double wal;    // wall term
 	double sas;    // solvent accessibility surface
+	double totsas; // overall sas of molecule
 	int   rclash; // flag that shows whether the residue is making steric clashes
 };
 typedef struct cf_str cfstr;

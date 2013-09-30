@@ -172,6 +172,9 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 			strcat(remark,tmpremark);
 			sprintf(tmpremark,"REMARK CF.con=%8.5f\n",cf_ptr->con);
 			strcat(remark,tmpremark);
+			sprintf(tmpremark,"REMARK Residue has an overall SAS of %.3f\n",cf_ptr->totsas);
+			strcat(remark,tmpremark);
+			
 	  
 		}
 

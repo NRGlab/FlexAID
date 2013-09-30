@@ -23,6 +23,7 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 		FA->optres[j].cf.com=0.0;
 		FA->optres[j].cf.con=0.0;
 		FA->optres[j].cf.sas=0.0;
+		FA->optres[j].cf.totsas=0.0;
 	}
 	
 	double permea = (double)FA->permeability;
@@ -171,7 +172,7 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 #endif
 			// atom in contact with atom zero
 			int atomcont = FA->num_atm[VC->Calc[VC->ca_rec[currindex].atom].atomnum];
-
+			
 			int intramolecular = atoms[atomcont].ofres == atoms[atomzero].ofres;
 	
 			// get first atom of residue
@@ -204,13 +205,13 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 					continue;	  
 				}
 			}
-
+			
 			if(FA->contacts[VC->Calc[VC->ca_rec[currindex].atom].atomnum]){
 				//printf("%d already calculated\n",VC->Calc[VC->ca_rec[currindex].atom].atomnum );
 				currindex = VC->ca_rec[currindex].prev;
 				continue;
 			}
-
+			
 			// covalently bonded flag
 			bool covalent = false;
 
@@ -258,10 +259,12 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 						  getchar();
 						*/
 						
-					}else{
+					}
+					/*
+					else{
 
 						; // not applied anymore
-						/*
+						
 						// interaction constraint
 						if(cons->force_interaction){
 							complementarity = 
@@ -271,14 +274,11 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 						}
 
 						complementarity *= cons->interaction_factor;
-						*/
 						
-						/*
 						  printf("found interaction constraint: %.2f (%d)\n",
 						  cons->interaction_factor,cons->force_interaction);
-						*/
 					}
-
+					*/
 				}
 	
 				//printf("constraint[%d] applies.\n",cons->id);
@@ -293,22 +293,6 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 			}
                         
 			if (VC->ca_rec[currindex].dist < clash_distance){
-				
-				/*
-				  if(covalent){
-				  int atmi=FA->num_atm[VC->Calc[i].atomnum];
-				  int atmj=FA->num_atm[VC->Calc[VC->ca_rec[currindex].atom].atomnum];
-				  int resi=atoms[atmi].ofres;
-				  int resj=atoms[atmj].ofres;
-				  
-				  printf("((Atom overlap between %s%d%c[%d](%s)-%s%d%c[%d](%s))) with DIST=%.3f with CLASH_DIST=%.3f\n",
-				  residue[resi].name,residue[resi].number,residue[resi].chn,
-				  atoms[atmi].number,atoms[atmi].name,
-				  residue[resj].name,residue[resj].number,residue[resj].chn,
-				  atoms[atmj].number,atoms[atmj].name,
-				  VC->ca_rec[currindex].dist,clash_distance);
-				  }
-				*/
 				
 				double Ewall = KWALL*(pow(VC->ca_rec[currindex].dist,-12.0)-pow(permea*rAB,-12.0));
 				
@@ -329,26 +313,37 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 
 			}
 			
-			if( !covalent && (FA->intramolecular || !intramolecular)) {
-				double contribution = 0.0;
-				if(energy_matrix->weight){
-					contribution = yval*area;
-				}else{
-					contribution = yval;
-				}
-				cfs->com += contribution;
-				FA->contributions[(VC->Calc[i].type-1)*FA->ntypes+(VC->Calc[VC->ca_rec[currindex].atom].type-1)] += contribution;
-				if((VC->Calc[i].type-1) != (VC->Calc[VC->ca_rec[currindex].atom].type-1))
-					FA->contributions[(VC->Calc[VC->ca_rec[currindex].atom].type-1)*FA->ntypes+(VC->Calc[i].type-1)] += contribution;
+			
+			if( !covalent ){
 				
-				
+				if(FA->intramolecular || !intramolecular) {
+					double contribution = 0.0;
+					if(energy_matrix->weight){
+						contribution = yval*area;
+					}else{
+						contribution = yval;
+					}
+					
+					cfs->com += contribution;
+					FA->contributions[(VC->Calc[i].type-1)*FA->ntypes+(VC->Calc[VC->ca_rec[currindex].atom].type-1)] += contribution;
+					if((VC->Calc[i].type-1) != (VC->Calc[VC->ca_rec[currindex].atom].type-1))
+						FA->contributions[(VC->Calc[VC->ca_rec[currindex].atom].type-1)*FA->ntypes+(VC->Calc[i].type-1)] += contribution;
+					
+					
 #if DEBUG_LEVEL > 0	
-				if(energy_matrix->weight){
-					cfs_atom.com += yval * area;
-				}else{
-					cfs_atom.com += yval;
-				}
+					if(energy_matrix->weight){
+						cfs_atom.com += yval * area;
+					}else{
+						cfs_atom.com += yval;
+					}
 #endif
+				}
+				/*
+				else{
+					printf("skipped intramolecular contact: %d %d\n",
+					       atoms[atomzero].number, atoms[atomcont].number); //VC->Calc[VC->ca_rec[currindex].atom].atomnum);
+				} 
+				*/
 			}
       
 			/*
@@ -385,6 +380,7 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 		//    printf("Atom[%d] COM=[%8.2f]\tWAL=[%8.2f]\n",VC->Calc[i].atomnum,com_atm,Ewall_atm);
     
 		if(SAS < 0.0){ SAS = 0.0; }
+		cfs->totsas += SAS;
 		
 		double contribution = 0.0;
 		if(FA->solventterm){
@@ -403,7 +399,12 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 			}
 			else {
 				contribution = yval;
-				//printf("Density: add yval=%.3f\n", yval);
+				/*
+				if(VC->Calc[i].type == 3){
+					printf("Density: add yval=%.3f for norm.SAS=%.3f for atom %d\n",
+					    yval, SAS/surfA, VC->Calc[i].atomnum);
+				}
+				*/
 			}
 		}
 		cfs->sas += contribution;
@@ -472,7 +473,7 @@ double get_yval(struct energy_matrix* energy_matrix, double relative_area)
 			yval = 0.0;
 		}else if(xyval->next_value == NULL){
 			// no right bound data
-			yval = 0.0;
+			yval = xyval->y;
 		}else{
 			yval = xyval->y + 
 				( relative_area - xyval->x ) / (xyval->next_value->x - xyval->x ) *
