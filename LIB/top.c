@@ -118,6 +118,8 @@ int main(int argc, char **argv){
 	FA->max_results=10;
 	FA->deelig_flex = 0;
 	FA->resligand = NULL;
+	FA->useacs = 0;
+	FA->acsweight = 1.0;
 	
 	GB->outgen=0;
 	FA->num_grd=0;

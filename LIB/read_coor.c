@@ -58,6 +58,7 @@ void read_coor(FA_Global* FA,atom** atoms,resid** residue,char line[], char res_
 		(*atoms)[FA->atm_cnt].par=NULL;
 		(*atoms)[FA->atm_cnt].graph=0;
 		(*atoms)[FA->atm_cnt].coor_ref=NULL;
+		(*atoms)[FA->atm_cnt].acs=-1.0f;		
 		
 		strcpy((*atoms)[FA->atm_cnt].name,atm_typ);
 		if(strcmp((*atoms)[FA->atm_cnt].name," OXT")==0){

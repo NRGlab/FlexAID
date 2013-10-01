@@ -234,6 +234,7 @@ void read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]){
 			(*atoms)[FA->atm_cnt].cons=NULL;
 			(*atoms)[FA->atm_cnt].graph=0;
 			(*atoms)[FA->atm_cnt].coor_ref=NULL;
+			(*atoms)[FA->atm_cnt].acs=-1.0f;
 			
 			for (j=0;j<3;j++){
 				for (i=0;i<5;i++){

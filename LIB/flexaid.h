@@ -185,6 +185,7 @@ struct atom_struct{  // atom structure
 	float  ang;     // angle between atom, rec[0] and rec[1]
 	float  dih;     // dihedral between atom, rec[0], rec[1] and rec[2]
 	float  shift;   // gives the angle shift from that of rec[3]'s atom
+	float  acs;     // accessible contact surface
 	int    ncons;   // number of constraint for atoms
 	int    isbb;    // atom is a backbone atom
 	int    graph;   // id of graph atom belongs to (ligands only)
@@ -314,6 +315,9 @@ struct FA_Global_struct{
 	int   atm_cnt;                       // total number of atoms including all rotamers
 	int   atm_cnt_real;                  // total number of atoms real
 	int   nflexbonds;                    // number of ligand flexible bonds
+
+	int   useacs;                        // normalize interactions by accessible contact surface
+	float acsweight;                     // weighting factor
 	
 	int   is_protein;                    // PDBNAM is a protein molecule
 	resid* resligand;                    // pointer to the ligand

@@ -89,6 +89,8 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		if(strcmp(field,"COMPLF") == 0){sscanf(buffer,"%s %s",a,FA->complf);}
 		if(strcmp(field,"VCTSCO") == 0){sscanf(buffer,"%s %s",a,FA->vcontacts_self_consistency);}
 		if(strcmp(field,"VCTPLA") == 0){sscanf(buffer,"%s %c",a,&FA->vcontacts_planedef);}
+		if(strcmp(field,"USEACS") == 0){FA->useacs=1;}
+		if(strcmp(field,"ACSWEI") == 0){sscanf(buffer,"%s %f",field,&FA->acsweight);}
 		if(strcmp(field,"RNGOPT") == 0){strcpy(rngoptline,buffer);for(i=0;i<6;i++)rngopt[i]=buffer[7+i];rngopt[6]='\0';}
 		if(strcmp(field,"OPTIMZ") == 0){strcpy(optline[nopt++],buffer);}
 		if(strcmp(field,"DEFTYP") == 0){strcpy(deftyp_forced,&buffer[7]);}
@@ -122,7 +124,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		if(strcmp(field,"NRGOUT") == 0){sscanf(buffer,"%s %d",field,&FA->nrg_suite_timeout);}
 		if(strcmp(field,"SCOOUT") == 0){FA->output_scored_only=1;}
 	}
-    
+	
 	CloseFile_B(&infile_ptr,"r");
   
 

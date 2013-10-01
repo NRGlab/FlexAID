@@ -94,7 +94,33 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 		double radoA = radA + Rw;
 		
 		double SAS = 4.0*PI*radoA*radoA;
-		double surfA = SAS;
+       		double surfA = SAS;
+				
+		if(FA->useacs && atoms[atomzero].acs < 0.0){
+			// accessible contact surface with solvent/atom		
+			// ACS = Total surface area - surface areas of bonded contacts (atoms with a bond/angle between them)
+			atoms[atomzero].acs = surfA;
+		
+			int currindex = VC->ca_index[i];
+			
+			while(currindex != -1) {
+				int atomcont = FA->num_atm[VC->Calc[VC->ca_rec[currindex].atom].atomnum];
+				int intramolecular = atoms[atomcont].ofres == atoms[atomzero].ofres;
+				
+				// get first atom of residue
+				int fatm = residue[rnum].fatm[0];
+				
+				if(intramolecular && residue[rnum].bonded[atomcont-fatm][atomzero-fatm] >= 0)
+				{
+					atoms[atomzero].acs -= VC->ca_rec[currindex].area;
+				}
+				
+				currindex = VC->ca_rec[currindex].prev;
+			}
+			
+			if(atoms[atomzero].acs < 0.0){ atoms[atomzero].acs = 0.0f; }
+			//printf("after ACS=%.3f\n", ACS);
+		}
 		
 #if DEBUG_LEVEL > 0
 		cfs_atom.sas = 0.0;
@@ -141,9 +167,9 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 		       atoms[atomzero].radius);
 #endif
 
-		int currindex = VC->ca_index[i];
 		int contnum = 0;  // number of contacts (excluding bloops away atoms)
-
+		int currindex = VC->ca_index[i];
+		
 		while(currindex != -1) {
 			
 			double radB  = (double)VC->Calc[VC->ca_rec[currindex].atom].radius;
@@ -317,6 +343,7 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 			if( !covalent ){
 				
 				if(FA->intramolecular || !intramolecular) {
+					
 					double contribution = 0.0;
 					if(energy_matrix->weight){
 						contribution = yval*area;
@@ -324,11 +351,17 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 						contribution = yval;
 					}
 					
+					if(FA->useacs){
+						//printf("USE ACS\n");
+						//printf("default contribution=%.3f\n", contribution);
+						contribution = contribution * atoms[atomzero].acs/surfA * FA->acsweight;
+						//printf("after contribution=%.3f\n", contribution);
+					}
+
 					cfs->com += contribution;
 					FA->contributions[(VC->Calc[i].type-1)*FA->ntypes+(VC->Calc[VC->ca_rec[currindex].atom].type-1)] += contribution;
 					if((VC->Calc[i].type-1) != (VC->Calc[VC->ca_rec[currindex].atom].type-1))
 						FA->contributions[(VC->Calc[VC->ca_rec[currindex].atom].type-1)*FA->ntypes+(VC->Calc[i].type-1)] += contribution;
-					
 					
 #if DEBUG_LEVEL > 0	
 					if(energy_matrix->weight){
@@ -407,6 +440,11 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 				*/
 			}
 		}
+
+		if(FA->useacs){
+			contribution = contribution * atoms[atomzero].acs/surfA * FA->acsweight;
+		}
+
 		cfs->sas += contribution;
 		
 		FA->contributions[(VC->Calc[i].type-1)*FA->ntypes + (FA->ntypes-1)] += contribution;
