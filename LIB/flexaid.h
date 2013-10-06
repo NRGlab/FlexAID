@@ -315,7 +315,8 @@ struct FA_Global_struct{
 	int   atm_cnt;                       // total number of atoms including all rotamers
 	int   atm_cnt_real;                  // total number of atoms real
 	int   nflexbonds;                    // number of ligand flexible bonds
-
+	
+	int   normalize_area;                // normalize contact areas as a function of total surface area
 	int   useacs;                        // normalize interactions by accessible contact surface
 	float acsweight;                     // weighting factor
 	

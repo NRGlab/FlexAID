@@ -125,6 +125,7 @@ int main(int argc, char **argv){
 	FA->num_grd=0;
 	FA->exclude_het=0;
 	FA->remove_water=1;
+	FA->normalize_area=0;
 	
 	FA->recalci=0;
 	FA->skipped=0;
@@ -141,12 +142,12 @@ int main(int argc, char **argv){
 	FA->permeability=1.0;
 	FA->intramolecular=1;
 	FA->solventterm=0.0f;
-    
+	
 	FA->useflexdee=0;
 	FA->num_constraints=0;
-
+	
 	FA->npar=0;
-
+	
 	FA->mov[0] = NULL;
 	FA->mov[1] = NULL;
     

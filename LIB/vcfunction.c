@@ -44,7 +44,7 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
     
 	if(Vcontacts(FA,atoms,residue,VC) == -1){
 
-        FA->skipped++;
+		FA->skipped++;
 
 		free(VC->ca_rec);
 		free(VC->box);
@@ -131,9 +131,9 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 			for(int j=0;j<atoms[atomzero].ncons;j++){
 	
 				/*
-				double radC = atoms[atomzero].number==atoms[atomzero].cons[j]->anum1 ? 
-					(double)atoms[FA->num_atm[atoms[atomzero].cons[j]->anum2]].radius:
-					(double)atoms[FA->num_atm[atoms[atomzero].cons[j]->anum1]].radius;
+				  double radC = atoms[atomzero].number==atoms[atomzero].cons[j]->anum1 ? 
+				  (double)atoms[FA->num_atm[atoms[atomzero].cons[j]->anum2]].radius:
+				  (double)atoms[FA->num_atm[atoms[atomzero].cons[j]->anum1]].radius;
 				*/
 				
 				// maximum penalty value (starting penalty)
@@ -185,6 +185,7 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 										 (VC->Calc[VC->ca_rec[currindex].atom].type-1)];
 
 			//double yval = get_yval(energy_matrix,area/((surfA+surfB)/2.0));
+			// always use normalized areas in density functions
 			double yval = get_yval(energy_matrix,area/surfA);
 			
 			SAS -= area;
@@ -287,23 +288,23 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 						
 					}
 					/*
-					else{
+					  else{
 
-						; // not applied anymore
+					  ; // not applied anymore
 						
-						// interaction constraint
-						if(cons->force_interaction){
-							complementarity = 
-								complementarity < 0 ? 
-								-1.0 * complementarity:
-								complementarity;
-						}
+					  // interaction constraint
+					  if(cons->force_interaction){
+					  complementarity = 
+					  complementarity < 0 ? 
+					  -1.0 * complementarity:
+					  complementarity;
+					  }
 
-						complementarity *= cons->interaction_factor;
+					  complementarity *= cons->interaction_factor;
 						
-						  printf("found interaction constraint: %.2f (%d)\n",
-						  cons->interaction_factor,cons->force_interaction);
-					}
+					  printf("found interaction constraint: %.2f (%d)\n",
+					  cons->interaction_factor,cons->force_interaction);
+					  }
 					*/
 				}
 	
@@ -346,7 +347,11 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 					
 					double contribution = 0.0;
 					if(energy_matrix->weight){
-						contribution = yval*area;
+						if(FA->normalize_area){
+							contribution = yval*area/surfA;
+						}else{
+							contribution = yval*area;
+						}
 					}else{
 						contribution = yval;
 					}
@@ -357,37 +362,35 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 						contribution = contribution * atoms[atomzero].acs/surfA * FA->acsweight;
 						//printf("after contribution=%.3f\n", contribution);
 					}
-
+					
 					cfs->com += contribution;
+					
+#if DEBUG_LEVEL > 0
+					cfs_atom.com += contribution;
+#endif
+					
 					FA->contributions[(VC->Calc[i].type-1)*FA->ntypes+(VC->Calc[VC->ca_rec[currindex].atom].type-1)] += contribution;
 					if((VC->Calc[i].type-1) != (VC->Calc[VC->ca_rec[currindex].atom].type-1))
 						FA->contributions[(VC->Calc[VC->ca_rec[currindex].atom].type-1)*FA->ntypes+(VC->Calc[i].type-1)] += contribution;
 					
-#if DEBUG_LEVEL > 0	
-					if(energy_matrix->weight){
-						cfs_atom.com += yval * area;
-					}else{
-						cfs_atom.com += yval;
-					}
-#endif
 				}
 				/*
-				else{
-					printf("skipped intramolecular contact: %d %d\n",
-					       atoms[atomzero].number, atoms[atomcont].number); //VC->Calc[VC->ca_rec[currindex].atom].atomnum);
-				} 
+				  else{
+				  printf("skipped intramolecular contact: %d %d\n",
+				  atoms[atomzero].number, atoms[atomcont].number); //VC->Calc[VC->ca_rec[currindex].atom].atomnum);
+				  } 
 				*/
 			}
-      
+			
 			/*
 			// generate surface area matrix
 			matrix[VC->Calc[i].type][VC->Calc[VC->ca_rec[currindex].atom].type] += area;
-      
+			
 			if(VC->Calc[i].type != VC->Calc[VC->ca_rec[currindex].atom].type){
 			matrix[VC->Calc[VC->ca_rec[currindex].atom].type][VC->Calc[i].type] += area;
 			}
 			*/
-			
+					
 #if DEBUG_LEVEL > 0
 			printf("        %3s %c %4d %5d %2d %4.2f :: %7.4f (%s) %6.2f %6.2f :: %10.3f %10.3f\n",
 			       VC->Calc[VC->ca_rec[currindex].atom].res,
@@ -396,7 +399,7 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 			       VC->Calc[VC->ca_rec[currindex].atom].atomnum,
 			       VC->Calc[VC->ca_rec[currindex].atom].type,
 			       VC->Calc[VC->ca_rec[currindex].atom].radius,
-			       
+						
 			       yval, energy_matrix->weight ? "Y": "N",
 			       VC->ca_rec[currindex].dist,
 			       VC->ca_rec[currindex].area,
@@ -408,10 +411,10 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 			// skip to next contact
 			currindex = VC->ca_rec[currindex].prev;
 		}    
-        
+					
 		//    printf("Atom[%d]=%d has %d contacts\n",VC->Calc[i].atomnum,VC->Calc[i].atomnum,contnum);
 		//    printf("Atom[%d] COM=[%8.2f]\tWAL=[%8.2f]\n",VC->Calc[i].atomnum,com_atm,Ewall_atm);
-    
+					
 		if(SAS < 0.0){ SAS = 0.0; }
 		cfs->totsas += SAS;
 		
@@ -427,24 +430,28 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 			double yval = get_yval(energy_matrix,SAS/surfA);
 			
 			if(energy_matrix->weight){
-				contribution = yval * SAS;
+				if(FA->normalize_area){
+					contribution = yval * SAS / surfA;
+				}else{
+					contribution = yval * SAS;
+				}
 				//printf("Weight: multiply yval=%.3f by SAS.area=%.3f\n", yval, SAS);
 			}
 			else {
 				contribution = yval;
 				/*
-				if(VC->Calc[i].type == 3){
-					printf("Density: add yval=%.3f for norm.SAS=%.3f for atom %d\n",
-					    yval, SAS/surfA, VC->Calc[i].atomnum);
-				}
+				  if(VC->Calc[i].type == 3){
+				  printf("Density: add yval=%.3f for norm.SAS=%.3f for atom %d\n",
+				  yval, SAS/surfA, VC->Calc[i].atomnum);
+				  }
 				*/
 			}
 		}
-
+		
 		if(FA->useacs){
 			contribution = contribution * atoms[atomzero].acs/surfA * FA->acsweight;
 		}
-
+		
 		cfs->sas += contribution;
 		
 		FA->contributions[(VC->Calc[i].type-1)*FA->ntypes + (FA->ntypes-1)] += contribution;
@@ -469,16 +476,16 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 
 
 /*
-#if DEBUG_LEVEL > 0
-	printf("\n");
-	printf("CF.sum = %.3f\n", cfs->com + cfs->sas + cfs->wal);
-	printf("CF.com = %.3f\n", cfs->com);
-	printf("CF.sas = %.3f\n", cfs->sas);
-	printf("CF.wal = %.3f\n", cfs->wal);
-	getchar(); 
-#endif
+  #if DEBUG_LEVEL > 0
+  printf("\n");
+  printf("CF.sum = %.3f\n", cfs->com + cfs->sas + cfs->wal);
+  printf("CF.com = %.3f\n", cfs->com);
+  printf("CF.sas = %.3f\n", cfs->sas);
+  printf("CF.wal = %.3f\n", cfs->wal);
+  getchar(); 
+  #endif
 */
-        //getchar();
+	//getchar();
 	
 	free(VC->ca_rec);
 	//printf("free-ing %p\n",VC->ca_rec);
@@ -493,9 +500,11 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 double get_yval(struct energy_matrix* energy_matrix, double relative_area)
 {
 	double yval = 0.0;
+	
+	// a single value in matrix (weighted by area)
 	if(energy_matrix->weight)
 		yval = energy_matrix->energy_values->y;
-	else {
+	else { // density function
 		struct energy_values* xyval = energy_matrix->energy_values;
 
 		while(xyval->next_value != NULL && relative_area > xyval->next_value->x){
@@ -519,16 +528,16 @@ double get_yval(struct energy_matrix* energy_matrix, double relative_area)
 		}
 		
 		/*
-		if(energy_matrix->type2 == 40){
-			printf("stopped at x=%.3f with y=%.3f\n", xyval->x, xyval->y);
-			if(xyval->next_value != NULL){
-				printf("next is x=%.3f with y=%.3f\n", xyval->next_value->x, xyval->next_value->y);
-			}
-			printf("prob func. yval=%.3f for relative_area %.3f for [%d][%d]\n", yval, relative_area,
-			       energy_matrix->type1, energy_matrix->type2);
-			printf("calculated y=%.3f\n", yval);
-			getchar();
-		}
+		  if(energy_matrix->type2 == 40){
+		  printf("stopped at x=%.3f with y=%.3f\n", xyval->x, xyval->y);
+		  if(xyval->next_value != NULL){
+		  printf("next is x=%.3f with y=%.3f\n", xyval->next_value->x, xyval->next_value->y);
+		  }
+		  printf("prob func. yval=%.3f for relative_area %.3f for [%d][%d]\n", yval, relative_area,
+		  energy_matrix->type1, energy_matrix->type2);
+		  printf("calculated y=%.3f\n", yval);
+		  getchar();
+		  }
 		*/
 	}
 
