@@ -351,7 +351,8 @@ struct FA_Global_struct{
 	int     num_optres;                  // total number of residues optimised
 
 	int   rotobs;                        // use rotamer observations, otherwise default Lovell's LIBrary
-
+	int   rotout;                        // output rotamers in rotamers.pdb as pdb models
+	
 	int   num_het;                       // number of hetero groups read
 	int   num_het_atm;                   // number of hetero atoms
 	int   num_grd;                       // number of vertices in the grid of the cleft

@@ -18,24 +18,27 @@ int write_pdb(FA_Global* FA,atom *atoms, resid* residue,char outfile[], char rem
 		fprintf(outfile_ptr,"%s\n",remark);
 		
                 //printf("outfile=%s\n", outfile);
-		write_contributions(FA,outfile_ptr,true);
-		write_contributions(FA,outfile_ptr,false);
-
+		if(FA->contributions){
+			write_contributions(FA,outfile_ptr,true);
+			write_contributions(FA,outfile_ptr,false);
+		}
+		
 		for(int k=1;k<=FA->res_cnt;k++){
 			rot=residue[k].rot;
-            
+			
 			/*
-			  printf("write_pdb: rot is %d - fatm: %d - latm: %d - atoms[%d].number = %d\n",rot,residue[k].fatm[rot],residue[k].latm[rot],
-			  residue[k].fatm[rot],atoms[residue[k].fatm[rot]].number);
+			printf("write_pdb: rot is %d - fatm: %d - latm: %d - atoms[%d].number = %d\n",
+			       rot,residue[k].fatm[rot],residue[k].latm[rot],
+			       residue[k].fatm[rot],atoms[residue[k].fatm[rot]].number);
 			*/
-            
+			
 			for(int i=residue[k].fatm[rot];i<=residue[k].latm[rot];i++){
                 
 				if(!FA->output_scored_only || atoms[i].optres != NULL){
                     
 					if(residue[atoms[i].ofres].type==0){strcpy(field,"ATOM  ");}
 					if(residue[atoms[i].ofres].type==1){strcpy(field,"HETATM");}
-                    
+					
 					fprintf(outfile_ptr,"%s%5d %s %s %c%4d    %8.3f%8.3f%8.3f  1.00  0.00\n",
 						field,
 						atoms[i].number,
@@ -47,11 +50,11 @@ int write_pdb(FA_Global* FA,atom *atoms, resid* residue,char outfile[], char rem
 						atoms[i].coor[1],
 						atoms[i].coor[2]
 						);
-                    
+					
 				}
 			}
 		}
-        
+		
 		//view the protein center geometry
 		//fprintf(outfile_ptr, "HETATM99999  C   ORI -9999    %8.3f%8.3f%8.3f  1.00  0.00\n",
 		//	    FA->ori[0],FA->ori[1],FA->ori[2]);

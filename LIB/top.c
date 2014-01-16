@@ -83,6 +83,7 @@ int main(int argc, char **argv){
 	FA->MIN_OPTRES = 1;
 	FA->MIN_CONSTRAINTS = 1;
 
+	FA->rotout = 0;
 	FA->num_optres = 0;
 	FA->nflexbonds = 0;
 	FA->normal_grid = NULL;
@@ -411,10 +412,10 @@ int main(int argc, char **argv){
 	//////////////////////////////////////////
 	// free up memory allocated using malloc//
 	//////////////////////////////////////////
-
+	
 	// Genes properties
 	if(gene_lim != NULL) free(gene_lim);
-
+	
 	// Chromosomes
 	if(chrom != NULL){
 		for(i=0;i<memchrom;++i){
@@ -422,14 +423,14 @@ int main(int argc, char **argv){
 		}
 		free(chrom);
 	}
-
+	
 	if(chrom_snapshot != NULL){
 		for(i=0;i<(GB->num_chrom*GB->max_generations);++i){
 			if(chrom_snapshot[i].genes != NULL) free(chrom_snapshot[i].genes);
 		}
 		free(chrom_snapshot);
 	}
-
+	
 	// Vcontacts
 	if(VC->Calc != NULL) {
 		free(VC->Calc);

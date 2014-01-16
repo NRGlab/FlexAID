@@ -29,6 +29,8 @@ void build_rotamers(FA_Global* FA,atom** atoms,resid* residue,rot* rotamer){
 
 	int   num_ref=0;       // builds a PDBnum to map rotamer atoms in num_atm
 
+	FILE* outrot = NULL;
+					
 
 	// Create a PDB number used for new rotamer atoms
 	//num_ref=(*atoms)[residue[FA->res_cnt].latm[residue[FA->res_cnt].trot]].number;
@@ -52,30 +54,27 @@ void build_rotamers(FA_Global* FA,atom** atoms,resid* residue,rot* rotamer){
 		for(i=residue[kres].fatm[0];i<=residue[kres].latm[0];i++){
 			if(flag){
 				(*atoms)[i].recs='m';
-	
+				
 				/*
 				printf("atom '%s' from %s %c %4d set as mobile (dih=%.3f)\n",
 				       (*atoms)[i].name,
 				       residue[kres].name,residue[kres].chn,residue[kres].number,
 				       (*atoms)[i].dih);
-				getchar();
 				*/
-				
 			}
-      
+			
 			if(strcmp(" CB ",(*atoms)[i].name) == 0){flag=1;}
 		}
 	}  
-  
-  
+	
 	//printf("Testing rotamers for clash... (libsize=%d)\n",FA->rotlibsize);
-  
+	
 	for(i=0;i<FA->nflxsc;i++){
 		//printf("---------\nFLEXSC(%d): %d %c %s\n",i,FA->flex_res[i].num,FA->flex_res[i].chn,FA->flex_res[i].name);
 		MIN_ROTAMER = FA->MIN_ROTAMER;
 
-		kres=FA->flex_res[i].inum; 
-        
+		kres=FA->flex_res[i].inum;
+		
 		buildic(FA,*atoms,residue,kres);
 		
 		/*
@@ -93,15 +92,17 @@ void build_rotamers(FA_Global* FA,atom** atoms,resid* residue,rot* rotamer){
 		n=0;
 		nindex=0;
 		while(l<FA->rotlibsize){
-      
+			
 			if(strcmp(rotamer[l].res,residue[kres].name) == 0){
 				
-/*
-				printf("---------------------\n");
-				printf("Rotamer %d for %s %d %c \n",rotamer[l].nid,rotamer[l].res,residue[kres].number,residue[kres].chn);
-*/	
-	      
+				atom* at_cb = NULL;
 
+				/*
+				printf("---------------------\n");
+				printf("Rotamer %d for %s %d %c \n",rotamer[l].nid,rotamer[l].res,
+				       residue[kres].number,residue[kres].chn);	
+				*/
+				
 				residue[kres].trot++;
 	
 				if(residue[kres].trot == MIN_ROTAMER){
@@ -122,18 +123,16 @@ void build_rotamers(FA_Global* FA,atom** atoms,resid* residue,rot* rotamer){
 				}
 	
 				residue[kres].rot = residue[kres].trot;
-	
+				
 				total_build=0;
 				delta_atm=FA->atm_cnt-residue[kres].fatm[0]+1;
-	
+				
 				residue[kres].fatm[residue[kres].trot]=residue[kres].fatm[0]+delta_atm;
-
 				residue[kres].latm[residue[kres].trot]=residue[kres].latm[0]+delta_atm;
-	
-	
+				
 				old_num_ref=num_ref;
 				old_atm=FA->atm_cnt;
-	
+				
 				for(j=residue[kres].fatm[0];j<=residue[kres].latm[0];j++){
 					FA->atm_cnt++;
 	  
@@ -163,14 +162,14 @@ void build_rotamers(FA_Global* FA,atom** atoms,resid* residue,rot* rotamer){
 						if((*atoms)[j].rec[3] != 0){
 							(*atoms)[j].shift = (*atoms)[(*atoms)[j].rec[3]].dih - (*atoms)[j].dih;
 						}
-					}
+					}else if(!strcmp((*atoms)[j].name," CB ")){ at_cb = &(*atoms)[j]; }
 	  
 					(*atoms)[j+delta_atm] = (*atoms)[j];
 					//(*atoms)[j+delta_atm].number += delta_atm;
 					//(*atoms)[j+delta_atm].number = num_ref;
 	  
 					//FA->num_atm[num_ref] = j+delta_atm;
-	  
+					
 					for(m=0;m<4;m++){
 						if((*atoms)[j+delta_atm].rec[m] != 0){
 							(*atoms)[j+delta_atm].rec[m] += delta_atm;
@@ -205,37 +204,55 @@ void build_rotamers(FA_Global* FA,atom** atoms,resid* residue,rot* rotamer){
 				}
 
 				/*
-				  printf("\nANGLES: ");
-				  for(j=1;j<=residue[kres].fdih;j++){
-				  j1=residue[kres].bond[j]+delta_atm;
-				  printf("%8.3f ",(*atoms)[j1].dih);
-				  }
-				  printf("\n");
+				printf("\nANGLES: ");
+				for(j=1;j<=residue[kres].fdih;j++){
+					j1=residue[kres].bond[j]+delta_atm;
+					printf("%8.3f ",(*atoms)[j1].dih);
+				}
+				printf("\n");
 				*/
-	
+
 				buildcc(FA,*atoms,total_build,buildcc_list);
-	
+				
 				rigid_clash=check_clash(FA,(*atoms),residue,FA->res_cnt,total_build,buildcc_list);
-	
-	
+				
 				if(rigid_clash == 1){
+					
 					//printf("REJECTED DUE TO STERIC CLASHES WITH RIGID ATOM(S)\n\n");
-	  
+					//getchar();	
+					
 					residue[kres].trot--;
 					FA->atm_cnt=old_atm;
 					num_ref=old_num_ref;
-					//getchar();	
 	  
 				}else{
-
-					/*
-					printf("ACCEPTED\n\n");
-
-					// output conformation
-					char conffile[100];
-					sprintf(conffile,"conf-%d.pdb",l);
-					write_pdb(FA,(*atoms),residue,conffile,conffile);
-					*/
+					
+					//printf("ACCEPTED\n\n");
+					
+					if(FA->rotout){
+						if(outrot == NULL){
+							outrot = fopen("rotamers.pdb", "w");
+							if(!outrot){
+								fprintf(stderr, "ERROR: Could not open 'rotamers.pdb' for writing\n");
+								outrot = stderr;
+							}
+						}
+						
+						fprintf(outrot, "MODEL       %2d\n", residue[kres].trot);
+						resid* res = &residue[at_cb->ofres];
+						fprintf(outrot, "ATOM  %5d %4s %3s %c%4d    %8.3f%8.3f%8.3f\n",
+							at_cb->number, at_cb->name,
+							res->name, res->chn, res->number,
+							at_cb->coor[0], at_cb->coor[1], at_cb->coor[2] );
+						for(int m=0; m<total_build; m++){
+							atom* at = &(*atoms)[buildcc_list[m]];
+							fprintf(outrot, "ATOM  %5d %4s %3s %c%4d    %8.3f%8.3f%8.3f\n",
+								at->number, at->name,
+								res->name, res->chn, res->number,
+								at->coor[0], at->coor[1], at->coor[2] );
+						}
+						fprintf(outrot, "ENDMDL\n");
+					}
 					
 					if(FA->nrg_suite){
 						printf("Rotamer for %s%d%c with dihedrals", 
@@ -359,5 +376,9 @@ void build_rotamers(FA_Global* FA,atom** atoms,resid* residue,rot* rotamer){
     
 	}  
 
-	return;  
+	if(outrot != NULL){
+		fclose(outrot);
+	}
+
+	return;
 }
