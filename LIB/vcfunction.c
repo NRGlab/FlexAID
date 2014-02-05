@@ -410,8 +410,8 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 
 			// skip to next contact
 			currindex = VC->ca_rec[currindex].prev;
-		}    
-					
+		}
+		
 		//    printf("Atom[%d]=%d has %d contacts\n",VC->Calc[i].atomnum,VC->Calc[i].atomnum,contnum);
 		//    printf("Atom[%d] COM=[%8.2f]\tWAL=[%8.2f]\n",VC->Calc[i].atomnum,com_atm,Ewall_atm);
 					
@@ -420,7 +420,11 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 		
 		double contribution = 0.0;
 		if(FA->solventterm){
-			contribution = (double)FA->solventterm * SAS;
+			if(FA->normalize_area){
+				contribution = (double)FA->solventterm * SAS / surfA;
+			}else{
+				contribution = (double)FA->solventterm * SAS;
+			}
 			//printf("SP: multiply ST=%.3f with SAS.area=%.3f\n", (double)FA->solventterm, SAS);
 		} else {
 			struct energy_matrix* energy_matrix = &FA->energy_matrix[(VC->Calc[i].type-1)*FA->ntypes +
@@ -465,7 +469,7 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 #endif
 		
 	}
-
+	
 
 	// Penalize Freesurf.
   

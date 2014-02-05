@@ -119,7 +119,7 @@ void write_contributions(FA_Global* FA,FILE* outfile_ptr, bool positive){
 		
 		if(*contribution != 0.0){
 			contributions[ncont] = contribution;
-			fprintf(outfile_ptr, "%3d: %2d-%2d with energy of %.3f\n", ++ncont, k,l, *contribution);
+			fprintf(outfile_ptr, "REMARK %3d: %2d-%2d with energy of %.3f\n", ++ncont, k,l, *contribution);
 		}else{
 			break;
 		}
