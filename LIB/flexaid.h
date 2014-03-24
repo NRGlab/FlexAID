@@ -47,7 +47,8 @@
 #define MAX_NORMAL_GRID 5000        // max number of grid points in normal grid
 #define MAX_SPHERE_POINTS 610       // Total number of points in atom surface sphere 
 #define MAX_OPT_RES 1               // max number of residues to be optimized 
-#define CLASH_PENALTY_VALUE 1e9f    // skipped individuals WAL term penaly
+#define POLYHEDRON_PENALTY 1e6f     // skipped individuals WAL term penaly
+#define CLASH_THRESHOLD 1e4         // individuals that do not pass the clash filter of Vcontacts
 #define MBNDS 4                     // max number of cov bonds an atom can have 
 #define MAX_BONDED 20               // max number of bonded atom list
 #define MAX_PAR 100                 // max number of parameters for simplex optimization, not used at the moment
@@ -386,8 +387,9 @@ struct FA_Global_struct{
 	int   tspoints;                      // actual number of sphere points
 	//long long seed_ini;                // initial seed for random num generator
 	int   recalci;                       // recalculations counter (VCT)
-	int   skipped;                       // atoms skipped due to clashes
-    
+	int   skipped;                       // atoms skipped due to faliures in generating the polyhedron
+	int   clashed;                       // skipped individuals due to steric clashes
+	
 	//rot    rotamer[MAX_ROTLIBSIZE];       // array of rotamer library rotamers OR observed rotamer list
 	int    rotlibsize;                    // number of rotamers
 	flxsc* flex_res;                      // list of flexible residues

@@ -130,6 +130,7 @@ int main(int argc, char **argv){
 	
 	FA->recalci=0;
 	FA->skipped=0;
+	FA->clashed=0;
 	
 	FA->spacer_length=0.375;
 	FA->opt_grid=0;
@@ -392,7 +393,8 @@ int main(int argc, char **argv){
       
 			printf("atoms recalculated=%d\n",FA->recalci);
 			printf("individuals skipped=%d\n",FA->skipped);
-
+			printf("individuals clashed=%d\n",FA->clashed);
+			
 			////////////////////////////////
 			//////       END         ///////
 			////////////////////////////////

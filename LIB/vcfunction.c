@@ -2,7 +2,7 @@
 
 #define DEBUG_LEVEL 0
 
-int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< pair<int,int> > & intraclashes)
+double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< pair<int,int> > & intraclashes, bool* error)
 {
 	int    rnum=0;
 	int    type=1;
@@ -42,14 +42,21 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
     
 	//printf("=============NEW INDIVIDUAL==============\n");
     
-	if(Vcontacts(FA,atoms,residue,VC) == -1){
-
-		FA->skipped++;
-
+	double clash_value;
+	*error = false;
+	int rv = Vcontacts(FA,atoms,residue,VC,&clash_value);
+	if(rv < 0){
+		*error = true;
 		free(VC->ca_rec);
 		free(VC->box);
-		
-		return(1);
+
+		if(rv == -1){
+			FA->skipped++;
+			return(POLYHEDRON_PENALTY);
+		}else if(rv == -2){
+			FA->clashed++;
+			return(clash_value);
+		}
 	}
 	
 	for(int i=0; i<FA->atm_cnt_real; ++i) {
@@ -310,7 +317,7 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 	
 				//printf("constraint[%d] applies.\n",cons->id);
 			}
-            
+			
 			//	coorB = VC->Calc[VC->ca_rec[currindex].atom].coor;
 
 			// CHECK IF CLASH
@@ -420,11 +427,7 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 		
 		double contribution = 0.0;
 		if(FA->solventterm){
-			if(FA->normalize_area){
-				contribution = (double)FA->solventterm * SAS / surfA;
-			}else{
-				contribution = (double)FA->solventterm * SAS;
-			}
+			contribution = (double)FA->solventterm * SAS;
 			//printf("SP: multiply ST=%.3f with SAS.area=%.3f\n", (double)FA->solventterm, SAS);
 		} else {
 			struct energy_matrix* energy_matrix = &FA->energy_matrix[(VC->Calc[i].type-1)*FA->ntypes +
@@ -497,7 +500,7 @@ int vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< p
 	free(VC->box);
 
   
-	return(0);
+	return(0.0);
   
 }
 

@@ -19,7 +19,6 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cl
 	int cat;    /* atom number constrained to the one considered */
 
 	cfstr cf;
-	static cfstr cf_clash = { 0.0, 0.0, CLASH_PENALTY_VALUE, 0.0, 1 };
 	
 	int rclash=0;
 
@@ -118,8 +117,11 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cl
 	}
   
 	vector< pair<int,int> > intraclashes;
-	if(vcfunction(FA,VC,atoms,residue,intraclashes)){
-		return cf_clash;
+	bool error;
+	double penalty = vcfunction(FA,VC,atoms,residue,intraclashes,&error);
+	if(error){
+		cfstr cf_clash = { 0.0, 0.0, penalty, 0.0, 1 };
+		return(cf_clash);
 	}
 	
 	cf.com = 0.0;

@@ -172,10 +172,10 @@ struct VC_Global_struct{
 };
 typedef struct VC_Global_struct VC_Global;
 
-int     Vcontacts(FA_Global*,atom*,resid*,VC_Global*);
+int     Vcontacts(FA_Global*,atom*,resid*,VC_Global*,double*);
 
 cfstr   ic2cf(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*);
-int     vcfunction(FA_Global*,VC_Global*,atom*,resid*,vector< pair<int,int> > &); 
+double  vcfunction(FA_Global*,VC_Global*,atom*,resid*,vector< pair<int,int> > &,bool*);
 float   xs2cf(FA_Global*,VC_Global*,atom*,resid*,int,int*);
 float   pb2cf(FA_Global*,VC_Global*,atom*,resid*,rot*,int,int*, int);
 
@@ -195,7 +195,7 @@ void    index_protein(FA_Global*,atom*,resid*,atomsas*,atomindex**,int*,int*,int
 void    save_areas(const plane *,const contactlist *, int, int,atomsas*, int* ,int*,ca_struct** , int* );
 void    min_areas(ca_struct*, const atomsas*, const atomsas*, char*);
 void    print_areas(atomsas*, int, ca_struct*);
-int     get_contlist4(atom*,int, contactlist *, int, float, int, atomsas*, const int*, const atomindex*, const ca_struct*, const int*);
+int     get_contlist4(atom*,int, contactlist *, int, float, int, atomsas*, const int*, const atomindex*, const ca_struct*, const int*, double*, double,resid*,int*);
 void    save_seeds(int*,const plane *, const vertex *, int, int);
 void    get_firstvert(const int*,const plane *, int *, int *, int *, int, int);
 

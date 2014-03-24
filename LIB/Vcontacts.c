@@ -2,14 +2,14 @@
 #include "boinc.h"
 
 // Vcontacts calculates the SAS only for the residue sent in argument
-int Vcontacts(FA_Global* FA,atom* atoms,resid* residue,VC_Global* VC)
+int Vcontacts(FA_Global* FA,atom* atoms,resid* residue,VC_Global* VC, double* clash_value)
 {  
     
 	VC->planedef = FA->vcontacts_planedef;
 	//VC->planedef = 'X';  // extended radical plane (default)
 	//VC->planedef = 'R';  // radical plane
 	//VC->planedef = 'B';  // bisection
-    
+	
 	// initialize contact atom index
 	VC->ca_recsize = 5*FA->atm_cnt_real;
 	VC->ca_rec = (ca_struct*)malloc(VC->ca_recsize*sizeof(ca_struct));
@@ -19,18 +19,37 @@ int Vcontacts(FA_Global* FA,atom* atoms,resid* residue,VC_Global* VC)
 		fprintf(stderr,"ERROR: memory allocation error for ca_rec\n"); 
 		Terminate(2);
 	}
-    
+	
+	// protein atoms to boxes in cubic grid
+	index_protein(FA,atoms,residue,VC->Calc,&VC->box,VC->Calclist,&VC->dim,FA->atm_cnt_real);
+
 	for(int i=0; i<FA->atm_cnt_real; ++i) {
-		VC->Calc[i].vol = 0.0;
 		VC->ca_index[i] = -1;   //initialize pointer array
 		VC->seed[i*3] = -1;
 	}
-    
-	// protein atoms to boxes in cubic grid
-	index_protein(FA,atoms,residue,VC->Calc,&VC->box,VC->Calclist,&VC->dim,FA->atm_cnt_real);
-    
+	
+        *clash_value = 0.0;
+	for(int i=0;i<FA->atm_cnt_real;++i) {
+		// ============= atom contact calculations =============
+		int atomzero = VC->Calclist[i];
+		
+		if(!VC->Calc[atomzero].score){continue;}
+
+		float rado = VC->Calc[atomzero].radius + Rw;
+		
+		int NC = get_contlist4(atoms,atomzero, VC->contlist, FA->atm_cnt_real, rado, VC->dim,
+				       VC->Calc, VC->Calclist, VC->box,VC->ca_rec, VC->ca_index,
+				       clash_value, (double)FA->permeability, residue, FA->num_atm);
+	}
+	
+	if(*clash_value >= CLASH_THRESHOLD){ return(-2); }
+	
+	for(int i=0; i<FA->atm_cnt_real; ++i) {
+		VC->ca_index[i] = -1;   //initialize pointer array
+		VC->seed[i*3] = -1;
+	}
+	
 	VC->numcarec=0;
-	// calc volumes for all protein atoms
 	
 	return calc_region(FA,VC,atoms,FA->atm_cnt_real);
     
@@ -69,23 +88,25 @@ int calc_region(FA_Global* FA,VC_Global* VC,atom* atoms,int atmcnt)
 		//printf("Get_contacts for %d\n",VC->Calc[atomzero].atomnum);   
 		rado = VC->Calc[atomzero].radius + Rw;
 		
-		NC = get_contlist4(atoms,atomzero, VC->contlist, atmcnt, rado, VC->dim, VC->Calc, VC->Calclist, VC->box,VC->ca_rec, VC->ca_index);
-        
+		NC = get_contlist4(atoms,atomzero, VC->contlist, atmcnt, rado, VC->dim,
+				   VC->Calc, VC->Calclist, VC->box,VC->ca_rec, VC->ca_index,
+				   NULL, 0.0, NULL, NULL);
+		
 		// invalid write/read when NC = 0
 		// because planeA is negative subscript
 		if(NC == 0){
 			VC->Calc[atomzero].SAS = -1.0;
 			continue;
 		}
-        
-		NV = voronoi_poly2(VC,atomzero, VC->cont, rado, NC, VC->contlist); 
-        
+		
+		NV = voronoi_poly2(VC,atomzero, VC->cont, rado, NC, VC->contlist);
+		
 		// could not generate polyhedron
 		// because of clashing atom
 		if(NV == -1){
 			return(-1);
 		}
-        
+		
 		surfatom = order_faces(atomzero, VC->poly, VC->centerpt, rado, NC, NV, VC->cont, VC->ptorder);    
         
 		calc_areas(VC->poly, VC->centerpt, rado, NC, NV, VC->cont, VC->ptorder, &VC->Calc[atomzero]);                
@@ -95,8 +116,7 @@ int calc_region(FA_Global* FA,VC_Global* VC,atom* atoms,int atmcnt)
 		//min_areas(VC->ca_rec, VC->Calc, &VC->Calc[atomzero], FA->vcontacts_self_consistency);
 		
 	}
-    
-    
+	
 	return(0);
 }
 
@@ -1560,7 +1580,7 @@ void index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,atomin
         
 		//printf("-----residue[%d]=%s - rot=%d-----\n",residue[resi].number,residue[resi].name,residue[resi].rot);
         
-		for (atmi=residue[resi].fatm[rot];atmi<=residue[resi].latm[rot];++atmi){
+		for(atmi=residue[resi].fatm[rot];atmi<=residue[resi].latm[rot];++atmi){
 			// Copy atoms structure to the new Vcont structure
 			// only the atoms that correspond to the correct rotamer are copied
 			// the total number of atoms thus is equal to atm_cnt_real
@@ -1578,10 +1598,8 @@ void index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,atomin
 			Calc[i].radius=atoms[atmi].radius;
 			Calc[i].type=atoms[atmi].type;
 			Calc[i].done='N';
-			Calc[i].ca_index=-1;
 			Calc[i].score=(atoms[atmi].optres != NULL);
-            
-            
+			
 			for(j=0;j<3;++j){
 				if (atoms[atmi].coor[j] < global_min[j]){
 					global_min[j]=atoms[atmi].coor[j];
@@ -1596,7 +1614,7 @@ void index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,atomin
 			++i;
 		}
 	}
-    
+	
 	//printf("[%d] atoms were copied to Vcont atomsas_struct compared to real [%d]\n", i, FA->atm_cnt_real);
     
     
@@ -1609,15 +1627,15 @@ void index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,atomin
 			}
 		}
 	}
-    
+	
 	// ------ get largest dimension of protein -------
 	*dim = 0;
 	*dim = (int)(max_width/CELLSIZE)+1;
 	//printf("New Dimension=[%d]\n",dim);
-    
+	
 	dim2 = (*dim)*(*dim);
 	dim3 = (*dim)*(*dim)*(*dim);
-    
+	
 	(*box) = (atomindex*)malloc(dim3*sizeof(atomindex));
 	if(!(*box)){
 		fprintf(stderr,"ERROR: memory allocation error for box\n");
@@ -1671,19 +1689,21 @@ void index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,atomin
 int get_contlist4(atom* atoms,int atomzero, contactlist contlist[], 
                   int atmcnt, float rado, int dim, atomsas* Calc, 
                   const int* Calclist, const atomindex* box, 
-                  const ca_struct* ca_rec,const int* ca_index) 
+                  const ca_struct* ca_rec,const int* ca_index,
+		  double* clash_value, double permea, resid* residue, int* num_atm) 
 {
 	double sqrdist;             // distance squared between two points
 	double neardist;            // max distance for contact between atom spheres
+	double clashdist;           // clashing distance
+	int boxi;
 	int NC;                     // number of contacts
 	int bai;                    // box atom counter
-	int boxi;                   // current box number
 	int atomj;                  // index number of atom in Calc
 	int boxzero;                // box atomzero is in
 	int i;                      // dummy counter for surrounding boxes
 	int currindex;
 	char recalc;                // recalculate neglecting done atoms
-    
+	
 	int dim2,dim3;
     
 	//printf("=====ATOMZERO[%d]=====\n",Calc[atomzero].atomnum);
@@ -1701,7 +1721,7 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 		Calc[ca_rec[currindex].atom].done = 'C'; // makes contact
 		currindex = ca_rec[currindex].prev;
 	}
-    
+	
 	// get pdb atom contacts from current and adjacent boxes
 	boxzero = Calc[atomzero].boxnum;
 	//printf("boxzero=%d\n",boxzero);
@@ -1716,7 +1736,7 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 			//printf("nument=%d\tbai=%d\n",box[boxi].nument,bai);
             
 			atomj = Calclist[box[boxi].first+bai]; 
-            
+				
 			// check previous contacts
 			// if(recalc == 'Y' && Calc[atomj].done == 'Y') {
             
@@ -1726,39 +1746,46 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 				continue;
 			}
             
-            
+			double rAB = Calc[atomzero].radius + Calc[atomj].radius;
+			
 			sqrdist = (Calc[atomzero].coor[0]-Calc[atomj].coor[0])*(Calc[atomzero].coor[0]-Calc[atomj].coor[0]) 
 				+ (Calc[atomzero].coor[1]-Calc[atomj].coor[1])*(Calc[atomzero].coor[1]-Calc[atomj].coor[1])
 				+ (Calc[atomzero].coor[2]-Calc[atomj].coor[2])*(Calc[atomzero].coor[2]-Calc[atomj].coor[2]);
+			
 			neardist =  rado + Calc[atomj].radius + Rw;
-            
-            
+			clashdist = permea*rAB;
+			
 			//printf("neardist = rado(%.3f) + atomj.rad(%.3f) + Rw(%.3f)\n",rado,Calc[atomj].radius,Rw);
 			//printf("atom %d is sqrdist(%5.2fA) & neardist(%5.2fA) from atom %d\n",Calc[atomzero].atomnum,sqrdist,neardist*neardist,Calc[atomj].atomnum);
-            
-            
+			
 			if((sqrdist < neardist*neardist) && (sqrdist != 0.0)) {
                 
 				// add atoms to list
 				//printf("atom %d is in contact with atom %d (%.3f)...\n",Calc[atomzero].atomnum,Calc[atomj].atomnum,sqrtf(sqrdist));
-                
+				
 				contlist[NC].index = atomj;
 				contlist[NC].dist = sqrt(sqrdist);
+				
+				bool intramolecular = Calc[atomzero].inum == Calc[atomj].inum;
+				int fatm = residue[Calc[atomzero].inum].fatm[0];
+				if(clash_value != NULL && contlist[NC].dist < clashdist){
+					if(!intramolecular || residue[Calc[atomzero].inum].bonded[num_atm[Calc[atomzero].atomnum-fatm]][num_atm[Calc[atomj].atomnum-fatm]] < 0){
+						/*
+						printf("%d\t%d\t%d\tclashdist=%.3f\tdist=%.3f\n", 
+						       Calc[atomzero].atomnum,Calc[atomj].atomnum,
+						       residue[Calc[atomzero].inum].bonded[num_atm[Calc[atomzero].atomnum]-fatm][num_atm[Calc[atomj].atomnum]-fatm],
+						       clashdist, contlist[NC].dist);
+						getchar();
+						*/
+						*clash_value += KWALL*(pow(contlist[NC].dist,-12.0)-pow(clashdist,-12.0));
+					}
+				}
 				++NC;
 			}
 			++bai;
 		}
 	}
-    
-	/*
-	  if (NC==0) {
-	  recalc = 'Y';
-	  FA->recalci++;
-	  //PAUSE;
-	  goto RESTART;
-	  }
-	*/
-    
+
 	// reset atoms to 'done'
 	currindex = ca_index[atomzero];
 	while(currindex != -1) {
