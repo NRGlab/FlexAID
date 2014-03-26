@@ -1767,8 +1767,8 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 				contlist[NC].dist = sqrt(sqrdist);
 				
 				bool intramolecular = Calc[atomzero].inum == Calc[atomj].inum;
-				int fatm = residue[Calc[atomzero].inum].fatm[0];
 				if(clash_value != NULL && contlist[NC].dist < clashdist){
+					int fatm = residue[Calc[atomzero].inum].fatm[0];
 					if(!intramolecular || residue[Calc[atomzero].inum].bonded[num_atm[Calc[atomzero].atomnum-fatm]][num_atm[Calc[atomj].atomnum-fatm]] < 0){
 						/*
 						printf("%d\t%d\t%d\tclashdist=%.3f\tdist=%.3f\n", 
