@@ -7,24 +7,27 @@
 /******* the residue to optimize during dock  ********/
 /*****************************************************/
 
-void update_optres(atom* atoms, int atm_cnt, OptRes* optres_ptr,int num_optres)
+void update_optres(atom* atoms, resid* residue, int atm_cnt, OptRes* optres_ptr,int num_optres)
 {
     
-    int i,j;
+	int i,j;
     
-    for(i=0;i<num_optres;i++){
+	for(i=0;i<num_optres;i++){
         
-        for(j=1;j<=atm_cnt;j++){
+		for(j=1;j<=atm_cnt;j++){
+			
+			if(atoms[j].ofres == optres_ptr[i].rnum)
+			{
+				if(residue[atoms[j].ofres].type != 0 || !atoms[j].isbb)
+				{
+					atoms[j].optres = &optres_ptr[i];
+				}
+			}
             
-            if(atoms[j].ofres == optres_ptr[i].rnum)
-            {
-                atoms[j].optres = &optres_ptr[i];
-            }
-            
-        }
+		}
         
-    }
+	}
     
-    return;
+	return;
     
 }

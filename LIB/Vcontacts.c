@@ -34,7 +34,7 @@ int Vcontacts(FA_Global* FA,atom* atoms,resid* residue,VC_Global* VC, double* cl
 		int atomzero = VC->Calclist[i];
 		
 		if(!VC->Calc[atomzero].score){continue;}
-
+		
 		float rado = VC->Calc[atomzero].radius + Rw;
 		
 		int NC = get_contlist4(atoms,atomzero, VC->contlist, FA->atm_cnt_real, rado, VC->dim,
@@ -1773,7 +1773,7 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 						/*
 						printf("%d\t%d\t%d\tclashdist=%.3f\tdist=%.3f\n", 
 						       Calc[atomzero].atomnum,Calc[atomj].atomnum,
-						       residue[Calc[atomzero].inum].bonded[num_atm[Calc[atomzero].atomnum]-fatm][num_atm[Calc[atomj].atomnum]-fatm],
+						       intramolecular? residue[Calc[atomzero].inum].bonded[num_atm[Calc[atomzero].atomnum]-fatm][num_atm[Calc[atomj].atomnum]-fatm]: -1,
 						       clashdist, contlist[NC].dist);
 						getchar();
 						*/

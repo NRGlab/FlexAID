@@ -83,11 +83,6 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 		{
 			continue;
 		}
-
-		if(type == 0 && atoms[atomzero].isbb)
-		{
-			continue;
-		}
 		
 		//printf("-------------------------------\nAtom[%4d]=%s in Residue[%4d]\n",VC->Calc[i].atomnum,atoms[FA->num_atm[VC->Calc[i].atomnum]].name,VC->Calc[i].resnum);
 		
@@ -102,7 +97,7 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 		
 		double SAS = 4.0*PI*radoA*radoA;
        		double surfA = SAS;
-				
+		
 		if(FA->useacs && atoms[atomzero].acs < 0.0){
 			// accessible contact surface with solvent/atom		
 			// ACS = Total surface area - surface areas of bonded contacts (atoms with a bond/angle between them)
@@ -207,15 +202,26 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 			// atom in contact with atom zero
 			int atomcont = FA->num_atm[VC->Calc[VC->ca_rec[currindex].atom].atomnum];
 			
-			int intramolecular = atoms[atomcont].ofres == atoms[atomzero].ofres;
-	
+			int intramolecular = 0;
+			int intraresidue = 0;
+			if(atoms[atomcont].ofres == atoms[atomzero].ofres){
+				intraresidue = 1;
+				intramolecular = 1;
+				
+			}else if(residue[atoms[atomcont].ofres].type == 0 &&
+				 residue[atoms[atomzero].ofres].type == 0){
+
+				intramolecular = 1;
+			}
+			
 			// get first atom of residue
 			int fatm = residue[rnum].fatm[0];
 		
 			// is contact atom bonded to atom zero
 			// if YES, skip contact atom
-			if(intramolecular)
+			if(intraresidue)
 			{
+				// always skip atoms forming a bond or angle with each other
 				if(residue[rnum].bonded[atomcont-fatm][atomzero-fatm] >= 0)
 				{
 
@@ -248,7 +254,7 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 			
 			// covalently bonded flag
 			bool covalent = false;
-
+			
 			// number of constraints for contact atom
 			int nconscont = atoms[atomcont].ncons;
       			double dist_opt = 0.0;
@@ -273,46 +279,8 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 						covalent = true;
 						dist_opt = cons->bond_len;
 						
-						//ang = angle(atoms[atomzero].coor,atoms[atomcont].coor,atoms[atoms[atomcont].bond[1]].coor);
-						//cfs->con -= KANGLE*cons->max_ang*GetValueFromGaussian(ang,120.0,cons->max_ang);
-						
-						//float gaus=GetValueFromGaussian(VC->ca_rec[currindex].dist,dist_opt,cons->max_dist);
-						//printf("gaus: %.2f\n",gaus);
-						//getchar();
-						
-						//printf("cons->max_dist=%.3f - VC->ca_rec[currindex].dist=%.3f - dist_opt=%.3f - GetValueFromGaussian=%.3f\n", cons->max_dist, VC->ca_rec[currindex].dist, dist_opt,GetValueFromGaussian(VC->ca_rec[currindex].dist,dist_opt,cons->max_dist));
-						
-						//printf("before: %.3f\n",cfs->con);
-						cfs->con -= KDIST * GetValueFromGaussian(VC->ca_rec[currindex].dist,dist_opt,cons->max_dist);
-						//printf("after: %.3f\n",cfs->con);
-						//getchar();
-						
-						/*
-						  printf("removing from con: %.3f\n", //KANGLE*cons->max_ang*GetValueFromGaussian(ang,120.0,cons->max_ang));
-						  KDIST*cons->max_dist*GetValueFromGaussian(VC->ca_rec[currindex].dist,dist_opt,cons->max_dist));
-						  getchar();
-						*/
-						
+						cfs->con -= KDIST * GetValueFromGaussian(VC->ca_rec[currindex].dist,dist_opt,cons->max_dist);						
 					}
-					/*
-					  else{
-
-					  ; // not applied anymore
-						
-					  // interaction constraint
-					  if(cons->force_interaction){
-					  complementarity = 
-					  complementarity < 0 ? 
-					  -1.0 * complementarity:
-					  complementarity;
-					  }
-
-					  complementarity *= cons->interaction_factor;
-						
-					  printf("found interaction constraint: %.2f (%d)\n",
-					  cons->interaction_factor,cons->force_interaction);
-					  }
-					*/
 				}
 	
 				//printf("constraint[%d] applies.\n",cons->id);

@@ -541,7 +541,7 @@ void   update_constraint(atom* atoms, int index, constraint* cons);             
 void   shortest_path(resid* residue, int tot, atom* atoms);
 void   assign_shortflex(resid* residue, int tot, int fdih, atom* atoms);
 void   update_bonded(resid* residue, int tot, int nlist, int* list, int* nbr);   // update bonded matrix for residue
-void   update_optres(atom* atoms, int atm_cnt, OptRes* optres_ptr,int num_optres); // update atoms structure with optres pointers
+void   update_optres(atom* atoms, resid* residue, int atm_cnt, OptRes* optres_ptr,int num_optres); // update atoms structure with optres pointers
 void   set_intprob(flxsc* flex_res);                                         // sets internal probability for rotamer change
 int    number_of_dihedrals(char res[]);                      // determines number of dihedral bonds for residues
 void   read_flexscfile(FA_Global* FA,resid* residue,rot** rotamer,char* file, char* rotlib, char* rotobs);                        // reads flexible residues list

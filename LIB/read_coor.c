@@ -67,7 +67,7 @@ void read_coor(FA_Global* FA,atom** atoms,resid** residue,char line[], char res_
 		}
 
 		(*atoms)[FA->atm_cnt].isbb=0;
-
+		
 		if (!strcmp((*atoms)[FA->atm_cnt].name," CB ") ||
 		    !strcmp((*atoms)[FA->atm_cnt].name," CA ") ||
 		    !strcmp((*atoms)[FA->atm_cnt].name," N  ") ||
@@ -75,7 +75,7 @@ void read_coor(FA_Global* FA,atom** atoms,resid** residue,char line[], char res_
 		    !strcmp((*atoms)[FA->atm_cnt].name," C  ") ||
 		    !strcmp((*atoms)[FA->atm_cnt].name," OXT")) 
 		{ (*atoms)[FA->atm_cnt].isbb=1; }
-    
+		
 
 		//(*atoms)[FA->atm_cnt].radius=assign_radius((*atoms)[FA->atm_cnt].name);
 		
@@ -157,7 +157,7 @@ void read_coor(FA_Global* FA,atom** atoms,resid** residue,char line[], char res_
 			}else if(strcmp(name,"HETATM")==0) {
 				(*residue)[FA->res_cnt].type=1;
 			}
-
+			
 			sscanf(res_num,"%d",&(*residue)[FA->res_cnt].number);
 
 			//printf("New residue: %d fatm[%d]=%d(%s-%s) latm[%d]=%d(%s-%s) :: %d\n", FA->res_cnt, FA->res_cnt, (*atoms)[(*residue)[FA->res_cnt].fatm[0]].number, (*residue)[FA->res_cnt].name, (*atoms)[(*residue)[FA->res_cnt].fatm[0]].name, FA->res_cnt-1, (*atoms)[(*residue)[FA->res_cnt-1].latm[0]].number, (*residue)[FA->res_cnt-1].name, (*atoms)[(*residue)[FA->res_cnt-1].latm[0]].name,(*residue)[FA->res_cnt].number);

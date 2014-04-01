@@ -420,10 +420,10 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		fprintf(stderr,"ERROR: the binding-site has no anchor points\n");
 		Terminate(2);
 	}
-    
+	
 	// fill in optres pointer in atoms struct.
-	update_optres(*atoms,FA->atm_cnt,FA->optres,FA->num_optres);
-  	
+	update_optres(*atoms,*residue,FA->atm_cnt,FA->optres,FA->num_optres);
+	
 	if(FA->nrg_suite){
 		if(FA->translational){
 			for(i=1; i<FA->num_grd; i++){
