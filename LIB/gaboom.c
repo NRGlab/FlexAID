@@ -182,13 +182,13 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 			Terminate(2);
 		}
 
-		(*chrom_snapshot)[i].app_evalue = 0.0;            
+		(*chrom_snapshot)[i].app_evalue = 0.0;
 		(*chrom_snapshot)[i].evalue = 0.0;
 		(*chrom_snapshot)[i].fitnes = 0.0;
 		(*chrom_snapshot)[i].status = ' ';
 		//printf("chrom_snapshot[%d] allocated at address %p!\n", i, &(*chrom_snapshot)[i]);
 	}
-    
+	
 	printf("alpha %lf peaks %lf scale %lf\n",GB->alpha,GB->peaks,GB->scale);
 	GB->sig_share=0.0;
   
@@ -346,14 +346,29 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	  print_par((*chrom_snapshot),(*gene_lim),n_chrom_snapshot,GB->num_genes);
 	*/
 	
+	printf("removing dups\n");
 	n_chrom_snapshot = remove_dups((*chrom_snapshot),n_chrom_snapshot,GB->num_genes);
-
+	
 	/*	
 		printf("Save snapshot == END ==\n");
 		print_par((*chrom_snapshot),(*gene_lim),n_chrom_snapshot,GB->num_genes);
 	*/
 	
 	return n_chrom_snapshot;
+}
+
+void copy_chrom(chromosome* dest, const chromosome* src, int num_genes){
+	
+	dest->cf = src->cf;
+	dest->evalue = src->evalue;
+	dest->app_evalue = src->app_evalue;
+	dest->fitnes = src->fitnes;
+	dest->status = src->status;
+	
+	for(int j=0; j<num_genes; j++){
+	        dest->genes[j].to_ic = src->genes[j].to_ic;
+		dest->genes[j].to_int32 = src->genes[j].to_int32;
+	}
 }
 
 /***********************************************************************/
@@ -363,19 +378,9 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 /***********************************************************************/
 void save_snapshot(chromosome* chrom_snapshot, const chromosome* chrom, int num_chrom, int num_genes){
 	
-	for(int i=0; i<num_chrom; i++){
-        
-		chrom_snapshot[i].cf = chrom[i].cf;
-		chrom_snapshot[i].evalue = chrom[i].evalue;
-		chrom_snapshot[i].app_evalue = chrom[i].app_evalue;
-		chrom_snapshot[i].fitnes = chrom[i].fitnes;
-		chrom_snapshot[i].status = chrom[i].status;
-		
-		for(int j=0; j<num_genes; j++){
-			chrom_snapshot[i].genes[j].to_ic = chrom[i].genes[j].to_ic;
-			chrom_snapshot[i].genes[j].to_int32 = chrom[i].genes[j].to_int32;
-		}
-	}
+	for(int i=0; i<num_chrom; i++)
+		copy_chrom(&chrom_snapshot[i],&chrom[i],num_genes);
+	
 }
 
 /***********************************************************************/
@@ -1608,16 +1613,25 @@ void QuickSort(chromosome* list, int beg, int end, bool energy)
 /*234567890123456789012345678901234567890123456789012345678901234567890*/
 /*        1         2         3         4         5         6         7*/
 /***********************************************************************/
-//decreasing order
-int remove_dups(chromosome* list, int num_chrom, int num_genes){
+int remove_dups(chromosome* chrom, int num_chrom, int num_genes){
 	
-	int at=1;
+	int i=0;
+	int j;
+	if (num_chrom<=1) return num_chrom;
 	
-	for(int i=1; i<num_chrom; i++)
-		if(!cmp_chrom2pop(list,list[i].genes,num_genes,0,at))
-			swap_chrom(&list[at++],&list[i]);
+	for (j=1;j<num_chrom;j++)
+	{
+		int flag = 0;
+		for(int l=0;l<num_genes;l++){
+			flag += abs(chrom[j].genes[l].to_ic - chrom[i].genes[l].to_ic) < 0.1;
+		}
+		if(flag != num_genes)
+		{
+			copy_chrom(&chrom[++i],&chrom[j],num_genes);
+		}
+	}
 	
-	return at;
+	return i+1;
 }
 
 /***********************************************************************/
