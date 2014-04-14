@@ -1680,7 +1680,7 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 	
 	int dim2,dim3;
 	
-	printf("=====ATOMZERO[%d]=====\n",Calc[atomzero].atom->number);
+	//printf("=====ATOMZERO[%d]=====\n",Calc[atomzero].atom->number);
 	
 	NC = 0;
 	recalc = 'N';
@@ -1691,7 +1691,7 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 	// mark previously contacted atoms
 	currindex = ca_index[atomzero];
 	while(currindex != -1) {
-		printf("atom %d marked as contact\n",Calc[ca_rec[currindex].atom].atom->number);
+		//printf("atom %d marked as contact\n",Calc[ca_rec[currindex].atom].atom->number);
 		Calc[ca_rec[currindex].atom].done = 'C'; // makes contact
 		currindex = ca_rec[currindex].prev;
 	}
@@ -1712,7 +1712,7 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 			atomj = Calclist[box[boxi].first+bai]; 
 			
 			if(Calc[atomj].done == 'Y') {
-				printf("skipped atom %d\n",Calc[atomj].atom->number);
+				//printf("skipped atom %d\n",Calc[atomj].atom->number);
 				++bai;
 				continue;
 			}
@@ -1733,8 +1733,8 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 			if((sqrdist < neardist*neardist) && (sqrdist != 0.0)) {
                 
 				// add atoms to list
-				printf("atom %d is in contact with atom %d (%.3f)...\n",
-				       Calc[atomzero].atom->number,Calc[atomj].atom->number,sqrtf(sqrdist));
+				//printf("atom %d is in contact with atom %d (%.3f)...\n",
+				//       Calc[atomzero].atom->number,Calc[atomj].atom->number,sqrtf(sqrdist));
 				
 				contlist[NC].index = atomj;
 				contlist[NC].dist = sqrt(sqrdist);
@@ -1758,12 +1758,11 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 	// reset atoms to 'done'
 	currindex = ca_index[atomzero];
 	while(currindex != -1) {
-		printf("atom %d marked as done\n",Calc[ca_rec[currindex].atom].atom->number);
+		//printf("atom %d marked as done\n",Calc[ca_rec[currindex].atom].atom->number);
 		Calc[ca_rec[currindex].atom].done = 'Y'; // re-mark as done
 		currindex = ca_rec[currindex].prev;
 	}
 	
-	getchar();
 	return(NC);
     
 }
