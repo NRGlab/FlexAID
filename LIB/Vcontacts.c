@@ -1170,7 +1170,7 @@ void save_areas(const plane* cont, const contactlist* contlist, int NC, int atom
 		++cai;
 	}
     
-	printf("atom %d marked as done from save_areas\n", Calc[atomzero].atom->number);
+	//printf("atom %d marked as done from save_areas\n", Calc[atomzero].atom->number);
 	Calc[atomzero].done = 'Y';
     
 	// index contacts for atoms not yet done
