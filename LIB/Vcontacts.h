@@ -66,8 +66,8 @@ using namespace std;
 
 // ------------------------- structure definitions ----------------------
 struct AtomCalcSAS_struct {
-	atom* atom;
-	resid* residue;
+	struct atom_struct* atom;
+	struct residue_struct* residue;
 	int   score;        // scorable residue?
 	int   boxnum;       // the box number atom is assigned to.
 	char  source;       // source of atom, protein, ligand
