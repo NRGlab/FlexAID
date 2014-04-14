@@ -35,6 +35,9 @@ int Vcontacts(FA_Global* FA,atom* atoms,resid* residue,VC_Global* VC, double* cl
 	if(*clash_value >= CLASH_THRESHOLD){ return(-2); }
 	
 	for(int i=0; i<FA->atm_cnt_real; ++i) {
+		int atomzero = VC->Calclist[i];
+		VC->Calc[atomzero].done = 'N';
+		
 		VC->ca_index[i] = -1;   //initialize pointer array
 		VC->seed[i*3] = -1;
 	}
@@ -1150,7 +1153,7 @@ void save_areas(const plane* cont, const contactlist* contlist, int NC, int atom
 		++cai;
 	}
 	ca_index[atomzero] = previndex;
-    
+	
 	// then add new records
 	while(cai<NC) {
 		if((cont[cai].area > 0.0) && (cont[cai].flag != 'X'))  {
@@ -1167,7 +1170,7 @@ void save_areas(const plane* cont, const contactlist* contlist, int NC, int atom
 		++cai;
 	}
     
-	//printf("atom %d marked as done from save_areas\n", Calc[atomzero].atomnum);
+	printf("atom %d marked as done from save_areas\n", Calc[atomzero].atom->number);
 	Calc[atomzero].done = 'Y';
     
 	// index contacts for atoms not yet done
@@ -1183,7 +1186,7 @@ void save_areas(const plane* cont, const contactlist* contlist, int NC, int atom
 			}
 		}
 	}
-    
+	
 	//print_areas(Calc, *numcarec, *ca_rec);
     
 	return;
@@ -1574,8 +1577,8 @@ void index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,atomin
             
 			Calc[i].atom = &atoms[atmi];
 			Calc[i].residue = &residue[resi];
-			Calc[i].done='N';
-			Calc[i].score=(atoms[atmi].optres != NULL);
+			Calc[i].done = 'N';
+			Calc[i].score = atoms[atmi].optres != NULL;
 			
 			for(j=0;j<3;++j){
 				if (atoms[atmi].coor[j] < global_min[j]){
@@ -1590,8 +1593,6 @@ void index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,atomin
 			++i;
 		}
 	}
-	
-	//printf("[%d] atoms were copied to Vcont atomsas_struct compared to real [%d]\n", i, FA->atm_cnt_real);
 	
 	if (alter) {
 		for(j=0;j<3;++j){
@@ -1678,9 +1679,9 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 	char recalc;                // recalculate neglecting done atoms
 	
 	int dim2,dim3;
-    
-	//printf("=====ATOMZERO[%d]=====\n",Calc[atomzero].atomnum);
-    
+	
+	printf("=====ATOMZERO[%d]=====\n",Calc[atomzero].atom->number);
+	
 	NC = 0;
 	recalc = 'N';
     
@@ -1690,7 +1691,7 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 	// mark previously contacted atoms
 	currindex = ca_index[atomzero];
 	while(currindex != -1) {
-		//printf("atom %d marked as contact\n",Calc[ca_rec[currindex].atom].atomnum);
+		printf("atom %d marked as contact\n",Calc[ca_rec[currindex].atom].atom->number);
 		Calc[ca_rec[currindex].atom].done = 'C'; // makes contact
 		currindex = ca_rec[currindex].prev;
 	}
@@ -1709,16 +1710,13 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 			//printf("nument=%d\tbai=%d\n",box[boxi].nument,bai);
             
 			atomj = Calclist[box[boxi].first+bai]; 
-				
-			// check previous contacts
-			// if(recalc == 'Y' && Calc[atomj].done == 'Y') {
-            
+			
 			if(Calc[atomj].done == 'Y') {
-				//printf("skipped atom %d\n",Calc[atomj].atomnum);
+				printf("skipped atom %d\n",Calc[atomj].atom->number);
 				++bai;
 				continue;
 			}
-            
+			
 			double rAB = Calc[atomzero].atom->radius + Calc[atomj].atom->radius;
 			
 			sqrdist = (Calc[atomzero].atom->coor[0]-Calc[atomj].atom->coor[0])*(Calc[atomzero].atom->coor[0]-Calc[atomj].atom->coor[0]) 
@@ -1728,38 +1726,44 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 			neardist =  rado + Calc[atomj].atom->radius + Rw;
 			clashdist = permea*rAB;
 			
-			//printf("neardist = rado(%.3f) + atomj.rad(%.3f) + Rw(%.3f)\n",rado,Calc[atomj].radius,Rw);
-			//printf("atom %d is sqrdist(%5.2fA) & neardist(%5.2fA) from atom %d\n",Calc[atomzero].atomnum,sqrdist,neardist*neardist,Calc[atomj].atomnum);
+			//printf("neardist = rado(%.3f) + atomj.rad(%.3f) + Rw(%.3f)\n",rado,Calc[atomj].atom->radius,Rw);
+			//printf("atom %d is sqrdist(%5.2fA) & neardist(%5.2fA) from atom %d\n",
+			//        Calc[atomzero].atom->number,sqrdist,neardist*neardist,Calc[atomj].atom->number);
 			
 			if((sqrdist < neardist*neardist) && (sqrdist != 0.0)) {
                 
 				// add atoms to list
-				//printf("atom %d is in contact with atom %d (%.3f)...\n",Calc[atomzero].atomnum,Calc[atomj].atomnum,sqrtf(sqrdist));
+				printf("atom %d is in contact with atom %d (%.3f)...\n",
+				       Calc[atomzero].atom->number,Calc[atomj].atom->number,sqrtf(sqrdist));
 				
 				contlist[NC].index = atomj;
 				contlist[NC].dist = sqrt(sqrdist);
 				
 				bool intramolecular = Calc[atomzero].atom->ofres == Calc[atomj].atom->ofres;
-				if(clash_value != NULL && contlist[NC].dist < clashdist){
-					int fatm = residue[Calc[atomzero].atom->ofres].fatm[0];
-					if(!intramolecular || residue[Calc[atomzero].atom->ofres].bonded[num_atm[Calc[atomzero].atom->number-fatm]][num_atm[Calc[atomj].atom->number-fatm]] < 0){
-						*clash_value += KWALL*(pow(contlist[NC].dist,-12.0)-pow(clashdist,-12.0));
+				if(clash_value != NULL){
+					if(contlist[NC].dist < clashdist){
+						int fatm = residue[Calc[atomzero].atom->ofres].fatm[0];
+						if(!intramolecular || residue[Calc[atomzero].atom->ofres].bonded[num_atm[Calc[atomzero].atom->number-fatm]][num_atm[Calc[atomj].atom->number-fatm]] < 0){
+							*clash_value += KWALL*(pow(contlist[NC].dist,-12.0)-pow(clashdist,-12.0));
+						}
 					}
+					Calc[atomzero].done = 'Y';
 				}
 				++NC;
 			}
 			++bai;
 		}
 	}
-
+	
 	// reset atoms to 'done'
 	currindex = ca_index[atomzero];
 	while(currindex != -1) {
-		//printf("atom %d marked as done\n",Calc[ca_rec[currindex].atom].atomnum);
+		printf("atom %d marked as done\n",Calc[ca_rec[currindex].atom].atom->number);
 		Calc[ca_rec[currindex].atom].done = 'Y'; // re-mark as done
 		currindex = ca_rec[currindex].prev;
 	}
-    
+	
+	getchar();
 	return(NC);
     
 }
