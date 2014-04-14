@@ -47,7 +47,6 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 	int rv = Vcontacts(FA,atoms,residue,VC,&clash_value);
 	if(rv < 0){
 		*error = true;
-		free(VC->ca_rec);
 		free(VC->box);
 
 		if(rv == -1){
@@ -461,12 +460,9 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
   #endif
 */
 	//getchar();
-	
-	free(VC->ca_rec);
-	//printf("free-ing %p\n",VC->ca_rec);
-  
+	  
 	free(VC->box);
-
+	
   
 	return(0.0);
   

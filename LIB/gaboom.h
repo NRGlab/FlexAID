@@ -140,6 +140,7 @@ double RandomDouble();
 double RandomDouble(boost::int32_t dice);
 
 void  swap_chrom(chromosome * x, chromosome * y);
+void  copy_chrom(chromosome* dest, const chromosome* src, int num_genes);
 int   remove_dups(chromosome* list, int num_chrom, int num_genes);
 
 FILE* get_update_file_ptr(FA_Global* FA);

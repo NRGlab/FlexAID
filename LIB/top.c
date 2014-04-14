@@ -235,7 +235,7 @@ int main(int argc, char **argv){
   
 	printf("Reading input (%s)...\n",dockinp);
 	read_input(FA,&atoms,&residue,&rotamer,&cleftgrid,dockinp);
-  
+	
 	if (strcmp(FA->complf,"VCT")==0){
 		// Vcontacts memory allocations...
 		// ca_rec can be reallocated
@@ -245,6 +245,15 @@ int main(int argc, char **argv){
 		VC->seed = (int*)malloc(3*FA->atm_cnt_real*sizeof(int));
 		VC->contlist = (contactlist*)malloc(10000*sizeof(contactlist));
     
+		// initialize contact atom index
+		VC->ca_recsize = 5*FA->atm_cnt_real;
+		VC->ca_rec = (ca_struct*)malloc(VC->ca_recsize*sizeof(ca_struct));
+		
+		if(!VC->ca_rec) {
+			fprintf(stderr,"ERROR: memory allocation error for ca_rec\n"); 
+			Terminate(2);
+		}
+		
 		if((!VC->Calc) || (!VC->ca_index) || 
 		   (!VC->seed) || (!VC->contlist) || (!VC->Calclist)) {
 			fprintf(stderr, "ERROR: memory allocation error for (Calc or Calclist or ca_index or seed or contlist)\n");
@@ -569,7 +578,7 @@ int main(int argc, char **argv){
 		free(VC->poly);
 		free(VC->cont);
 		free(VC->vedge);
-	  
+		free(VC->ca_rec);
 		free(VC);
 	}
 

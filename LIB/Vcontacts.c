@@ -10,16 +10,6 @@ int Vcontacts(FA_Global* FA,atom* atoms,resid* residue,VC_Global* VC, double* cl
 	//VC->planedef = 'R';  // radical plane
 	//VC->planedef = 'B';  // bisection
 	
-	// initialize contact atom index
-	VC->ca_recsize = 5*FA->atm_cnt_real;
-	VC->ca_rec = (ca_struct*)malloc(VC->ca_recsize*sizeof(ca_struct));
-	//printf("allocating %p\n",VC->ca_rec);
-    
-	if(!VC->ca_rec) {
-		fprintf(stderr,"ERROR: memory allocation error for ca_rec\n"); 
-		Terminate(2);
-	}
-	
 	// protein atoms to boxes in cubic grid
 	index_protein(FA,atoms,residue,VC->Calc,&VC->box,VC->Calclist,&VC->dim,FA->atm_cnt_real);
 
@@ -1107,10 +1097,10 @@ void min_areas(ca_struct* ca_rec, const atomsas* Calc, const atomsas* atomzero_p
 			// A --> B should then be 0.0
 			if(!found){ 
 				/*
-				printf("%d -> %d not found (%.3f)\n",
-				       Calc[ca_rec[currindex].to].atomnum,
-				       Calc[ca_rec[currindex].from].atomnum,
-				       ca_rec[currindex].area);
+				  printf("%d -> %d not found (%.3f)\n",
+				  Calc[ca_rec[currindex].to].atomnum,
+				  Calc[ca_rec[currindex].from].atomnum,
+				  ca_rec[currindex].area);
 				*/
 				ca_rec[currindex].area = 0.0f;
 			}
@@ -1243,7 +1233,7 @@ void print_areas(atomsas* Calc, int numcarec,ca_struct* ca_rec)
 	} 
     
 	free(done);
-    
+	
 	return;
 }
 
@@ -1573,8 +1563,7 @@ void index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,atomin
 	}
     
 	max_width=FA->maxwidth;
-    
-    
+	
 	for (resi=1; resi<=FA->res_cnt; ++resi) {
 		rot = residue[resi].rot;
         
@@ -1616,8 +1605,7 @@ void index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,atomin
 	}
 	
 	//printf("[%d] atoms were copied to Vcont atomsas_struct compared to real [%d]\n", i, FA->atm_cnt_real);
-    
-    
+	
 	if (alter) {
 		for(j=0;j<3;++j){
 			diff=global_max[j]-global_min[j];
@@ -1629,7 +1617,6 @@ void index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,atomin
 	}
 	
 	// ------ get largest dimension of protein -------
-	*dim = 0;
 	*dim = (int)(max_width/CELLSIZE)+1;
 	//printf("New Dimension=[%d]\n",dim);
 	
@@ -1641,9 +1628,9 @@ void index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,atomin
 		fprintf(stderr,"ERROR: memory allocation error for box\n");
 		Terminate(2);
 	}
-    
+	
 	memset((*box),0,dim3*sizeof(atomindex));  
-    
+	
 	// count entries per box, assign box number to atom
 	for(atmi=0;atmi<atmcnt;++atmi){
 		boxi = (int)((Calc[atmi].coor[0]-global_min[0])/CELLSIZE)*dim2
@@ -1655,8 +1642,7 @@ void index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,atomin
         
 		++(*box)[Calc[atmi].boxnum].nument;
 	}
-    
-    
+	
 	// assign start pointers for boxes in Calclist
 	startind = 0;
 	for (boxi=0; boxi<dim3; ++boxi) {
@@ -1771,11 +1757,11 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 					int fatm = residue[Calc[atomzero].inum].fatm[0];
 					if(!intramolecular || residue[Calc[atomzero].inum].bonded[num_atm[Calc[atomzero].atomnum-fatm]][num_atm[Calc[atomj].atomnum-fatm]] < 0){
 						/*
-						printf("%d\t%d\t%d\tclashdist=%.3f\tdist=%.3f\n", 
-						       Calc[atomzero].atomnum,Calc[atomj].atomnum,
-						       intramolecular? residue[Calc[atomzero].inum].bonded[num_atm[Calc[atomzero].atomnum]-fatm][num_atm[Calc[atomj].atomnum]-fatm]: -1,
-						       clashdist, contlist[NC].dist);
-						getchar();
+						  printf("%d\t%d\t%d\tclashdist=%.3f\tdist=%.3f\n", 
+						  Calc[atomzero].atomnum,Calc[atomj].atomnum,
+						  intramolecular? residue[Calc[atomzero].inum].bonded[num_atm[Calc[atomzero].atomnum]-fatm][num_atm[Calc[atomj].atomnum]-fatm]: -1,
+						  clashdist, contlist[NC].dist);
+						  getchar();
 						*/
 						*clash_value += KWALL*(pow(contlist[NC].dist,-12.0)-pow(clashdist,-12.0));
 					}
