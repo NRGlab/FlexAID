@@ -25,7 +25,7 @@ int Vcontacts(FA_Global* FA,atom* atoms,resid* residue,VC_Global* VC, double* cl
 		
 		if(!VC->Calc[atomzero].score){continue;}
 		
-		float rado = VC->Calc[atomzero].radius + Rw;
+		float rado = VC->Calc[atomzero].atom->radius + Rw;
 		
 		int NC = get_contlist4(atoms,atomzero, VC->contlist, FA->atm_cnt_real, rado, VC->dim,
 				       VC->Calc, VC->Calclist, VC->box,VC->ca_rec, VC->ca_index,
@@ -76,7 +76,7 @@ int calc_region(FA_Global* FA,VC_Global* VC,atom* atoms,int atmcnt)
 		if(!VC->Calc[atomzero].score){continue;}
 		
 		//printf("Get_contacts for %d\n",VC->Calc[atomzero].atomnum);   
-		rado = VC->Calc[atomzero].radius + Rw;
+		rado = VC->Calc[atomzero].atom->radius + Rw;
 		
 		NC = get_contlist4(atoms,atomzero, VC->contlist, atmcnt, rado, VC->dim,
 				   VC->Calc, VC->Calclist, VC->box,VC->ca_rec, VC->ca_index,
@@ -168,14 +168,14 @@ RESTART:
 		if(VC->planedef == 'B') {  // bisection - original Voronoi procedure
 			planedist = atomdist/2.0;
 		} else if(VC->planedef == 'R') { // radical plane (Gellatly and Finney) - default.
-			planedist = (atomdist*atomdist + (rado-Rw)*(rado-Rw) - (ca_ptr->radius)*(ca_ptr->radius))/(2*atomdist);
+			planedist = (atomdist*atomdist + (rado-Rw)*(rado-Rw) - (ca_ptr->atom->radius)*(ca_ptr->atom->radius))/(2*atomdist);
 		} else { // extended radical plane (McConkey et al). 
-			planedist = (atomdist*atomdist + rado*rado - (Rw + ca_ptr->radius)*(Rw + ca_ptr->radius))/(2*atomdist);
+			planedist = (atomdist*atomdist + rado*rado - (Rw + ca_ptr->atom->radius)*(Rw + ca_ptr->atom->radius))/(2*atomdist);
 		}
         
-		cont[cai].Ai[0] = (ca_ptr->coor[0] - VC->Calc[atomzero].coor[0])/atomdist;
-		cont[cai].Ai[1] = (ca_ptr->coor[1] - VC->Calc[atomzero].coor[1])/atomdist;
-		cont[cai].Ai[2] = (ca_ptr->coor[2] - VC->Calc[atomzero].coor[2])/atomdist;
+		cont[cai].Ai[0] = (ca_ptr->atom->coor[0] - VC->Calc[atomzero].atom->coor[0])/atomdist;
+		cont[cai].Ai[1] = (ca_ptr->atom->coor[1] - VC->Calc[atomzero].atom->coor[1])/atomdist;
+		cont[cai].Ai[2] = (ca_ptr->atom->coor[2] - VC->Calc[atomzero].atom->coor[2])/atomdist;
 		cont[cai].Ai[3] = -planedist;
 		cont[cai].dist  = fabs(planedist);
 		cont[cai].index = contlist[cai].index;
@@ -349,14 +349,14 @@ RESTART:
 			if(edgenum >= 200) {
 				//printf("********* invalid solution for hull, recalculating *********\n");
 				VC->seed[atomzero*3] = -1;  // reset to no seed vertex
-				origcoor[0] = VC->Calc[atomzero].coor[0];
-				origcoor[1] = VC->Calc[atomzero].coor[1];
-				origcoor[2] = VC->Calc[atomzero].coor[2];
-                
+				origcoor[0] = VC->Calc[atomzero].atom->coor[0];
+				origcoor[1] = VC->Calc[atomzero].atom->coor[1];
+				origcoor[2] = VC->Calc[atomzero].atom->coor[2];
+				
 				// perturb atom coordinates
-				VC->Calc[atomzero].coor[0] += 0.005f*(float)(2*rand()-RAND_MAX)/(float)RAND_MAX;
-				VC->Calc[atomzero].coor[1] += 0.005f*(float)(2*rand()-RAND_MAX)/(float)RAND_MAX;
-				VC->Calc[atomzero].coor[2] += 0.005f*(float)(2*rand()-RAND_MAX)/(float)RAND_MAX;
+				VC->Calc[atomzero].atom->coor[0] += 0.005f*(float)(2*rand()-RAND_MAX)/(float)RAND_MAX;
+				VC->Calc[atomzero].atom->coor[1] += 0.005f*(float)(2*rand()-RAND_MAX)/(float)RAND_MAX;
+				VC->Calc[atomzero].atom->coor[2] += 0.005f*(float)(2*rand()-RAND_MAX)/(float)RAND_MAX;
                 
 				// *** NEW ***
                 
@@ -451,9 +451,9 @@ RESTART:
 		save_seeds(VC->seed,cont, VC->poly, vn, atomzero);
 	} else {
 		// reset atom coordinates to original values
-		VC->Calc[atomzero].coor[0] = origcoor[0];
-		VC->Calc[atomzero].coor[1] = origcoor[1];
-		VC->Calc[atomzero].coor[2] = origcoor[2];
+		VC->Calc[atomzero].atom->coor[0] = origcoor[0];
+		VC->Calc[atomzero].atom->coor[1] = origcoor[1];
+		VC->Calc[atomzero].atom->coor[2] = origcoor[2];
 	}
     
 	return(vn);
@@ -1212,11 +1212,11 @@ void print_areas(atomsas* Calc, int numcarec,ca_struct* ca_rec)
 		atom = nextatom;
 		nextatom = -1;
 		
-		if(atom != -1){ printf("Areas[%5d]: ", Calc[atom].atomnum); }
+		if(atom != -1){ printf("Areas[%5d]: ", Calc[atom].atom->number); }
         
 		for(i=0; i<numcarec; i++){
 			if(ca_rec[i].from == atom){
-				printf("%6d", Calc[ca_rec[i].atom].atomnum);
+				printf("%6d", Calc[ca_rec[i].atom].atom->number);
 			}else if(nextatom == -1){
 				int f=0;
 				for(j=0; j<ndone; j++){
@@ -1277,9 +1277,9 @@ void project_points(vertex poly[], const vertex* centerpt, float rado, int NC,
 	} else if(epi == 2) {
 		if (solve_2xS(&cont[engplane[0]],&cont[engplane[1]],rado, pt0, pt1)== -1){
 			// added by Francis Gaudreault
-			projpt[0] = atomzero_ptr->coor[0] + rado;
-			projpt[1] = atomzero_ptr->coor[1];      
-			projpt[2] = atomzero_ptr->coor[2];
+			projpt[0] = atomzero_ptr->atom->coor[0] + rado;
+			projpt[1] = atomzero_ptr->atom->coor[1];      
+			projpt[2] = atomzero_ptr->atom->coor[2];
 		} else {
 			projpt[0] = (pt0[0]+pt1[0])/2;
 			projpt[1] = (pt0[1]+pt1[1])/2;
@@ -1566,26 +1566,14 @@ void index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,atomin
 	
 	for (resi=1; resi<=FA->res_cnt; ++resi) {
 		rot = residue[resi].rot;
-        
-		//printf("-----residue[%d]=%s - rot=%d-----\n",residue[resi].number,residue[resi].name,residue[resi].rot);
-        
+		
 		for(atmi=residue[resi].fatm[rot];atmi<=residue[resi].latm[rot];++atmi){
 			// Copy atoms structure to the new Vcont structure
 			// only the atoms that correspond to the correct rotamer are copied
 			// the total number of atoms thus is equal to atm_cnt_real
             
-			Calc[i].atomnum=atoms[atmi].number;
-			for (j=0;j<3;j++){
-				Calc[i].coor[j]=atoms[atmi].coor[j];
-			}
-            
-			strcpy(Calc[i].atomname,atoms[atmi].name);
-			strcpy(Calc[i].res,residue[resi].name);
-			Calc[i].resnum=residue[resi].number;
-			Calc[i].inum=atoms[atmi].ofres;
-			Calc[i].chn=residue[resi].chn;
-			Calc[i].radius=atoms[atmi].radius;
-			Calc[i].type=atoms[atmi].type;
+			Calc[i].atom = &atoms[atmi];
+			Calc[i].residue = &residue[resi];
 			Calc[i].done='N';
 			Calc[i].score=(atoms[atmi].optres != NULL);
 			
@@ -1593,13 +1581,12 @@ void index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,atomin
 				if (atoms[atmi].coor[j] < global_min[j]){
 					global_min[j]=atoms[atmi].coor[j];
 					alter=1;
-				}
-				if (atoms[atmi].coor[j] > global_max[j]){
+				}else if(atoms[atmi].coor[j] > global_max[j]){
 					global_max[j]=atoms[atmi].coor[j];
 					alter=1;
 				}
 			}
-            
+			
 			++i;
 		}
 	}
@@ -1633,9 +1620,9 @@ void index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,atomin
 	
 	// count entries per box, assign box number to atom
 	for(atmi=0;atmi<atmcnt;++atmi){
-		boxi = (int)((Calc[atmi].coor[0]-global_min[0])/CELLSIZE)*dim2
-			+ (int)((Calc[atmi].coor[1]-global_min[1])/CELLSIZE)*(*dim)
-			+ (int)((Calc[atmi].coor[2]-global_min[2])/CELLSIZE);
+		boxi = (int)((Calc[atmi].atom->coor[0]-global_min[0])/CELLSIZE)*dim2
+			+ (int)((Calc[atmi].atom->coor[1]-global_min[1])/CELLSIZE)*(*dim)
+			+ (int)((Calc[atmi].atom->coor[2]-global_min[2])/CELLSIZE);
 		Calc[atmi].boxnum = boxi;
 		//printf("coor[0]: %8.3f\tcoor[1]: %8.3f\tcoor[2]: %8.3f\n", Calc[atmi].coor[0],Calc[atmi].coor[1],Calc[atmi].coor[2]);
 		//printf("Calc[%d]=%d Boxi=[%d] RNum=[%d]\n",atmi,Calc[atmi].atomnum,boxi,Calc[atmi].resnum);
@@ -1732,13 +1719,13 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 				continue;
 			}
             
-			double rAB = Calc[atomzero].radius + Calc[atomj].radius;
+			double rAB = Calc[atomzero].atom->radius + Calc[atomj].atom->radius;
 			
-			sqrdist = (Calc[atomzero].coor[0]-Calc[atomj].coor[0])*(Calc[atomzero].coor[0]-Calc[atomj].coor[0]) 
-				+ (Calc[atomzero].coor[1]-Calc[atomj].coor[1])*(Calc[atomzero].coor[1]-Calc[atomj].coor[1])
-				+ (Calc[atomzero].coor[2]-Calc[atomj].coor[2])*(Calc[atomzero].coor[2]-Calc[atomj].coor[2]);
+			sqrdist = (Calc[atomzero].atom->coor[0]-Calc[atomj].atom->coor[0])*(Calc[atomzero].atom->coor[0]-Calc[atomj].atom->coor[0]) 
+				+ (Calc[atomzero].atom->coor[1]-Calc[atomj].atom->coor[1])*(Calc[atomzero].atom->coor[1]-Calc[atomj].atom->coor[1])
+				+ (Calc[atomzero].atom->coor[2]-Calc[atomj].atom->coor[2])*(Calc[atomzero].atom->coor[2]-Calc[atomj].atom->coor[2]);
 			
-			neardist =  rado + Calc[atomj].radius + Rw;
+			neardist =  rado + Calc[atomj].atom->radius + Rw;
 			clashdist = permea*rAB;
 			
 			//printf("neardist = rado(%.3f) + atomj.rad(%.3f) + Rw(%.3f)\n",rado,Calc[atomj].radius,Rw);
@@ -1752,17 +1739,10 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 				contlist[NC].index = atomj;
 				contlist[NC].dist = sqrt(sqrdist);
 				
-				bool intramolecular = Calc[atomzero].inum == Calc[atomj].inum;
+				bool intramolecular = Calc[atomzero].atom->ofres == Calc[atomj].atom->ofres;
 				if(clash_value != NULL && contlist[NC].dist < clashdist){
-					int fatm = residue[Calc[atomzero].inum].fatm[0];
-					if(!intramolecular || residue[Calc[atomzero].inum].bonded[num_atm[Calc[atomzero].atomnum-fatm]][num_atm[Calc[atomj].atomnum-fatm]] < 0){
-						/*
-						  printf("%d\t%d\t%d\tclashdist=%.3f\tdist=%.3f\n", 
-						  Calc[atomzero].atomnum,Calc[atomj].atomnum,
-						  intramolecular? residue[Calc[atomzero].inum].bonded[num_atm[Calc[atomzero].atomnum]-fatm][num_atm[Calc[atomj].atomnum]-fatm]: -1,
-						  clashdist, contlist[NC].dist);
-						  getchar();
-						*/
+					int fatm = residue[Calc[atomzero].atom->ofres].fatm[0];
+					if(!intramolecular || residue[Calc[atomzero].atom->ofres].bonded[num_atm[Calc[atomzero].atom->number-fatm]][num_atm[Calc[atomj].atom->number-fatm]] < 0){
 						*clash_value += KWALL*(pow(contlist[NC].dist,-12.0)-pow(clashdist,-12.0));
 					}
 				}

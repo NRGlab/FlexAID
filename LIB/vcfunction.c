@@ -8,11 +8,6 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 	int    type=1;
 	
 	// reset all values pointed
-	memset(VC->Calc,0,FA->atm_cnt_real*sizeof(atomsas));
-	memset(VC->Calclist,0,FA->atm_cnt_real*sizeof(int));
-	memset(VC->ca_index,0,FA->atm_cnt_real*sizeof(int));
-	memset(VC->seed,0,3*FA->atm_cnt_real*sizeof(int));
-	memset(VC->contlist,0,10000*sizeof(contactlist));
 	memset(FA->contacts,0,100000*sizeof(int));
 	memset(FA->contributions,0.0f,FA->ntypes*FA->ntypes*sizeof(float));
 	
@@ -66,7 +61,7 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 #endif
 
 		// atom from which contacts are calculated
-		int atomzero = FA->num_atm[VC->Calc[i].atomnum];
+		int atomzero = FA->num_atm[VC->Calc[i].atom->number];
 		
 		// number of constraints for atomzero
 		int nconszero = atoms[atomzero].ncons;
@@ -83,7 +78,7 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 			continue;
 		}
 		
-		//printf("-------------------------------\nAtom[%4d]=%s in Residue[%4d]\n",VC->Calc[i].atomnum,atoms[FA->num_atm[VC->Calc[i].atomnum]].name,VC->Calc[i].resnum);
+		//printf("-------------------------------\nAtom[%4d]=%s in Residue[%4d]\n",VC->Calc[i].atom->number,atoms[FA->num_atm[VC->Calc[i].atom->number]].name,VC->Calc[i].residue->number);
 		
 		
 #if DEBUG_LEVEL > 0
@@ -91,7 +86,7 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 		double Ewall_atm=0.0;
 #endif
 		
-		double radA  = (double)VC->Calc[i].radius;
+		double radA  = (double)VC->Calc[i].atom->radius;
 		double radoA = radA + Rw;
 		
 		double SAS = 4.0*PI*radoA*radoA;
@@ -105,7 +100,7 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 			int currindex = VC->ca_index[i];
 			
 			while(currindex != -1) {
-				int atomcont = FA->num_atm[VC->Calc[VC->ca_rec[currindex].atom].atomnum];
+				int atomcont = FA->num_atm[VC->Calc[VC->ca_rec[currindex].atom].atom->number];
 				int intramolecular = atoms[atomcont].ofres == atoms[atomzero].ofres;
 				
 				// get first atom of residue
@@ -173,7 +168,7 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 		
 		while(currindex != -1) {
 			
-			double radB  = (double)VC->Calc[VC->ca_rec[currindex].atom].radius;
+			double radB  = (double)VC->Calc[VC->ca_rec[currindex].atom].atom->radius;
 			double radoB = radB + Rw;
 			double surfB = 4.0*PI*radoB*radoB;
 			
@@ -182,8 +177,8 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 			//double complementarity = 0.0;
 			double area = VC->ca_rec[currindex].area;
 			
-			struct energy_matrix* energy_matrix = &FA->energy_matrix[(VC->Calc[i].type-1)*FA->ntypes +
-										 (VC->Calc[VC->ca_rec[currindex].atom].type-1)];
+			struct energy_matrix* energy_matrix = &FA->energy_matrix[(VC->Calc[i].atom->type-1)*FA->ntypes +
+										 (VC->Calc[VC->ca_rec[currindex].atom].atom->type-1)];
 
 			//double yval = get_yval(energy_matrix,area/((surfA+surfB)/2.0));
 			// always use normalized areas in density functions
@@ -199,7 +194,7 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 			cfs_atom.wal  =  0.0;
 #endif
 			// atom in contact with atom zero
-			int atomcont = FA->num_atm[VC->Calc[VC->ca_rec[currindex].atom].atomnum];
+			int atomcont = FA->num_atm[VC->Calc[VC->ca_rec[currindex].atom].atom->number];
 			
 			int intramolecular = 0;
 			int intraresidue = 0;
@@ -226,12 +221,12 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 
 #if DEBUG_LEVEL > 2
 					printf("    (B) %3s %c %4d %5d %2d %4.2f :: %7.4f (%s) %6.2f %6.2f :: %10.3f %10.3f\n",
-					       VC->Calc[VC->ca_rec[currindex].atom].res,
-					       VC->Calc[VC->ca_rec[currindex].atom].chn,
-					       VC->Calc[VC->ca_rec[currindex].atom].resnum,
-					       VC->Calc[VC->ca_rec[currindex].atom].atomnum,
-					       VC->Calc[VC->ca_rec[currindex].atom].type,
-					       VC->Calc[VC->ca_rec[currindex].atom].radius,
+					       VC->Calc[VC->ca_rec[currindex].atom].residue->name,
+					       VC->Calc[VC->ca_rec[currindex].atom].residue->chn,
+					       VC->Calc[VC->ca_rec[currindex].atom].residue->number,
+					       VC->Calc[VC->ca_rec[currindex].atom].atom->number,
+					       VC->Calc[VC->ca_rec[currindex].atom].atom->type,
+					       VC->Calc[VC->ca_rec[currindex].atom].atom->radius,
 					       
 					       yval, energy_matrix->weight ? "Y": "N",
 					       VC->ca_rec[currindex].dist,
@@ -245,8 +240,8 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 				}
 			}
 			
-			if(FA->contacts[VC->Calc[VC->ca_rec[currindex].atom].atomnum]){
-				//printf("%d already calculated\n",VC->Calc[VC->ca_rec[currindex].atom].atomnum );
+			if(FA->contacts[VC->Calc[VC->ca_rec[currindex].atom].atom->number]){
+				//printf("%d already calculated\n",VC->Calc[VC->ca_rec[currindex].atom].atom->number );
 				currindex = VC->ca_rec[currindex].prev;
 				continue;
 			}
@@ -343,36 +338,36 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 					cfs_atom.com += contribution;
 #endif
 					
-					FA->contributions[(VC->Calc[i].type-1)*FA->ntypes+(VC->Calc[VC->ca_rec[currindex].atom].type-1)] += contribution;
-					if((VC->Calc[i].type-1) != (VC->Calc[VC->ca_rec[currindex].atom].type-1))
-						FA->contributions[(VC->Calc[VC->ca_rec[currindex].atom].type-1)*FA->ntypes+(VC->Calc[i].type-1)] += contribution;
+					FA->contributions[(VC->Calc[i].atom->type-1)*FA->ntypes+(VC->Calc[VC->ca_rec[currindex].atom].atom->type-1)] += contribution;
+					if((VC->Calc[i].atom->type-1) != (VC->Calc[VC->ca_rec[currindex].atom].atom->type-1))
+						FA->contributions[(VC->Calc[VC->ca_rec[currindex].atom].atom->type-1)*FA->ntypes+(VC->Calc[i].atom->type-1)] += contribution;
 					
 				}
 				/*
 				  else{
 				  printf("skipped intramolecular contact: %d %d\n",
-				  atoms[atomzero].number, atoms[atomcont].number); //VC->Calc[VC->ca_rec[currindex].atom].atomnum);
+				  atoms[atomzero].number, atoms[atomcont].number); //VC->Calc[VC->ca_rec[currindex].atom].atom->number);
 				  } 
 				*/
 			}
 			
 			/*
 			// generate surface area matrix
-			matrix[VC->Calc[i].type][VC->Calc[VC->ca_rec[currindex].atom].type] += area;
+			matrix[VC->Calc[i].atom->type][VC->Calc[VC->ca_rec[currindex].atom].atom->type] += area;
 			
-			if(VC->Calc[i].type != VC->Calc[VC->ca_rec[currindex].atom].type){
-			matrix[VC->Calc[VC->ca_rec[currindex].atom].type][VC->Calc[i].type] += area;
+			if(VC->Calc[i].atom->type != VC->Calc[VC->ca_rec[currindex].atom].atom->type){
+			matrix[VC->Calc[VC->ca_rec[currindex].atom].atom->type][VC->Calc[i].atom->type] += area;
 			}
 			*/
 					
 #if DEBUG_LEVEL > 0
 			printf("        %3s %c %4d %5d %2d %4.2f :: %7.4f (%s) %6.2f %6.2f :: %10.3f %10.3f\n",
-			       VC->Calc[VC->ca_rec[currindex].atom].res,
-			       VC->Calc[VC->ca_rec[currindex].atom].chn,
-			       VC->Calc[VC->ca_rec[currindex].atom].resnum,
-			       VC->Calc[VC->ca_rec[currindex].atom].atomnum,
-			       VC->Calc[VC->ca_rec[currindex].atom].type,
-			       VC->Calc[VC->ca_rec[currindex].atom].radius,
+			       VC->Calc[VC->ca_rec[currindex].atom].residue->name,
+			       VC->Calc[VC->ca_rec[currindex].atom].residue->chn,
+			       VC->Calc[VC->ca_rec[currindex].atom].residue->number,
+			       VC->Calc[VC->ca_rec[currindex].atom].atom->number,
+			       VC->Calc[VC->ca_rec[currindex].atom].atom->type,
+			       VC->Calc[VC->ca_rec[currindex].atom].atom->radius,
 						
 			       yval, energy_matrix->weight ? "Y": "N",
 			       VC->ca_rec[currindex].dist,
@@ -386,7 +381,7 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 			currindex = VC->ca_rec[currindex].prev;
 		}
 		
-		//    printf("Atom[%d]=%d has %d contacts\n",VC->Calc[i].atomnum,VC->Calc[i].atomnum,contnum);
+		//    printf("Atom[%d]=%d has %d contacts\n",VC->Calc[i].,VC->Calc[i].atom->number,contnum);
 		//    printf("Atom[%d] COM=[%8.2f]\tWAL=[%8.2f]\n",VC->Calc[i].atomnum,com_atm,Ewall_atm);
 					
 		if(SAS < 0.0){ SAS = 0.0; }
@@ -397,7 +392,7 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 			contribution = (double)FA->solventterm * SAS;
 			//printf("SP: multiply ST=%.3f with SAS.area=%.3f\n", (double)FA->solventterm, SAS);
 		} else {
-			struct energy_matrix* energy_matrix = &FA->energy_matrix[(VC->Calc[i].type-1)*FA->ntypes +
+			struct energy_matrix* energy_matrix = &FA->energy_matrix[(VC->Calc[i].atom->type-1)*FA->ntypes +
 										 (FA->ntypes-1)];
 			//printf("type1: %d\ttype2: %d\n", energy_matrix->type1, energy_matrix->type2);
 			
@@ -428,10 +423,10 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 		
 		cfs->sas += contribution;
 		
-		FA->contributions[(VC->Calc[i].type-1)*FA->ntypes + (FA->ntypes-1)] += contribution;
-		FA->contributions[(FA->ntypes-1)*FA->ntypes + (VC->Calc[i].type-1)] += contribution;
+		FA->contributions[(VC->Calc[i].atom->type-1)*FA->ntypes + (FA->ntypes-1)] += contribution;
+		FA->contributions[(FA->ntypes-1)*FA->ntypes + (VC->Calc[i].atom->type-1)] += contribution;
 		
-		FA->contacts[VC->Calc[i].atomnum] = 1;
+		FA->contacts[VC->Calc[i].atom->number] = 1;
 		
 #if DEBUG_LEVEL > 1
 		printf("CF.SAS is %.3f for %d contacts with contribution %.3f\n", 

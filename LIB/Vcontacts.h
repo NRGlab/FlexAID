@@ -57,118 +57,111 @@
 #define CELLSIZE 6.5f
 
 /*
-#ifdef __cplusplus
-extern "C" {
-#endif
+  #ifdef __cplusplus
+  extern "C" {
+  #endif
 */
 
 using namespace std;
 
 // ------------------------- structure definitions ----------------------
 struct AtomCalcSAS_struct {
-  int   atomnum;      // record number from PDB
-  float coor[3];      // xyz coordinates of atom
-  char  atomname[5];  // name of atom, CA, etc
-  char  res[4];       // residue name from PDB
-  int   score;        // scorable residue?
-  int   resnum;
-  int   inum;         // internal number in FA structure
-  char  chn;          // chain id '-' for blank ADDED RJN 29.0.4.2008
-  int   type;         // atom type (interaction)
-  float radius;       // radius of atom
-  int   boxnum;       // the box number atom is assigned to.
-  char  source;       // source of atom, protein, ligand
-  int   ca_index;     // index in saved contacts
-  double SAS;         // solvent exposed surface area
-  double vol;         // atom volume
-  char  done;         // flag if atom contacts have already been calculated
+	atom* atom;
+	resid* residue;
+	int   score;        // scorable residue?
+	int   boxnum;       // the box number atom is assigned to.
+	char  source;       // source of atom, protein, ligand
+	int   ca_index;     // index in saved contacts
+	double SAS;         // solvent exposed surface area
+	double vol;         // atom volume
+	char  done;         // flag if atom contacts have already been calculated
 };
 typedef struct AtomCalcSAS_struct atomsas;
 
 struct AtomIndex_struct {
-  int   nument;      // number of entries in box 
-  int   first;       // location of first entry in PDBlist
+	int   nument;      // number of entries in box 
+	int   first;       // location of first entry in PDBlist
 };
 typedef struct AtomIndex_struct atomindex;
 
 struct ContactList_struct {
-  int     index;   // index to PDB atom
-  double  area;    // contact area, square angstroms
-  double  dist;    // distance to atom zero
-  char    flag;    // to keep or not. 'X' == omit.
+	int     index;   // index to PDB atom
+	double  area;    // contact area, square angstroms
+	double  dist;    // distance to atom zero
+	char    flag;    // to keep or not. 'X' == omit.
 };
 typedef struct ContactList_struct contactlist;
   
 struct Plane_struct {
-  double Ai[4];      // parameters A,B,C,D of contact plane Ax+By+Cz+D=0 
-  double dist;       // distance from plane to origin
-  int    index;      // index to which record in PDB or ligand array.
-  double area;       // contact area in square angstroms
-  char   flag;       // 'X' if no contact, 'E' if an engulfing atom.
+	double Ai[4];      // parameters A,B,C,D of contact plane Ax+By+Cz+D=0 
+	double dist;       // distance from plane to origin
+	int    index;      // index to which record in PDB or ligand array.
+	double area;       // contact area in square angstroms
+	char   flag;       // 'X' if no contact, 'E' if an engulfing atom.
 };
 typedef struct Plane_struct plane;
 
 struct Vertex_struct {
-  double xi[3];      // x,y,z coordinates (x1,x2,x3)
-  double dist;       // distance to origin
-  int    plane[3];   // identification of intersecting planes. -1 = sphere.
+	double xi[3];      // x,y,z coordinates (x1,x2,x3)
+	double dist;       // distance to origin
+	int    plane[3];   // identification of intersecting planes. -1 = sphere.
 };
 typedef struct Vertex_struct vertex;
 
 struct ptIndex_struct {
-  int  numpts;       // number of points defining face
-  int  pt[MAX_CONT]; // index to polyhedron points
+	int  numpts;       // number of points defining face
+	int  pt[MAX_CONT]; // index to polyhedron points
 };
 typedef struct ptIndex_struct ptindex;
 
 struct EdgeVector_struct {
-  double V[3];       // vector for edge
-  int startpt;       // initial vertex
-  int endpt;         // final vertex
-  int plane[2];      // planes defining edge (using single atoms for now)
-  int startplane;    // third plane at start point
-  int endplane;      // third plane at end point
-  char arc;          // flag for arc point calculations
+	double V[3];       // vector for edge
+	int startpt;       // initial vertex
+	int endpt;         // final vertex
+	int plane[2];      // planes defining edge (using single atoms for now)
+	int startplane;    // third plane at start point
+	int endplane;      // third plane at end point
+	char arc;          // flag for arc point calculations
 };
 typedef struct EdgeVector_struct edgevector;
 
 struct ca_struct {
-  int prev;     // previous contact location in ca_index
-  int atom;     // PDBarray number of current contact (NOT PDB record number)
-  int from;     // PDBarray source
-  double area;        // contact area
-  double dist;        // distance between atoms
+	int prev;     // previous contact location in ca_index
+	int atom;     // PDBarray number of current contact (NOT PDB record number)
+	int from;     // PDBarray source
+	double area;        // contact area
+	double dist;        // distance between atoms
 };
 typedef struct ca_struct ca_struct;
 
 struct VC_Global_struct{
 
-  // ----------------- Global variables -----------------
-  atomsas     *Calc;      // pointer to PDB array (dynamically allocated)
-  atomindex   *box;       // index to PDB atoms within cubic grid
-  int         *Calclist;  // list of atoms ordered by box number
-  contactlist *contlist;
+	// ----------------- Global variables -----------------
+	atomsas     *Calc;      // pointer to PDB array (dynamically allocated)
+	atomindex   *box;       // index to PDB atoms within cubic grid
+	int         *Calclist;  // list of atoms ordered by box number
+	contactlist *contlist;
   
-  ptindex    *ptorder;  // for ordering vertices around each face // RJN 081008 changed 100 to 1100 and 200 2200
-  vertex     *centerpt; // center points for each contact face    // RJN 081008
-  vertex     *poly;     // polyhedron vertices                    // RJN 081008
-  plane      *cont;     // atom and contact plane information     // RJN 081008
-  edgevector *vedge;
-  ca_struct  *ca_rec;        // array - contact area records
-  int        *ca_index;              // array - index to first ca_recs for each atom.
-  int        *seed;                  // seed vertices for new polyhedra
+	ptindex    *ptorder;  // for ordering vertices around each face // RJN 081008 changed 100 to 1100 and 200 2200
+	vertex     *centerpt; // center points for each contact face    // RJN 081008
+	vertex     *poly;     // polyhedron vertices                    // RJN 081008
+	plane      *cont;     // atom and contact plane information     // RJN 081008
+	edgevector *vedge;
+	ca_struct  *ca_rec;        // array - contact area records
+	int        *ca_index;              // array - index to first ca_recs for each atom.
+	int        *seed;                  // seed vertices for new polyhedra
   
-  int        first;    // reference CF calculations (can recalculate)
+	int        first;    // reference CF calculations (can recalculate)
 
-  int        numcarec;          
-  int        ca_recsize;
-  int        dim;                   // dimension in units CELLSIZE
-  char       ch;                    // for debugging 
-  char       planedef;              // = X, R, or B
-  char       showbonded;            // = Y or N.
-  char       normalize;             // = Y or N. normalize areas to area of sphere.
-  char       radfilename[MAX_PATH__];  // custom name for radii.dat file including path ADDED RJN 28.04.2008
-  // --------------------- function prototypes ----------------------
+	int        numcarec;          
+	int        ca_recsize;
+	int        dim;                   // dimension in units CELLSIZE
+	char       ch;                    // for debugging 
+	char       planedef;              // = X, R, or B
+	char       showbonded;            // = Y or N.
+	char       normalize;             // = Y or N. normalize areas to area of sphere.
+	char       radfilename[MAX_PATH__];  // custom name for radii.dat file including path ADDED RJN 28.04.2008
+	// --------------------- function prototypes ----------------------
 };
 typedef struct VC_Global_struct VC_Global;
 
@@ -202,9 +195,9 @@ void    get_firstvert(const int*,const plane *, int *, int *, int *, int, int);
 // ========================================================================
 
 /*
-#ifdef __cplusplus
-}
-#endif
+  #ifdef __cplusplus
+  }
+  #endif
 */
 
 #endif // include guard
