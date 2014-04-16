@@ -48,7 +48,7 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cl
 		//printf("[%8.3f]",icv[i]);
 
 		if(FA->map_par[i].typ==-1) { //by index
-
+			
 			grd_idx = (uint)icv[i];
 			atoms[FA->map_par[i].atm].dis = cleftgrid[grd_idx].dis;
 			atoms[FA->map_par[i].atm].ang = cleftgrid[grd_idx].ang;
