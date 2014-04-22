@@ -1575,18 +1575,20 @@ void index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,atomin
 			// only the atoms that correspond to the correct rotamer are copied
 			// the total number of atoms thus is equal to atm_cnt_real
             
-			Calc[i].atom = &atoms[atmi];
-			Calc[i].residue = &residue[resi];
-			Calc[i].done = 'N';
-			Calc[i].score = atoms[atmi].optres != NULL;
+			if(Calc[i].atom == NULL){
+				Calc[i].atom = &atoms[atmi];
+				Calc[i].residue = &residue[resi];
+				Calc[i].done = 'N';
+				Calc[i].score = atoms[atmi].optres != NULL;
 			
-			for(j=0;j<3;++j){
-				if (atoms[atmi].coor[j] < global_min[j]){
-					global_min[j]=atoms[atmi].coor[j];
-					alter=1;
-				}else if(atoms[atmi].coor[j] > global_max[j]){
-					global_max[j]=atoms[atmi].coor[j];
-					alter=1;
+				for(j=0;j<3;++j){
+					if (atoms[atmi].coor[j] < global_min[j]){
+						global_min[j]=atoms[atmi].coor[j];
+						alter=1;
+					}else if(atoms[atmi].coor[j] > global_max[j]){
+						global_max[j]=atoms[atmi].coor[j];
+						alter=1;
+					}
 				}
 			}
 			

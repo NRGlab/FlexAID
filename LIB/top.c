@@ -259,6 +259,10 @@ int main(int argc, char **argv){
 			fprintf(stderr, "ERROR: memory allocation error for (Calc or Calclist or ca_index or seed or contlist)\n");
 			Terminate(2);
 		}
+
+		for(i=0;i<FA->atm_cnt_real;i++){
+			VC->Calc[i].atom = NULL;
+		}
 	}  
 	
 	//FA->deelig_root_node = (struct deelig_node_struct*)malloc(sizeof(struct deelig_node_struct));

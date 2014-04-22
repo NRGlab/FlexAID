@@ -458,6 +458,10 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 	  
 	free(VC->box);
 	
+	for(int i=0;i<FA->atm_cnt_real;i++){
+		if(VC->Calc[i].score){VC->Calc[i].atom = NULL;}
+	}
+
   
 	return(0.0);
   
