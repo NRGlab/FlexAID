@@ -98,7 +98,7 @@ int calc_region(FA_Global* FA,VC_Global* VC,atom* atoms,int atmcnt,bool non_scor
 			}
 		}
 		
-		//printf("Get_contacts for %d\n",VC->Calc[atomzero].atom->number);   
+		//printf("Get_contacts for %d\n",VC->Calc[atomzero].atom->number);
 		rado = VC->Calc[atomzero].atom->radius + Rw;
 		
 		NC = get_contlist4(atoms,atomzero, VC->contlist, atmcnt, rado, VC->dim,
@@ -1701,10 +1701,12 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 	char recalc;                // recalculate neglecting done atoms
 	
 	int dim2,dim3;
-	
+
+	/*
 	if(clash_value != NULL){
 		printf("=====ATOMZERO[%d]=====\n",Calc[atomzero].atom->number);
 	}
+	*/
 
 	NC = 0;
 	recalc = 'N';
@@ -1735,9 +1737,11 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
             
 			atomj = Calclist[box[boxi].first+bai]; 
 			
+			/*
 			if(!Calc[atomj].exposed && clash_value != NULL){
 				printf("skipped atom %d because is buried\n",Calc[atomj].atom->number);
 			}
+			*/
 
 			if(!Calc[atomj].exposed || Calc[atomj].done == 'Y') {
 				//printf("skipped atom %d\n",Calc[atomj].atom->number);
@@ -1791,7 +1795,7 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 		currindex = ca_rec[currindex].prev;
 	}
 
-	if(clash_value != NULL){getchar();}
+	//if(clash_value != NULL){getchar();}
 	return(NC);
     
 }
