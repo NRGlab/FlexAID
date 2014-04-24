@@ -90,7 +90,7 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 		double radoA = radA + Rw;
 		
 		double SAS = 4.0*PI*radoA*radoA;
-       	double surfA = SAS;
+       		double surfA = SAS;
 		
 		if(FA->useacs && atoms[atomzero].acs < 0.0){
 			// accessible contact surface with solvent/atom		

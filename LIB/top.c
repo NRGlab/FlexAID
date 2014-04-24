@@ -272,6 +272,7 @@ int main(int argc, char **argv){
 		
 		//FILE* surffile = fopen("surfpdb.pdb", "w");
 
+		int n_buried = 0;
 		for(i=0;i<FA->atm_cnt_real;i++){
 			if(!VC->Calc[i].score){
 				double radoA = VC->Calc[i].atom->radius + Rw;
@@ -283,9 +284,12 @@ int main(int argc, char **argv){
 					SAS -= area;
 					currindex = VC->ca_rec[currindex].prev;
 				}
+
 				if(SAS <= 0.0){
 					VC->Calc[i].exposed = false;
+					n_buried++;
 				}
+
 				/*
 				//ATOM    135  CG2 ILE A  30      26.592   6.245  -4.544  1.00 21.36           3
 				fprintf(surffile, "ATOM  %5d  XX  XXX A%4d    %8.3f%8.3f%8.3f  1.00  1.00           %2s\n",
@@ -295,7 +299,13 @@ int main(int argc, char **argv){
 				*/
 			}			
 		}
+		printf("%d atoms set as buried\n", n_buried);
 		//fclose(surffile);
+
+		for(i=0;i<FA->atm_cnt_real;i++){
+			if(VC->Calc[i].score){VC->Calc[i].atom = NULL;}
+		}
+		//getchar();
 	}  
 	
 	//FA->deelig_root_node = (struct deelig_node_struct*)malloc(sizeof(struct deelig_node_struct));

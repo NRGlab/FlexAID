@@ -18,8 +18,13 @@ int Vcontacts(FA_Global* FA,atom* atoms,resid* residue,VC_Global* VC,
 		VC->ca_index[i] = -1;   //initialize pointer array
 		VC->seed[i*3] = -1;
 
-		if(non_scorable && VC->Calc[i].score){
-			VC->Calc[i].exposed = false;
+		if(VC->Calc[i].score){
+			if(non_scorable){
+				// make scorable as buried to omit them
+				VC->Calc[i].exposed = false;
+			}else{
+				VC->Calc[i].exposed = true;
+			}
 		}
 	}
 	
@@ -40,8 +45,7 @@ int Vcontacts(FA_Global* FA,atom* atoms,resid* residue,VC_Global* VC,
 		if(*clash_value >= CLASH_THRESHOLD){ return(-2); }
 
 		for(int i=0; i<FA->atm_cnt_real; ++i) {
-			int atomzero = VC->Calclist[i];
-			VC->Calc[atomzero].done = 'N';
+			VC->Calc[i].done = 'N';
 			
 			VC->ca_index[i] = -1;   //initialize pointer array
 			VC->seed[i*3] = -1;
@@ -1682,7 +1686,7 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
                   int atmcnt, float rado, int dim, atomsas* Calc, 
                   const int* Calclist, const atomindex* box, 
                   const ca_struct* ca_rec,const int* ca_index,
-		  double* clash_value, double permea, resid* residue, int* num_atm) 
+				  double* clash_value, double permea, resid* residue, int* num_atm) 
 {
 	double sqrdist;             // distance squared between two points
 	double neardist;            // max distance for contact between atom spheres
@@ -1698,8 +1702,10 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 	
 	int dim2,dim3;
 	
-	//printf("=====ATOMZERO[%d]=====\n",Calc[atomzero].atom->number);
-	
+	if(clash_value != NULL){
+		printf("=====ATOMZERO[%d]=====\n",Calc[atomzero].atom->number);
+	}
+
 	NC = 0;
 	recalc = 'N';
     
@@ -1729,6 +1735,10 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
             
 			atomj = Calclist[box[boxi].first+bai]; 
 			
+			if(!Calc[atomj].exposed && clash_value != NULL){
+				printf("skipped atom %d because is buried\n",Calc[atomj].atom->number);
+			}
+
 			if(!Calc[atomj].exposed || Calc[atomj].done == 'Y') {
 				//printf("skipped atom %d\n",Calc[atomj].atom->number);
 				++bai;
@@ -1781,6 +1791,7 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 		currindex = ca_rec[currindex].prev;
 	}
 
+	if(clash_value != NULL){getchar();}
 	return(NC);
     
 }
