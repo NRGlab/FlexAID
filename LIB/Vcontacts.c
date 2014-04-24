@@ -2,8 +2,9 @@
 #include "boinc.h"
 
 // Vcontacts calculates the SAS only for the residue sent in argument
-int Vcontacts(FA_Global* FA,atom* atoms,resid* residue,VC_Global* VC, double* clash_value)
-{  
+int Vcontacts(FA_Global* FA,atom* atoms,resid* residue,VC_Global* VC,
+	double* clash_value, bool non_scorable)
+{
     
 	VC->planedef = FA->vcontacts_planedef;
 	//VC->planedef = 'X';  // extended radical plane (default)
@@ -16,35 +17,40 @@ int Vcontacts(FA_Global* FA,atom* atoms,resid* residue,VC_Global* VC, double* cl
 	for(int i=0; i<FA->atm_cnt_real; ++i) {
 		VC->ca_index[i] = -1;   //initialize pointer array
 		VC->seed[i*3] = -1;
+
+		if(non_scorable && VC->Calc[i].score){
+			VC->Calc[i].exposed = false;
+		}
 	}
 	
-        *clash_value = 0.0;
-	for(int i=0;i<FA->atm_cnt_real;++i) {
-		// ============= atom contact calculations =============
-		int atomzero = VC->Calclist[i];
+	if(clash_value != NULL){
+		*clash_value = 0.0;
+		for(int i=0;i<FA->atm_cnt_real;++i) {
+			// ============= atom contact calculations =============
+			int atomzero = VC->Calclist[i];
 		
-		if(!VC->Calc[atomzero].score){continue;}
+			if(!VC->Calc[atomzero].score){continue;}
 		
-		float rado = VC->Calc[atomzero].atom->radius + Rw;
+			float rado = VC->Calc[atomzero].atom->radius + Rw;
 		
-		int NC = get_contlist4(atoms,atomzero, VC->contlist, FA->atm_cnt_real, rado, VC->dim,
-				       VC->Calc, VC->Calclist, VC->box,VC->ca_rec, VC->ca_index,
-				       clash_value, (double)FA->permeability, residue, FA->num_atm);
-	}
-	
-	if(*clash_value >= CLASH_THRESHOLD){ return(-2); }
-	
-	for(int i=0; i<FA->atm_cnt_real; ++i) {
-		int atomzero = VC->Calclist[i];
-		VC->Calc[atomzero].done = 'N';
-		
-		VC->ca_index[i] = -1;   //initialize pointer array
-		VC->seed[i*3] = -1;
+			int NC = get_contlist4(atoms,atomzero, VC->contlist, FA->atm_cnt_real, rado, VC->dim,
+							       VC->Calc, VC->Calclist, VC->box,VC->ca_rec, VC->ca_index,
+								   clash_value, (double)FA->permeability, residue, FA->num_atm);
+		}
+		if(*clash_value >= CLASH_THRESHOLD){ return(-2); }
+
+		for(int i=0; i<FA->atm_cnt_real; ++i) {
+			int atomzero = VC->Calclist[i];
+			VC->Calc[atomzero].done = 'N';
+			
+			VC->ca_index[i] = -1;   //initialize pointer array
+			VC->seed[i*3] = -1;
+		}
 	}
 	
 	VC->numcarec=0;
 	
-	return calc_region(FA,VC,atoms,FA->atm_cnt_real);
+	return calc_region(FA,VC,atoms,FA->atm_cnt_real,non_scorable);
     
 }
 
@@ -56,7 +62,7 @@ int Vcontacts(FA_Global* FA,atom* atoms,resid* residue,VC_Global* VC, double* cl
 // Here, the set of atoms is the entire protein.
 // needs global variable 'dim'.
 
-int calc_region(FA_Global* FA,VC_Global* VC,atom* atoms,int atmcnt)
+int calc_region(FA_Global* FA,VC_Global* VC,atom* atoms,int atmcnt,bool non_scorable)
 {
 	int    i;        // atom counter
 	int    atomzero; // current center atom
@@ -76,9 +82,19 @@ int calc_region(FA_Global* FA,VC_Global* VC,atom* atoms,int atmcnt)
 		atomzero = VC->Calclist[i];
 		boxi = VC->Calc[atomzero].boxnum;
 		
-		if(!VC->Calc[atomzero].score){continue;}
+		if(non_scorable){
+			if(VC->Calc[atomzero].score){
+				//printf("Skipped atom %d\n", VC->Calc[atomzero].atom->number);
+				continue;
+			}
+		}else{
+			if(!VC->Calc[atomzero].score){
+				//printf("Skipped atom %d\n", VC->Calc[atomzero].atom->number);
+				continue;
+			}
+		}
 		
-		//printf("Get_contacts for %d\n",VC->Calc[atomzero].atomnum);   
+		//printf("Get_contacts for %d\n",VC->Calc[atomzero].atom->number);   
 		rado = VC->Calc[atomzero].atom->radius + Rw;
 		
 		NC = get_contlist4(atoms,atomzero, VC->contlist, atmcnt, rado, VC->dim,
@@ -364,7 +380,7 @@ RESTART:
 				// *** NEW ***
                 
 				// Do not recalc
-				if (VC->first) {
+				if (VC->recalc) {
 					recalc = 'Y';
                     
 					// EXCEPT REFERENCE SOLUTION (FIRST CALL TO VCT)
@@ -1713,7 +1729,7 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
             
 			atomj = Calclist[box[boxi].first+bai]; 
 			
-			if(Calc[atomj].done == 'Y') {
+			if(!Calc[atomj].exposed || Calc[atomj].done == 'Y') {
 				//printf("skipped atom %d\n",Calc[atomj].atom->number);
 				++bai;
 				continue;
@@ -1764,7 +1780,7 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 		Calc[ca_rec[currindex].atom].done = 'Y'; // re-mark as done
 		currindex = ca_rec[currindex].prev;
 	}
-	
+
 	return(NC);
     
 }

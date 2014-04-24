@@ -276,12 +276,10 @@ void build_rotamers(FA_Global* FA,atom** atoms,resid* residue,rot* rotamer){
       
 		}
     
-		if(FA->nrg_suite){
-			printf("%d possible rotamer(s) for residue %s %d %c\n",
-			       residue[FA->flex_res[i].inum].trot, residue[FA->flex_res[i].inum].name,
-			       residue[FA->flex_res[i].inum].number, 
-			       residue[FA->flex_res[i].inum].chn == ' ' ? '-' : residue[FA->flex_res[i].inum].chn);
-		}
+		printf("%d possible rotamer(s) for residue %s %d %c\n",
+			   residue[FA->flex_res[i].inum].trot, residue[FA->flex_res[i].inum].name,
+			   residue[FA->flex_res[i].inum].number, 
+			   residue[FA->flex_res[i].inum].chn == ' ' ? '-' : residue[FA->flex_res[i].inum].chn);
 		
 		// if no rotamers were accepted , set as rigid all atoms of side-chain
 		if (residue[FA->flex_res[i].inum].trot == 0) {

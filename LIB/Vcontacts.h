@@ -69,6 +69,7 @@ struct AtomCalcSAS_struct {
 	struct atom_struct* atom;
 	struct residue_struct* residue;
 	int   score;        // scorable residue?
+	bool  exposed;      // is atom exposed or buried?
 	int   boxnum;       // the box number atom is assigned to.
 	char  source;       // source of atom, protein, ligand
 	int   ca_index;     // index in saved contacts
@@ -151,7 +152,7 @@ struct VC_Global_struct{
 	int        *ca_index;              // array - index to first ca_recs for each atom.
 	int        *seed;                  // seed vertices for new polyhedra
   
-	int        first;    // reference CF calculations (can recalculate)
+	int        recalc;    // reference CF calculations (can recalculate)
 
 	int        numcarec;          
 	int        ca_recsize;
@@ -165,7 +166,7 @@ struct VC_Global_struct{
 };
 typedef struct VC_Global_struct VC_Global;
 
-int     Vcontacts(FA_Global*,atom*,resid*,VC_Global*,double*);
+int     Vcontacts(FA_Global*,atom*,resid*,VC_Global*,double*,bool);
 
 cfstr   ic2cf(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*);
 double  vcfunction(FA_Global*,VC_Global*,atom*,resid*,vector< pair<int,int> > &,bool*);
@@ -182,7 +183,7 @@ int     add_vertex(vertex *, int,const double *, int, int, int);
 void    add_vedge(edgevector *, int, const plane *, int, int, int, const vertex *, int);
 int     solve_3x3(const double *, const double *, const double *, double *);
 int     solve_2xS(const plane*, const plane*, float, double *, double *);
-int     calc_region(FA_Global*,VC_Global*,atom*,int);
+int     calc_region(FA_Global*,VC_Global*,atom*,int,bool);
 void    calc_areas(vertex *,const vertex *, float, int, int, plane *,const ptindex *, const atomsas*);
 void    index_protein(FA_Global*,atom*,resid*,atomsas*,atomindex**,int*,int*,int);
 void    save_areas(const plane *,const contactlist *, int, int,atomsas*, int* ,int*,ca_struct** , int* );

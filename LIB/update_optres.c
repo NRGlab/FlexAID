@@ -21,6 +21,7 @@ void update_optres(atom* atoms, resid* residue, int atm_cnt, OptRes* optres_ptr,
 				if(residue[atoms[j].ofres].type != 0 || !atoms[j].isbb)
 				{
 					atoms[j].optres = &optres_ptr[i];
+					//printf("atom %d has optres\n", atoms[j].number);
 				}
 			}
             

@@ -69,6 +69,7 @@ int main(int argc, char **argv){
 		Terminate(2);
 	}
 
+	VC->recalc = 1;
 
 	// set minimal default values
 	FA->MIN_NUM_ATOM = 1000;
@@ -262,7 +263,39 @@ int main(int argc, char **argv){
 
 		for(i=0;i<FA->atm_cnt_real;i++){
 			VC->Calc[i].atom = NULL;
+			VC->Calc[i].residue = NULL;
+			VC->Calc[i].exposed = true;
 		}
+
+		printf("calcuting SAS of non-scorable atoms...\n");
+		int rv = Vcontacts(FA,atoms,residue,VC,NULL,true);
+		
+		//FILE* surffile = fopen("surfpdb.pdb", "w");
+
+		for(i=0;i<FA->atm_cnt_real;i++){
+			if(!VC->Calc[i].score){
+				double radoA = VC->Calc[i].atom->radius + Rw;
+				double SAS = 4.0*PI*radoA*radoA;
+			
+				int currindex = VC->ca_index[i];
+				while(currindex != -1) {
+					double area = VC->ca_rec[currindex].area;
+					SAS -= area;
+					currindex = VC->ca_rec[currindex].prev;
+				}
+				if(SAS <= 0.0){
+					VC->Calc[i].exposed = false;
+				}
+				/*
+				//ATOM    135  CG2 ILE A  30      26.592   6.245  -4.544  1.00 21.36           3
+				fprintf(surffile, "ATOM  %5d  XX  XXX A%4d    %8.3f%8.3f%8.3f  1.00  1.00           %2s\n",
+						VC->Calc[i].atom->number,VC->Calc[i].residue->number,
+						VC->Calc[i].atom->coor[0],VC->Calc[i].atom->coor[1],VC->Calc[i].atom->coor[2],
+						VC->Calc[i].exposed? "C ": "O ");
+				*/
+			}			
+		}
+		//fclose(surffile);
 	}  
 	
 	//FA->deelig_root_node = (struct deelig_node_struct*)malloc(sizeof(struct deelig_node_struct));
@@ -293,10 +326,9 @@ int main(int argc, char **argv){
 	strcat(tmp_end_strfile,"_INI.pdb");
 	strcpy(remark,"REMARK initial structure\n");
 
-	VC->first = 1;
 	// Should execute cf-vcfunction instead to avoid rotamer change for INI conf.
 	cf=ic2cf(FA,VC,atoms,residue,cleftgrid,FA->npar,FA->opt_par);
-	VC->first = 0;
+	VC->recalc = 0;
 
 	for(i=0;i<FA->npar;i++){printf("[%8.3f]",FA->opt_par[i]);}
 	printf("=%8.5f\n", get_cf_evalue(&cf));

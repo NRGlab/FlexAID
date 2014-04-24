@@ -317,9 +317,8 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
     
 		if(FA->nflxsc > 0 && FA->rotlibsize > 0){
 			build_rotamers(FA,atoms,*residue,*rotamer); 
-			//build_close(FA,residue,atoms);          
+			//build_close(FA,residue,atoms);         
 		}
-
 	}
 
 	//////////////////////////////////////////////
