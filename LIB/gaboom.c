@@ -349,7 +349,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	  print_par((*chrom_snapshot),(*gene_lim),n_chrom_snapshot,GB->num_genes);
 	*/
 	
-	printf("removing dups\n");
+	printf("removing duplicates\n");
 	n_chrom_snapshot = remove_dups((*chrom_snapshot),n_chrom_snapshot,GB->num_genes);
 	
 	/*	
@@ -855,7 +855,9 @@ void calculate_fitness(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chr
 			share=0.0;
 			for(j=0;j<GB->num_chrom;j++){
 				
-				rmsp=calc_rmsp(GB->num_genes,chrom[i].genes,chrom[j].genes);
+				rmsp=calc_rmsp(GB->num_genes,chrom[i].genes,chrom[j].genes,
+					       FA->map_par,cleftgrid);
+				
 				//printf("i=%d j=%d rmsp=%f\n",i,j,rmsp);
 				if(rmsp <= GB->sig_share){
 					share += (1.0 - pow((rmsp/GB->sig_share),GB->alpha));
@@ -1779,12 +1781,19 @@ void print_chrom(const gene* genes, int num_genes, int real_flag){
  * residue[opt_res[0]] after reconstructing the coordinates using opt_par       *
  ********************************************************************************/
 
-double calc_rmsp(int npar, const gene* g1, const gene* g2){
+double calc_rmsp(int npar, const gene* g1, const gene* g2, const optmap* map_par, gridpoint* cleftgrid){
 	double rmsp=0.0;
-	int i;
 
-	for(i=0;i<npar;i++){
-		rmsp += (g1[i].to_ic-g2[i].to_ic)*(g1[i].to_ic-g2[i].to_ic);
+	for(int i=0;i<npar;i++){
+		if(map_par[i].typ==-1){
+			uint grd_idx1 = (uint)g1[i].to_ic;
+			uint grd_idx2 = (uint)g2[i].to_ic;
+			rmsp += (cleftgrid[grd_idx1].dis-cleftgrid[grd_idx2].dis)*(cleftgrid[grd_idx1].dis-cleftgrid[grd_idx2].dis);
+			rmsp += (cleftgrid[grd_idx1].ang-cleftgrid[grd_idx2].ang)*(cleftgrid[grd_idx1].ang-cleftgrid[grd_idx2].ang);
+			rmsp += (cleftgrid[grd_idx1].dih-cleftgrid[grd_idx2].dih)*(cleftgrid[grd_idx1].dih-cleftgrid[grd_idx2].dih);
+		}else if(map_par[i].typ<3){
+			rmsp += (g1[i].to_ic-g2[i].to_ic)*(g1[i].to_ic-g2[i].to_ic);
+		}
 	}
 
 	rmsp /= (double)npar;
