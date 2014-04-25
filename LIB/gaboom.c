@@ -44,19 +44,18 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 
 	const int INTERVAL = 1; // sleep interval between checking file state
 
-	RNGType rng(static_cast<unsigned int>(time(0)));
+	unsigned int tt = static_cast<unsigned int>(time(0));
+	//tt = (unsigned)1;
+	srand(tt);
+	RNGType rng(tt);
+
 	boost::uniform_int<> one_to_max_int32( 0, MAX_RANDOM_VALUE );
 	boost::variate_generator< RNGType, boost::uniform_int<> >
 		dice(rng, one_to_max_int32);
     
 	*memchrom=0; //num chrom allocated in memory
 	
-	// for generation random doubles from [0,1[ (mutation crossover operators)
-	srand((unsigned)time(0));
-    
-	// for testing purposes
-	//srand(1);
-    
+	// for generation random doubles from [0,1[ (mutation crossover operators)   
 	strcpy(PAUSEFILE,FA->state_path);
 #ifdef _WIN32
 	strcat(PAUSEFILE,"\\.pause");
