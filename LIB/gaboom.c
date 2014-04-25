@@ -601,7 +601,7 @@ int reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom, cons
 		/************************************/
 		/******   CHECK DUPLICATION  ********/
 		/************************************/
-		if(GB->duplicates || duplicates.find(sig2) == duplicates.end()){
+		if(GB->duplicates || duplicates.find(sig1) == duplicates.end()){
 			
 			/*
 			  if(!FA->useflexdee || 
@@ -633,7 +633,7 @@ int reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom, cons
 			*/
 			//nrejected += filter_deelig(FA,GB,chrom,chrop2_gen,GB->num_chrom+i,atoms,gene_lim,dice);
 			memcpy(chrom[GB->num_chrom+i].genes,chrop2_gen,GB->num_genes*sizeof(gene));
-
+			
 			chrom[GB->num_chrom+i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,
 								  chrom[GB->num_chrom+i].genes,target);
 			chrom[GB->num_chrom+i].evalue=get_cf_evalue(&chrom[GB->num_chrom+i].cf);
@@ -1066,10 +1066,13 @@ void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* 
 		
 		i=popoffset;
 		while(i<GB->num_chrom){
-			do{
+			while(1){
 				generate_random_individual(FA,GB,atoms,chrom[i].genes,gene_lim,dice,0,GB->num_genes);
 				sig = generate_sig(chrom[i].genes,GB->num_genes);
-			}while(GB->duplicates && duplicates.find(sig) == duplicates.end());
+				if(GB->duplicates || duplicates.find(sig) == duplicates.end()){
+					break;
+				}
+			}
 			
 			gener++;
 			i++;
