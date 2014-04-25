@@ -88,12 +88,12 @@ int calc_region(FA_Global* FA,VC_Global* VC,atom* atoms,int atmcnt,bool non_scor
 		
 		if(non_scorable){
 			if(VC->Calc[atomzero].score){
-				//printf("Skipped atom %d\n", VC->Calc[atomzero].atom->number);
+				//printf("Skipped scorable atom %d\n", VC->Calc[atomzero].atom->number);
 				continue;
 			}
 		}else{
 			if(!VC->Calc[atomzero].score){
-				//printf("Skipped atom %d\n", VC->Calc[atomzero].atom->number);
+				//printf("Skipped non-scorable atom %d\n", VC->Calc[atomzero].atom->number);
 				continue;
 			}
 		}

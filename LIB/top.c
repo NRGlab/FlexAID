@@ -108,7 +108,7 @@ int main(int argc, char **argv){
 	FA->nrg_suite_timeout=60;
 	FA->translational=0;
 	FA->refstructure=0;
-
+	FA->omit_buried=0;
 	FA->is_protein=1;
 	//FA->is_nucleicacid=0;
 	
@@ -267,45 +267,47 @@ int main(int argc, char **argv){
 			VC->Calc[i].exposed = true;
 		}
 
-		printf("calcuting SAS of non-scorable atoms...\n");
-		int rv = Vcontacts(FA,atoms,residue,VC,NULL,true);
-		
-		//FILE* surffile = fopen("surfpdb.pdb", "w");
-
-		int n_buried = 0;
-		for(i=0;i<FA->atm_cnt_real;i++){
-			if(!VC->Calc[i].score){
-				double radoA = VC->Calc[i].atom->radius + Rw;
-				double SAS = 4.0*PI*radoA*radoA;
+		if(FA->omit_buried){
+			printf("calcuting SAS of non-scorable atoms...\n");
+			int rv = Vcontacts(FA,atoms,residue,VC,NULL,true);
 			
-				int currindex = VC->ca_index[i];
-				while(currindex != -1) {
-					double area = VC->ca_rec[currindex].area;
-					SAS -= area;
-					currindex = VC->ca_rec[currindex].prev;
-				}
+			//FILE* surffile = fopen("surfpdb.pdb", "w");
 
-				if(SAS <= 0.0){
-					VC->Calc[i].exposed = false;
-					n_buried++;
-				}
+			int n_buried = 0;
+			for(i=0;i<FA->atm_cnt_real;i++){
+				if(!VC->Calc[i].score){
+					double radoA = VC->Calc[i].atom->radius + Rw;
+					double SAS = 4.0*PI*radoA*radoA;
+			
+					int currindex = VC->ca_index[i];
+					while(currindex != -1) {
+						double area = VC->ca_rec[currindex].area;
+						SAS -= area;
+						currindex = VC->ca_rec[currindex].prev;
+					}
 
-				/*
-				//ATOM    135  CG2 ILE A  30      26.592   6.245  -4.544  1.00 21.36           3
-				fprintf(surffile, "ATOM  %5d  XX  XXX A%4d    %8.3f%8.3f%8.3f  1.00  1.00           %2s\n",
-						VC->Calc[i].atom->number,VC->Calc[i].residue->number,
-						VC->Calc[i].atom->coor[0],VC->Calc[i].atom->coor[1],VC->Calc[i].atom->coor[2],
-						VC->Calc[i].exposed? "C ": "O ");
-				*/
-			}			
+					if(SAS <= 0.0){
+						VC->Calc[i].exposed = false;
+						n_buried++;
+					}
+
+					/*
+					//ATOM    135  CG2 ILE A  30      26.592   6.245  -4.544  1.00 21.36           3
+					fprintf(surffile, "ATOM  %5d  XX  XXX A%4d    %8.3f%8.3f%8.3f  1.00  1.00           %2s\n",
+							VC->Calc[i].atom->number,VC->Calc[i].residue->number,
+							VC->Calc[i].atom->coor[0],VC->Calc[i].atom->coor[1],VC->Calc[i].atom->coor[2],
+							VC->Calc[i].exposed? "C ": "O ");
+					*/
+				}			
+			}
+			printf("%d atoms set as buried\n", n_buried);
+			//fclose(surffile);
+
+			for(i=0;i<FA->atm_cnt_real;i++){
+				if(VC->Calc[i].score){VC->Calc[i].atom = NULL;}
+			}
+			//getchar();
 		}
-		printf("%d atoms set as buried\n", n_buried);
-		//fclose(surffile);
-
-		for(i=0;i<FA->atm_cnt_real;i++){
-			if(VC->Calc[i].score){VC->Calc[i].atom = NULL;}
-		}
-		//getchar();
 	}  
 	
 	//FA->deelig_root_node = (struct deelig_node_struct*)malloc(sizeof(struct deelig_node_struct));
