@@ -140,6 +140,7 @@ struct VC_Global_struct{
 	// ----------------- Global variables -----------------
 	atomsas     *Calc;      // pointer to PDB array (dynamically allocated)
 	atomindex   *box;       // index to PDB atoms within cubic grid
+	
 	int         *Calclist;  // list of atoms ordered by box number
 	contactlist *contlist;
   
@@ -185,14 +186,14 @@ int     solve_3x3(const double *, const double *, const double *, double *);
 int     solve_2xS(const plane*, const plane*, float, double *, double *);
 int     calc_region(FA_Global*,VC_Global*,atom*,int,bool);
 void    calc_areas(vertex *,const vertex *, float, int, int, plane *,const ptindex *, const atomsas*);
-void    index_protein(FA_Global*,atom*,resid*,atomsas*,atomindex**,int*,int*,int);
+atomindex* index_protein(FA_Global*,atom*,resid*,atomsas*,int*,int*,int,map<string, atomindex*> &);
 void    save_areas(const plane *,const contactlist *, int, int,atomsas*, int* ,int*,ca_struct** , int* );
 void    min_areas(ca_struct*, const atomsas*, const atomsas*, char*);
 void    print_areas(atomsas*, int, ca_struct*);
 int     get_contlist4(atom*,int, contactlist *, int, float, int, atomsas*, const int*, const atomindex*, const ca_struct*, const int*, double*, double,resid*,int*);
 void    save_seeds(int*,const plane *, const vertex *, int, int);
 void    get_firstvert(const int*,const plane *, int *, int *, int *, int, int);
-
+string  generate_dim_sig(float* global_min, int dim);
 // ========================================================================
 
 /*

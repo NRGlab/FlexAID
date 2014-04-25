@@ -5,14 +5,14 @@
 int Vcontacts(FA_Global* FA,atom* atoms,resid* residue,VC_Global* VC,
 	double* clash_value, bool non_scorable)
 {
-    
-	VC->planedef = FA->vcontacts_planedef;
+    static map<string, atomindex*> indexed;
 	//VC->planedef = 'X';  // extended radical plane (default)
 	//VC->planedef = 'R';  // radical plane
 	//VC->planedef = 'B';  // bisection
 	
 	// protein atoms to boxes in cubic grid
-	index_protein(FA,atoms,residue,VC->Calc,&VC->box,VC->Calclist,&VC->dim,FA->atm_cnt_real);
+	VC->box = index_protein(FA,atoms,residue,VC->Calc,VC->Calclist,
+						    &VC->dim,FA->atm_cnt_real,indexed);
 
 	for(int i=0; i<FA->atm_cnt_real; ++i) {
 		VC->ca_index[i] = -1;   //initialize pointer array
@@ -1560,7 +1560,9 @@ double spherical_arc(const vertex* ptAo,const vertex* ptB,const vertex* ptC, flo
  
  *****************************/
 
-void index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,atomindex** box,int* Calclist,int* dim,int atmcnt)
+atomindex* index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,
+				 		 int* Calclist,int* dim,int atmcnt,
+						 map<string, atomindex*> & indexed)
 {
 	int   i,j;             // dumb counters
 	int   resi;            // residue counter
@@ -1574,15 +1576,16 @@ void index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,atomin
 	float global_min[3];
 	float global_max[3];
 	int   dim2,dim3;
-    
+    atomindex* box;
+
 	rot=0;
 	i=0;
 	alter=0;
     
 	// Do not alter default PDB min and max coordinates
 	for(j=0;j<3;++j){
-		global_min[j]=FA->globalmin[j];
-		global_max[j]=FA->globalmax[j];
+		global_min[j]=(int)FA->globalmin[j]+1.0;
+		global_max[j]=(int)FA->globalmax[j]+1.0;
 	}
     
 	max_width=FA->maxwidth;
@@ -1600,7 +1603,7 @@ void index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,atomin
 				Calc[i].residue = &residue[resi];
 				Calc[i].done = 'N';
 				Calc[i].score = atoms[atmi].optres != NULL;
-			
+				
 				for(j=0;j<3;++j){
 					if (atoms[atmi].coor[j] < global_min[j]){
 						global_min[j]=atoms[atmi].coor[j];
@@ -1618,6 +1621,8 @@ void index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,atomin
 	
 	if (alter) {
 		for(j=0;j<3;++j){
+			global_min[j] = (int)global_min[j]+1.0;
+			global_max[j] = (int)global_max[j]+1.0;
 			diff=global_max[j]-global_min[j];
 			if (diff > max_width) {
 				//printf("New difference=%8.3f\n",diff);
@@ -1628,50 +1633,72 @@ void index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,atomin
 	
 	// ------ get largest dimension of protein -------
 	*dim = (int)(max_width/CELLSIZE)+1;
-	//printf("New Dimension=[%d]\n",dim);
+	//printf("New Dimension=[%d]\n", *dim);
 	
 	dim2 = (*dim)*(*dim);
 	dim3 = (*dim)*(*dim)*(*dim);
 	
-	(*box) = (atomindex*)malloc(dim3*sizeof(atomindex));
-	if(!(*box)){
-		fprintf(stderr,"ERROR: memory allocation error for box\n");
-		Terminate(2);
+	string sig = generate_dim_sig(global_min,(*dim));
+	map<string, atomindex*>::iterator it;
+	if(!FA->vindex || (it=indexed.find(sig)) == indexed.end()){
+		box = (atomindex*)malloc(dim3*sizeof(atomindex));
+		if(!box){
+			fprintf(stderr,"ERROR: memory allocation error for box\n");
+			Terminate(2);
+		}
+		indexed.insert(std::pair<string, atomindex*>(sig,box));
+		for(atmi=0;atmi<atmcnt;++atmi){
+			// all atoms need to be re-assigned a new box
+			Calc[atmi].boxnum = -1;
+		}
+	}else{
+		box = it->second;
+
+		for(atmi=0;atmi<atmcnt;++atmi){
+			// only scorable atoms might need a box change
+			if(Calc[atmi].score){Calc[atmi].boxnum = -1;}
+		}
 	}
-	
-	memset((*box),0,dim3*sizeof(atomindex));  
-	
+	memset(box,0,dim3*sizeof(atomindex));
+
+	//int nbox=0;
 	// count entries per box, assign box number to atom
 	for(atmi=0;atmi<atmcnt;++atmi){
-		boxi = (int)((Calc[atmi].atom->coor[0]-global_min[0])/CELLSIZE)*dim2
-			+ (int)((Calc[atmi].atom->coor[1]-global_min[1])/CELLSIZE)*(*dim)
-			+ (int)((Calc[atmi].atom->coor[2]-global_min[2])/CELLSIZE);
-		Calc[atmi].boxnum = boxi;
-		//printf("coor[0]: %8.3f\tcoor[1]: %8.3f\tcoor[2]: %8.3f\n", Calc[atmi].coor[0],Calc[atmi].coor[1],Calc[atmi].coor[2]);
-		//printf("Calc[%d]=%d Boxi=[%d] RNum=[%d]\n",atmi,Calc[atmi].atomnum,boxi,Calc[atmi].resnum);
-        
-		++(*box)[Calc[atmi].boxnum].nument;
+		if(Calc[atmi].boxnum == -1){
+			boxi = (int)((Calc[atmi].atom->coor[0]-global_min[0])/CELLSIZE)*dim2
+				+ (int)((Calc[atmi].atom->coor[1]-global_min[1])/CELLSIZE)*(*dim)
+				+ (int)((Calc[atmi].atom->coor[2]-global_min[2])/CELLSIZE);
+
+			Calc[atmi].boxnum = boxi;
+			//nbox++;
+			//printf("coor[0]: %8.3f\tcoor[1]: %8.3f\tcoor[2]: %8.3f\n", Calc[atmi].coor[0],Calc[atmi].coor[1],Calc[atmi].coor[2]);
+			//printf("Calc[%d]=%d Boxi=[%d] RNum=[%d]\n",
+			//	atmi,Calc[atmi].atom->number,boxi,Calc[atmi].residue->number);
+		}
+       
+		++box[Calc[atmi].boxnum].nument;
 	}
-	
+
 	// assign start pointers for boxes in Calclist
 	startind = 0;
 	for (boxi=0; boxi<dim3; ++boxi) {
-		(*box)[boxi].first = startind;
-		startind += (*box)[boxi].nument;
+		box[boxi].first = startind;
+		startind += box[boxi].nument;
 	}
     
 	// clear array (needed for recounting index)
 	for(boxi=0; boxi<dim3; ++boxi) {
-		(*box)[boxi].nument = 0;
+		box[boxi].nument = 0;
 	}
     
 	// fill Calclist index
 	for (atmi=0; atmi<atmcnt; ++atmi) {
 		boxi = Calc[atmi].boxnum;
-		Calclist[(*box)[boxi].first+(*box)[boxi].nument] = atmi;
-		++(*box)[boxi].nument;
+		Calclist[box[boxi].first+box[boxi].nument] = atmi;
+		++box[boxi].nument;
 	}
-    
+	
+    return box;
 }
 
 /*********************************
@@ -1798,4 +1825,13 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 	//if(clash_value != NULL){getchar();}
 	return(NC);
     
+}
+
+string generate_dim_sig(float* global_min, int dim){
+	stringstream ss("");
+	for(int j=0;j<3;j++){
+		ss << (int)global_min[j] << "/";
+	}
+	ss << dim;
+	return ss.str();
 }

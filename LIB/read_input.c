@@ -106,6 +106,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		if(strcmp(field,"INCHOH") == 0){FA->remove_water=0;}
 		if(strcmp(field,"NOINTR") == 0){FA->intramolecular=0;}
 		if(strcmp(field,"OMITBU") == 0){FA->omit_buried=1;}
+		if(strcmp(field,"VINDEX") == 0){FA->vindex=1;}
 		if(strcmp(field,"PERMEA") == 0){sscanf(buffer,"%s %f",field,&FA->permeability);}
 		if(strcmp(field,"INTRAF") == 0){sscanf(buffer,"%s %f",field,&FA->intrafraction);}
 		if(strcmp(field,"VARDIS") == 0){sscanf(buffer,"%s %lf",field,&FA->delta_angstron);}

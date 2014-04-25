@@ -84,6 +84,7 @@ int main(int argc, char **argv){
 	FA->MIN_OPTRES = 1;
 	FA->MIN_CONSTRAINTS = 1;
 
+	FA->vindex = 0;
 	FA->rotout = 0;
 	FA->num_optres = 0;
 	FA->nflexbonds = 0;
@@ -154,7 +155,7 @@ int main(int argc, char **argv){
 	FA->mov[0] = NULL;
 	FA->mov[1] = NULL;
     
-        strcpy(FA->vcontacts_self_consistency,"MAX");
+    strcpy(FA->vcontacts_self_consistency,"MAX");
 	FA->vcontacts_planedef = 'X';
 	
 	// Linux path
@@ -236,8 +237,11 @@ int main(int argc, char **argv){
   
 	printf("Reading input (%s)...\n",dockinp);
 	read_input(FA,&atoms,&residue,&rotamer,&cleftgrid,dockinp);
-	
+
 	if (strcmp(FA->complf,"VCT")==0){
+
+		VC->planedef = FA->vcontacts_planedef;
+		
 		// Vcontacts memory allocations...
 		// ca_rec can be reallocated
 		VC->Calc = (atomsas*)malloc(FA->atm_cnt_real*sizeof(atomsas));

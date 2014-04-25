@@ -42,8 +42,7 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 	int rv = Vcontacts(FA,atoms,residue,VC,&clash_value,false);
 	if(rv < 0){
 		*error = true;
-		free(VC->box);
-
+		
 		if(rv == -1){
 			FA->skipped++;
 			return(POLYHEDRON_PENALTY);
@@ -455,11 +454,11 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
   #endif
 */
 	//getchar();
-	  
-	free(VC->box);
 	
 	for(int i=0;i<FA->atm_cnt_real;i++){
-		if(VC->Calc[i].score){VC->Calc[i].atom = NULL;}
+		if(VC->Calc[i].score){
+			VC->Calc[i].atom = NULL;
+		}
 	}
 
   

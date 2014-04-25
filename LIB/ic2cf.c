@@ -11,7 +11,9 @@
 
 //THE PROCEDURE SHOULD RECEIVE A 2ND SET OF GENES THAT ENCODES FOR THE ROTAMER DISTRIBUTION IN THE BPK
 
-cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,gridpoint* cleftgrid,int npar, double* icv){
+cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,
+			gridpoint* cleftgrid,int npar, double* icv)
+{
   
 	static int nbranch = 0;
 	

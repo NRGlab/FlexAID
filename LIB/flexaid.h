@@ -390,6 +390,7 @@ struct FA_Global_struct{
 	int   skipped;                       // atoms skipped due to faliures in generating the polyhedron
 	int   clashed;                       // skipped individuals due to steric clashes
 	int   omit_buried;                   // skip buried atoms in the Vcontacts procedure
+	int   vindex;                        // use indexed boxes and atoms in Vcontacts index_proteins
 
 	//rot    rotamer[MAX_ROTLIBSIZE];       // array of rotamer library rotamers OR observed rotamer list
 	int    rotlibsize;                    // number of rotamers
