@@ -43,6 +43,14 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 	if(rv < 0){
 		*error = true;
 		
+		for(int i=0;i<FA->atm_cnt_real;i++){
+			if(VC->Calc[i].score){
+				VC->Calc[i].atom = NULL;
+			}
+		}
+		
+		if(!FA->vindex){ free(VC->box); }
+		
 		if(rv == -1){
 			FA->skipped++;
 			return(POLYHEDRON_PENALTY);
@@ -461,7 +469,8 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 		}
 	}
 
-  
+	if(!FA->vindex){ free(VC->box); }
+	
 	return(0.0);
   
 }

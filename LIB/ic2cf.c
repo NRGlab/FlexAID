@@ -371,12 +371,6 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,
 
 }
 
-void add_intraclash_key(void)
-{
-
-}
-
-
 #ifdef _WIN32
 double get_apparent_cf_evalue(cfstr* cf) {
 #else

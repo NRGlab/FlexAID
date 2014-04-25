@@ -48,7 +48,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	//tt = (unsigned)1;
 	srand(tt);
 	RNGType rng(tt);
-
+	
 	boost::uniform_int<> one_to_max_int32( 0, MAX_RANDOM_VALUE );
 	boost::variate_generator< RNGType, boost::uniform_int<> >
 		dice(rng, one_to_max_int32);
@@ -105,7 +105,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 		fprintf(stderr,"ERROR: memory allocation error for gene_lim.\n");	
 		Terminate(2);
 	}
-    
+	
 	long int at = 0;
     
 	if(strcmp(GB->pop_init_method,"RANDOM") == 0){
@@ -200,7 +200,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	GB->sig_share /= GB->scale;
 	printf("SIGMA_SHARE=%f\n",GB->sig_share);
 	fflush(stdout);
-  
+	
 	// for(i=0;i<GB->num_genes;i++) {
 	//printf("GENE(%d)=[%8.3f,%8.3f,%8.3f,%d]\n",
 	//	   i,(*gene_lim)[i].min,(*gene_lim)[i].max,(*gene_lim)[i].del);

@@ -3,16 +3,16 @@
 
 // Vcontacts calculates the SAS only for the residue sent in argument
 int Vcontacts(FA_Global* FA,atom* atoms,resid* residue,VC_Global* VC,
-	double* clash_value, bool non_scorable)
+	      double* clash_value, bool non_scorable)
 {
-    static map<string, atomindex*> indexed;
+	static map<string, atomindex*> indexed;
 	//VC->planedef = 'X';  // extended radical plane (default)
 	//VC->planedef = 'R';  // radical plane
 	//VC->planedef = 'B';  // bisection
 	
 	// protein atoms to boxes in cubic grid
 	VC->box = index_protein(FA,atoms,residue,VC->Calc,VC->Calclist,
-						    &VC->dim,FA->atm_cnt_real,indexed);
+				&VC->dim,FA->atm_cnt_real,indexed);
 
 	for(int i=0; i<FA->atm_cnt_real; ++i) {
 		VC->ca_index[i] = -1;   //initialize pointer array
@@ -39,8 +39,8 @@ int Vcontacts(FA_Global* FA,atom* atoms,resid* residue,VC_Global* VC,
 			float rado = VC->Calc[atomzero].atom->radius + Rw;
 		
 			int NC = get_contlist4(atoms,atomzero, VC->contlist, FA->atm_cnt_real, rado, VC->dim,
-							       VC->Calc, VC->Calclist, VC->box,VC->ca_rec, VC->ca_index,
-								   clash_value, (double)FA->permeability, residue, FA->num_atm);
+					       VC->Calc, VC->Calclist, VC->box,VC->ca_rec, VC->ca_index,
+					       clash_value, (double)FA->permeability, residue, FA->num_atm);
 		}
 		if(*clash_value >= CLASH_THRESHOLD){ return(-2); }
 
@@ -1561,8 +1561,8 @@ double spherical_arc(const vertex* ptAo,const vertex* ptB,const vertex* ptC, flo
  *****************************/
 
 atomindex* index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,
-				 		 int* Calclist,int* dim,int atmcnt,
-						 map<string, atomindex*> & indexed)
+			 int* Calclist,int* dim,int atmcnt,
+			 map<string, atomindex*> & indexed)
 {
 	int   i,j;             // dumb counters
 	int   resi;            // residue counter
@@ -1576,7 +1576,7 @@ atomindex* index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,
 	float global_min[3];
 	float global_max[3];
 	int   dim2,dim3;
-    atomindex* box;
+	atomindex* box;
 
 	rot=0;
 	i=0;
@@ -1698,7 +1698,7 @@ atomindex* index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,
 		++box[boxi].nument;
 	}
 	
-    return box;
+	return box;
 }
 
 /*********************************
@@ -1713,7 +1713,7 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
                   int atmcnt, float rado, int dim, atomsas* Calc, 
                   const int* Calclist, const atomindex* box, 
                   const ca_struct* ca_rec,const int* ca_index,
-				  double* clash_value, double permea, resid* residue, int* num_atm) 
+		  double* clash_value, double permea, resid* residue, int* num_atm) 
 {
 	double sqrdist;             // distance squared between two points
 	double neardist;            // max distance for contact between atom spheres
@@ -1730,9 +1730,9 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 	int dim2,dim3;
 
 	/*
-	if(clash_value != NULL){
-		printf("=====ATOMZERO[%d]=====\n",Calc[atomzero].atom->number);
-	}
+	  if(clash_value != NULL){
+	  printf("=====ATOMZERO[%d]=====\n",Calc[atomzero].atom->number);
+	  }
 	*/
 
 	NC = 0;
@@ -1765,9 +1765,9 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 			atomj = Calclist[box[boxi].first+bai]; 
 			
 			/*
-			if(!Calc[atomj].exposed && clash_value != NULL){
-				printf("skipped atom %d because is buried\n",Calc[atomj].atom->number);
-			}
+			  if(!Calc[atomj].exposed && clash_value != NULL){
+			  printf("skipped atom %d because is buried\n",Calc[atomj].atom->number);
+			  }
 			*/
 
 			if(!Calc[atomj].exposed || Calc[atomj].done == 'Y') {
