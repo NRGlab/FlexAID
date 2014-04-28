@@ -1621,8 +1621,10 @@ atomindex* index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,
 	
 	if (alter) {
 		for(j=0;j<3;++j){
-			global_min[j] = (int)global_min[j]+1.0;
-			global_max[j] = (int)global_max[j]+1.0;
+			//-37.5 -> -38
+			//37.5 -> 38
+			global_min[j] = global_min[j] < 0.0 ? (int)global_min[j]-1.0 : (int)global_min[j]+1.0;
+			global_max[j] = global_max[j] < 0.0 ? (int)global_max[j]-1.0 : (int)global_max[j]+1.0;
 			diff=global_max[j]-global_min[j];
 			if (diff > max_width) {
 				//printf("New difference=%8.3f\n",diff);
@@ -1653,14 +1655,14 @@ atomindex* index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,
 		}
 	}else{
 		box = it->second;
-
+		
 		for(atmi=0;atmi<atmcnt;++atmi){
 			// only scorable atoms might need a box change
 			if(Calc[atmi].score){Calc[atmi].boxnum = -1;}
 		}
 	}
 	memset(box,0,dim3*sizeof(atomindex));
-
+	
 	//int nbox=0;
 	// count entries per box, assign box number to atom
 	for(atmi=0;atmi<atmcnt;++atmi){
