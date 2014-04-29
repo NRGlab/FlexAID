@@ -6,14 +6,18 @@ int Vcontacts(FA_Global* FA,atom* atoms,resid* residue,VC_Global* VC,
 	      double* clash_value, bool non_scorable)
 {
 	static map<string, atomindex*> indexed;
+	static atomindex* prev_box = NULL;
+	
 	//VC->planedef = 'X';  // extended radical plane (default)
 	//VC->planedef = 'R';  // radical plane
 	//VC->planedef = 'B';  // bisection
 	
 	// protein atoms to boxes in cubic grid
 	VC->box = index_protein(FA,atoms,residue,VC->Calc,VC->Calclist,
-				&VC->dim,FA->atm_cnt_real,indexed);
-
+				&VC->dim,FA->atm_cnt_real,prev_box,indexed);
+	
+	prev_box = VC->box;
+	
 	for(int i=0; i<FA->atm_cnt_real; ++i) {
 		VC->ca_index[i] = -1;   //initialize pointer array
 		VC->seed[i*3] = -1;
@@ -1561,7 +1565,7 @@ double spherical_arc(const vertex* ptAo,const vertex* ptB,const vertex* ptC, flo
  *****************************/
 
 atomindex* index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,
-			 int* Calclist,int* dim,int atmcnt,
+			 int* Calclist,int* dim,int atmcnt,atomindex* prev_box,
 			 map<string, atomindex*> & indexed)
 {
 	int   i,j;             // dumb counters
@@ -1657,8 +1661,11 @@ atomindex* index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,
 		box = it->second;
 		
 		for(atmi=0;atmi<atmcnt;++atmi){
+			// if previous indexing is different need to reset all OR
 			// only scorable atoms might need a box change
-			if(Calc[atmi].score){Calc[atmi].boxnum = -1;}
+			if(box != prev_box || Calc[atmi].score){
+				Calc[atmi].boxnum = -1;
+			}
 		}
 	}
 	memset(box,0,dim3*sizeof(atomindex));

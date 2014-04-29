@@ -186,7 +186,7 @@ int     solve_3x3(const double *, const double *, const double *, double *);
 int     solve_2xS(const plane*, const plane*, float, double *, double *);
 int     calc_region(FA_Global*,VC_Global*,atom*,int,bool);
 void    calc_areas(vertex *,const vertex *, float, int, int, plane *,const ptindex *, const atomsas*);
-atomindex* index_protein(FA_Global*,atom*,resid*,atomsas*,int*,int*,int,map<string, atomindex*> &);
+atomindex* index_protein(FA_Global*,atom*,resid*,atomsas*,int*,int*,int,atomindex*,map<string, atomindex*> &);
 void    save_areas(const plane *,const contactlist *, int, int,atomsas*, int* ,int*,ca_struct** , int* );
 void    min_areas(ca_struct*, const atomsas*, const atomsas*, char*);
 void    print_areas(atomsas*, int, ca_struct*);
