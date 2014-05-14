@@ -1785,7 +1785,7 @@ void print_chrom(const gene* genes, int num_genes, int real_flag){
 
 double calc_rmsp(int npar, const gene* g1, const gene* g2, const optmap* map_par, gridpoint* cleftgrid){
 	double rmsp=0.0;
-
+	int n=0;
 	for(int i=0;i<npar;i++){
 		if(map_par[i].typ==-1){
 			uint grd_idx1 = (uint)g1[i].to_ic;
@@ -1793,12 +1793,14 @@ double calc_rmsp(int npar, const gene* g1, const gene* g2, const optmap* map_par
 			rmsp += (cleftgrid[grd_idx1].dis-cleftgrid[grd_idx2].dis)*(cleftgrid[grd_idx1].dis-cleftgrid[grd_idx2].dis);
 			rmsp += (cleftgrid[grd_idx1].ang-cleftgrid[grd_idx2].ang)*(cleftgrid[grd_idx1].ang-cleftgrid[grd_idx2].ang);
 			rmsp += (cleftgrid[grd_idx1].dih-cleftgrid[grd_idx2].dih)*(cleftgrid[grd_idx1].dih-cleftgrid[grd_idx2].dih);
+			n += 3;
 		}else if(map_par[i].typ<3){
 			rmsp += (g1[i].to_ic-g2[i].to_ic)*(g1[i].to_ic-g2[i].to_ic);
+			n++;
 		}
 	}
-
-	rmsp /= (double)npar;
+	
+	rmsp /= (double)n;
 
 	return sqrt(rmsp);
 }
