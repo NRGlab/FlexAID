@@ -381,9 +381,9 @@ int main(int argc, char **argv){
 		sprintf(tmpremark,"REMARK [%8.3f]\n",FA->opt_par[i]);
 		strcat(remark,tmpremark);
 	}
-	sprintf(tmpremark,"REMARK inputs: %s & %s\n",dockinp,gainp);
+	sprintf(tmpremark,"REMARK inputs: %s & %s",dockinp,gainp);
 	strcat(remark,tmpremark);
-  
+	
 	write_pdb(FA,atoms,residue,tmp_end_strfile,remark);
 
 	//printf("wrote initial PDB structure on %s\n",tmp_end_strfile);
