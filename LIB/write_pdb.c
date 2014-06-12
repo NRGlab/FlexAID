@@ -39,7 +39,7 @@ int write_pdb(FA_Global* FA,atom *atoms, resid* residue,char outfile[], char rem
 					if(residue[atoms[i].ofres].type==0){strcpy(field,"ATOM  ");}
 					if(residue[atoms[i].ofres].type==1){strcpy(field,"HETATM");}
 					
-					fprintf(outfile_ptr,"%s%5d %s %s %c%4d    %8.3f%8.3f%8.3f  1.00  0.00\n",
+					fprintf(outfile_ptr,"%s%5d %s %s %c%4d    %8.3f%8.3f%8.3f  1.00  0.00          %2s  \n",
 						field,
 						atoms[i].number,
 						atoms[i].name,
@@ -48,7 +48,8 @@ int write_pdb(FA_Global* FA,atom *atoms, resid* residue,char outfile[], char rem
 						residue[atoms[i].ofres].number,
 						atoms[i].coor[0],
 						atoms[i].coor[1],
-						atoms[i].coor[2]
+						atoms[i].coor[2],
+						get_element(atoms[i].type)
 						);
 					
 				}
@@ -123,5 +124,78 @@ void write_contributions(FA_Global* FA,FILE* outfile_ptr, bool positive){
 		}else{
 			break;
 		}
+	}
+}
+
+const char* get_element(int type)
+{
+	if(type >=1 && type <= 5){
+		return(" C");
+	}
+	else if(type >= 6 && type <= 12){
+		return(" N");
+	}
+	else if(type >= 13 && type <= 16){
+		return(" O");
+	}
+	else if(type >= 17 && type <= 21){
+		return(" S");
+	}
+	else if(type == 22){
+		return(" P");
+	}
+	else if(type == 23){
+		return(" F");
+	}
+	else if(type == 24){
+		return("Cl");
+	}
+	else if(type == 25){
+		return("Br");
+	}
+	else if(type == 26){
+		return(" I");
+	}
+	else if(type == 27){
+		return("Se");
+	}
+	else if(type == 28){
+		return("Mg");
+	}
+	else if(type == 29){
+		return("Sr");
+	}
+	else if(type == 30){
+		return("Cu");
+	}
+	else if(type == 31){
+		return("Mn");
+	}
+	else if(type == 32){
+		return("Hg");
+	}
+	else if(type == 33){
+		return("Cd");
+	}
+	else if(type == 34){
+		return("Ni");
+	}
+	else if(type == 35){
+		return("Zn");
+	}
+	else if(type == 36){
+		return("Ca");
+	}
+	else if(type == 37){
+		return("Fe");
+	}
+	else if(type == 38){
+		return("Co");
+	}
+	else if(type == 39){
+		return("Du");
+	}
+	else{
+		return("  ");
 	}
 }

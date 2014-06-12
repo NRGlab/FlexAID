@@ -237,7 +237,12 @@ int main(int argc, char **argv){
   
 	printf("Reading input (%s)...\n",dockinp);
 	read_input(FA,&atoms,&residue,&rotamer,&cleftgrid,dockinp);
-
+	
+	if(FA->num_het_atm <= 15){
+		printf("cluster rmsd set to 1.5A because num_het_atm <= 15\n");
+		FA->cluster_rmsd = 1.5f;
+	}
+	
 	if (strcmp(FA->complf,"VCT")==0){
 
 		VC->planedef = FA->vcontacts_planedef;

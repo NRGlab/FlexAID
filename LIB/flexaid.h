@@ -522,6 +522,7 @@ void   bondedlist(atom* atoms,int anum, int nloops, int* nlist_ptr, int* blist, 
 void   assign_shift(atom* atoms,resid* residue,int rnum, int natm, int *list, int **fdihlist);      // assigns shift atoms internally
 int    write_pdb(FA_Global* FA,atom *atoms,resid* residue,char outfile[], char remark[]);           // writes PDB files
 void   write_contributions(FA_Global* FA, FILE* outfile_ptr, bool positive);
+const char* get_element(int type);
 void   write_grid(FA_Global* FA, const gridpoint* cleftgrid,char filename[]);                        // writes starting grid to PDB viewable format with 'grid' ext. PYTHON function
 void   calc_center(FA_Global* FA,atom* atoms,resid* residue);            // calculates center of geometry of protein
 float  calc_rmsd(FA_Global* FA,atom* atoms,resid* residue, gridpoint* cleftgrid, int npar, const double* icv);       // calculates rmsd

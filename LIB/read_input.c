@@ -101,7 +101,6 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		if(strcmp(field,"NMAAMP") == 0){strcpy(normal_file,&buffer[7]);}
 		if(strcmp(field,"NMAEIG") == 0){strcpy(eigen_file,&buffer[7]);}
 		if(strcmp(field,"RMSDST") == 0){strcpy(rmsd_file,&buffer[7]);}
-		if(strcmp(field,"CLRMSD") == 0){sscanf(buffer,"%s %f",a,&FA->cluster_rmsd);}
 		if(strcmp(field,"EXCHET") == 0){FA->exclude_het=1;}
 		if(strcmp(field,"INCHOH") == 0){FA->remove_water=0;}
 		if(strcmp(field,"NOINTR") == 0){FA->intramolecular=0;}
