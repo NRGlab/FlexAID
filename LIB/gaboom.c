@@ -584,7 +584,7 @@ int reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom, cons
 		for(j=0;j<FA->nflxsc;j++){
 			if(residue[FA->flex_res[j].inum].trot != 0){
 				if(RandomDouble() < FA->flex_res[j].prob){
-					mutate(&chrop1_gen[num_genes_wo_sc+k],1,mutprob);
+					mutate(&chrop2_gen[num_genes_wo_sc+k],1,mutprob);
 				}
 				k++;
 			}
@@ -1785,22 +1785,13 @@ void print_chrom(const gene* genes, int num_genes, int real_flag){
 
 double calc_rmsp(int npar, const gene* g1, const gene* g2, const optmap* map_par, gridpoint* cleftgrid){
 	double rmsp=0.0;
-	int n=0;
-	for(int i=0;i<npar;i++){
-		if(map_par[i].typ==-1){
-			uint grd_idx1 = (uint)g1[i].to_ic;
-			uint grd_idx2 = (uint)g2[i].to_ic;
-			rmsp += (cleftgrid[grd_idx1].dis-cleftgrid[grd_idx2].dis)*(cleftgrid[grd_idx1].dis-cleftgrid[grd_idx2].dis);
-			rmsp += (cleftgrid[grd_idx1].ang-cleftgrid[grd_idx2].ang)*(cleftgrid[grd_idx1].ang-cleftgrid[grd_idx2].ang);
-			rmsp += (cleftgrid[grd_idx1].dih-cleftgrid[grd_idx2].dih)*(cleftgrid[grd_idx1].dih-cleftgrid[grd_idx2].dih);
-			n += 3;
-		}else if(map_par[i].typ<3){
-			rmsp += (g1[i].to_ic-g2[i].to_ic)*(g1[i].to_ic-g2[i].to_ic);
-			n++;
-		}
+	int i;
+
+	for(i=0;i<npar;i++){
+		rmsp += (g1[i].to_ic-g2[i].to_ic)*(g1[i].to_ic-g2[i].to_ic);
 	}
-	
-	rmsp /= (double)n;
+
+	rmsp /= (double)npar;
 
 	return sqrt(rmsp);
 }
