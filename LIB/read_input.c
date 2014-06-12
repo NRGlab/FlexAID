@@ -96,6 +96,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		if(strcmp(field,"OPTIMZ") == 0){strcpy(optline[nopt++],buffer);}
 		if(strcmp(field,"DEFTYP") == 0){strcpy(deftyp_forced,&buffer[7]);}
 		if(strcmp(field,"FLEXSC") == 0){strcpy(flexscfile,&buffer[7]);}
+		if(strcmp(field,"CLRMSD") == 0){sscanf(buffer,"%s %f",a,&FA->cluster_rmsd);}
 		if(strcmp(field,"ROTOUT") == 0){FA->rotout=1;}
 		if(strcmp(field,"NMAMOD") == 0){sscanf(buffer,"%s %d",a,&FA->normal_modes);}
 		if(strcmp(field,"NMAAMP") == 0){strcpy(normal_file,&buffer[7]);}
