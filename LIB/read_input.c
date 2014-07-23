@@ -43,20 +43,20 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 	char chain='-';
 	char a[7],b[7]; //,mol_name[4]; 
 
-	char flexscfile[MAX_PATH__];
 	char gridfile[MAX_PATH__];
 	char gridfilename[MAX_PATH__];
 	//char sphfile[MAX_PATH__];
 	char tmpprotname[MAX_PATH__];
 
 	char optline[MAX_PAR][MAX_PATH__];
-
+	char flexscline[MAX_PAR][MAX_PATH__];
+	
 	// opt lines counter
 	int nopt=0;
-
+	int nflexsc=0;
+	
 	sphere *spheres, * _sphere;
 	
-	flexscfile[0]='\0';
 	rmsd_file[0]='\0';
 	FA->state_path[0]='\0';
 	FA->temp_path[0]='\0';
@@ -94,8 +94,9 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		if(strcmp(field,"ACSWEI") == 0){sscanf(buffer,"%s %f",field,&FA->acsweight);}
 		if(strcmp(field,"RNGOPT") == 0){strcpy(rngoptline,buffer);for(i=0;i<6;i++)rngopt[i]=buffer[7+i];rngopt[6]='\0';}
 		if(strcmp(field,"OPTIMZ") == 0){strcpy(optline[nopt++],buffer);}
+		if(strcmp(field,"FLEXSC") == 0){strcpy(flexscline[nflexsc++],buffer);}
+		if(strcmp(field,"ROTOBS") == 0){FA->rotobs=1;}
 		if(strcmp(field,"DEFTYP") == 0){strcpy(deftyp_forced,&buffer[7]);}
-		if(strcmp(field,"FLEXSC") == 0){strcpy(flexscfile,&buffer[7]);}
 		if(strcmp(field,"CLRMSD") == 0){sscanf(buffer,"%s %f",a,&FA->cluster_rmsd);}
 		if(strcmp(field,"ROTOUT") == 0){FA->rotout=1;}
 		if(strcmp(field,"NMAMOD") == 0){sscanf(buffer,"%s %d",a,&FA->normal_modes);}
@@ -170,9 +171,9 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 			strcpy(emat,FA->dependencies_path);
 		}
 #ifdef _WIN32
-		strcat(emat,"\\M6_cons_3.dat");
+		strcat(emat,"\\MC_st0r5.2_6.dat");
 #else
-		strcat(emat,"/M6_cons_3.dat");
+		strcat(emat,"/MC_st0r5.2_6.dat");
 #endif
 	}else{
 		// use forced matrix
@@ -275,10 +276,9 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
   
 	//////////////////////////////////////////////
 
-	if(strcmp(flexscfile,"") && FA->is_protein){
+	if(nflexsc && FA->is_protein){
 		
-		printf("read flexsc file <%s>\n",flexscfile);
-		read_flexscfile(FA,*residue,rotamer,flexscfile,rotlib_file,rotobs_file);
+		read_flexscfile(FA,*residue,rotamer,flexscline,nflexsc,rotlib_file,rotobs_file);
 
 		
 		if (FA->rotobs) {
@@ -381,7 +381,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		}
     
 		//printf("optline[%d]=%s\n",i,optline[i]);
-
+		
 		sscanf(optline[i],"%s %d %s %d",a,&opt[0],a,&opt[1]);
 		//printf("%d %d\n",opt[0],opt[1]);
 		//getchar();

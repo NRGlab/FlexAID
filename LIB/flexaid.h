@@ -547,7 +547,7 @@ void   update_bonded(resid* residue, int tot, int nlist, int* list, int* nbr);  
 void   update_optres(atom* atoms, resid* residue, int atm_cnt, OptRes* optres_ptr,int num_optres); // update atoms structure with optres pointers
 void   set_intprob(flxsc* flex_res);                                         // sets internal probability for rotamer change
 int    number_of_dihedrals(char res[]);                      // determines number of dihedral bonds for residues
-void   read_flexscfile(FA_Global* FA,resid* residue,rot** rotamer,char* file, char* rotlib, char* rotobs);                        // reads flexible residues list
+void   read_flexscfile(FA_Global* FA,resid* residue,rot** rotamer,char flexsclines[][MAX_PATH__], int nlines, char* rotlib, char* rotobs);                        // reads flexible residues list
 int    check_clash(FA_Global* FA,atom* atoms,resid* residue,int res_cnt,int total, int list[]);   // checks if there are clashes with rigid residues
 void   build_close(FA_Global* FA, resid** residue, atom** atoms);
 
