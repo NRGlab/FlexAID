@@ -328,7 +328,8 @@ struct FA_Global_struct{
 	float ori[3];                        // coordinates of center of geometry of protein (PCG)
 	float maxdst;                        // max distance from a protein atom to PCG 
 	float cluster_rmsd;                  // rmsd between poses when clustering
-
+	uint tempreature;					 // temperature parameter 
+	double beta;						 // Metropolis ß parament == 1/T *may be worth trying 1/kT*
 	float permeability;                  // allow permeability or not between atoms
 	int   intramolecular;                // consider intramolecular forces (ligand only)
 	float solventterm;                   // solvent penalty term
