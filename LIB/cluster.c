@@ -110,7 +110,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 				rmsd=calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes,i,j);
 				//printf("rmsd(%d,%d)=%f\n",i,j,rmsd);
 				//PAUSE;
-				if(rmsd<=FA->cluster_rmsd)
+				if(rmsd <= FA->cluster_rmsd)
 				{
 					Clus_GAPOP[i]=j;
 					Clus_RMSDT[i]=rmsd;
@@ -260,18 +260,17 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 /***********************************************************************/
 void QuickSort_Clusters(int* TOP, int* FRE, double* TCF, double* ACF, int* GAPOP, int beg, int end)
 {
-	QS_TYPE piv;
-
 	int l,r,p;
+	double piv;
 
-	while(beg<end)
+	while(beg < end)
 	{
 		l = beg; p = beg + (end-beg)/2; r = end;
 		piv = ACF[p];
 		while(1)
 		{
-			while( (l<=r) && QS_ASC(TOP[l],piv) <= 0 ) l++;
-			while( (l<=r) && QS_ASC(TOP[r],piv)  > 0 ) r--;
+			while( (l<=r) && QS_ASC(ACF[l],piv) <= 0 ) l++;
+			while( (l<=r) && QS_ASC(ACF[r],piv)  > 0 ) r--;
 			if(l>r) break;
 			swap_clusters(&TOP[l], &FRE[l], &TCF[l], &ACF[l], &GAPOP[l],&TOP[r], &FRE[r], &TCF[r], &ACF[r], &GAPOP[r]);
 			if (p==r) p=l;
