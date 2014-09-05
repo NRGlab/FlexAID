@@ -266,8 +266,8 @@ void QuickSort_Clusters(int* TOP, int* FRE, double* TCF, double* ACF, int* GAPOP
 		piv = ACF[p];
 		while(1)
 		{
-			while( (l<=r) && QS_ASC(TOP[l],piv) ) l++;
-			while( (l<=r) && QS_ASC(TOP[r],piv) ) r--;
+			while( (l<=r) && QS_ASC(TOP[l],piv) <= 0 ) l++;
+			while( (l<=r) && QS_ASC(TOP[r],piv)  > 0 ) r--;
 			if(l>r) break;
 			swap_clusters(&TOP[l], &FRE[l], &TCF[l], &ACF[l], &GAPOP[l],&TOP[r], &FRE[r], &TCF[r], &ACF[r], &GAPOP[r]);
 			if (p==r) p=l;
