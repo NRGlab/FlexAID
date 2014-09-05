@@ -118,6 +118,8 @@ typedef struct GB_Global_struct GB_Global;
 int   GA(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome** chrom_snapshot,genlim** gene_lim,atom* atoms,resid* residue,gridpoint** cleftgrid,char gainpfile[], int* memchrom, cfstr (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int, double*));
 int   check_state(char* pausefile, char* abortfile, char* stopfile, int interval);
 void  QuickSort(chromosome*, int, int, bool);
+void  QuickSort_Clusters(int*, int*, double*, double*, int*, int, int);
+void  swap_clusters(int*, int*, double*, double*, int*, int*, int*, double*, double*, int*);
 void  crossover(gene *john,gene *mary,int num_genes, int intragenes);
 void  mutate(gene *john,int num_genes,double mut_rate);
 void  bin_print(int dec,int len);

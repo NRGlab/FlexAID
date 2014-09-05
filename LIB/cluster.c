@@ -95,8 +95,8 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		n_unclus--;
 		// Clus_TCF[num_of_clusters]=chrom[j].app_evalue;
 		// Clus_TCF[num_of_clusters]=chrom[j].app_evalue;
-		Clus_ACF[num_of_clusters] = (double)( ( Pj * chrom[j].app_evalue) - (FA->temperature * Pj * log(chrom[j].app_evalue)) );
-		Clus_TCF[num_of_clusters] = (double)( ( Pj * chrom[j].app_evalue) - (FA->temperature * Pj * log(chrom[j].app_evalue)) );
+		Clus_ACF[num_of_clusters] = (double)( ( Pj * chrom[j].app_evalue) - (FA->temperature * Pj * log(Pj)) );
+		Clus_TCF[num_of_clusters] = (double)( ( Pj * chrom[j].app_evalue) - (FA->temperature * Pj * log(Pj)) );
 		Clus_TOP[num_of_clusters]=j;
 		Clus_FRE[num_of_clusters]++;
 
@@ -116,7 +116,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 					Clus_RMSDT[i]=rmsd;
 					// printf("i=%d belongs to cluster of j=%d because rmsd=%.3f\n", i, j, rmsd);
 					n_unclus--;
-					Clus_ACF[num_of_clusters] += (double)( (Pi * chrom[i].app_evalue) - (FA->temperature * Pi * log(chrom[i].app_evalue)) );
+					Clus_ACF[num_of_clusters] += (double)( (Pi * chrom[i].app_evalue) - (FA->temperature * Pi * log(Pi)) );
 					Clus_FRE[num_of_clusters]++;
 				}
 			}
@@ -126,6 +126,9 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		// quit storing clusters up to N max results
 		if(num_of_clusters == num_of_results){break;}
 	}
+
+	// Reordering the clusters properly by lowest ACF values first (after considering entropy !)
+	QuickSort_Clusters(Clus_TOP, Clus_FRE, Clus_TCF, Clus_ACF, Clus_GAPOP, 0, num_of_results-1);
       
 	// print cluster information
 	sprintf(sufix,".cad");
@@ -249,4 +252,49 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 	if(Clus_TOP != NULL) free(Clus_TOP);
 	if(Clus_FRE != NULL) free(Clus_FRE);
 	
+}
+
+void QuickSort_Clusters(int* TOP, int* FRE, double* TCF, double* ACF, int* GAPOP, int beg, int end)
+{
+	QS_TYPE piv;
+
+	int l,r,p;
+
+	while(beg<end)
+	{
+		l = beg; p = beg + (end-beg)/2; r = end;
+		piv = ACF[p];
+		while(1)
+		{
+			while( (l<=r) && QS_ASC(TOP[l],piv) ) l++;
+			while( (l<=r) && QS_ASC(TOP[r],piv) ) r--;
+			if(l>r) break;
+			swap_clusters(&TOP[l], &FRE[l], &TCF[l], &ACF[l], &GAPOP[l],&TOP[r], &FRE[r], &TCF[r], &ACF[r], &GAPOP[r]);
+			if (p==r) p=l;
+			l++;r--;
+		}
+		swap_clusters(&TOP[p], &FRE[p], &TCF[p], &ACF[p], &GAPOP[p],&TOP[r], &FRE[r], &TCF[r], &ACF[r], &GAPOP[r]);
+		r--;
+
+		if((r-beg)<(end-l))
+		{
+			QuickSort_Clusters(TOP, FRE, TCF, ACF, GAPOP, beg, r);
+			beg = l;
+		}
+		else
+		{
+			QuickSort_Clusters(TOP, FRE, TCF, ACF, GAPOP, l, end);
+			end = r;
+		}
+	}
+}
+void swap_clusters(int* TOPx, int* FREx, double* TCFx, double* ACFx, int* GAPOPx, int* TOPy, int* FREy, double* TCFy, double* ACFy, int* GAPOPy)
+{
+	int TOPt, FREt, GAPOPt;
+	double TCFt, ACFt;
+	TOPt = *TOPx; *TOPx = *TOPy; *TOPy = TOPt;
+	FREt = *FREx; *FREx = *FREy; *FREy = FREt;
+	TCFt = *TCFx; *TCFx = *TCFy; *TCFy = TCFt;
+	ACFt = *ACFx; *ACFx = *ACFy; *ACFy = ACFt;
+	GAPOPt = *GAPOPx; *GAPOPx = *GAPOPy; *GAPOPy = GAPOPt;
 }
