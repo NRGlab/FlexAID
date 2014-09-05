@@ -253,7 +253,11 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 	if(Clus_FRE != NULL) free(Clus_FRE);
 	
 }
-
+/***********************************************************************/
+/*        1         2         3         4         5         6          */
+/*					QuickSort functions for Clusters 				   */
+/*        1         2         3         4         5         6         7*/
+/***********************************************************************/
 void QuickSort_Clusters(int* TOP, int* FRE, double* TCF, double* ACF, int* GAPOP, int beg, int end)
 {
 	QS_TYPE piv;
@@ -288,6 +292,11 @@ void QuickSort_Clusters(int* TOP, int* FRE, double* TCF, double* ACF, int* GAPOP
 		}
 	}
 }
+/***********************************************************************/
+/*        1         2         3         4         5         6          */
+/* 					 Swap Function for Clusters 					   */
+/*        1         2         3         4         5         6         7*/
+/***********************************************************************/
 void swap_clusters(int* TOPx, int* FREx, double* TCFx, double* ACFx, int* GAPOPx, int* TOPy, int* FREy, double* TCFy, double* ACFy, int* GAPOPy)
 {
 	int TOPt, FREt, GAPOPt;
