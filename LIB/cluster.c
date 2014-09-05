@@ -127,7 +127,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		if(num_of_clusters == num_of_results){break;}
 	}
 
-	// Reordering the clusters properly by lowest ACF values first (after considering entropy !)
+	// Reordering the clusters properly by lowest ACF values first (after considering cluster's entropy !)
 	QuickSort_Clusters(Clus_TOP, Clus_FRE, Clus_TCF, Clus_ACF, Clus_GAPOP, 0, num_of_results-1);
       
 	// print cluster information
@@ -255,7 +255,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 }
 /***********************************************************************/
 /*        1         2         3         4         5         6          */
-/*					QuickSort functions for Clusters 				   */
+/*                  QuickSort functions for Clusters                   */
 /*        1         2         3         4         5         6         7*/
 /***********************************************************************/
 void QuickSort_Clusters(int* TOP, int* FRE, double* TCF, double* ACF, int* GAPOP, int beg, int end)
@@ -294,7 +294,7 @@ void QuickSort_Clusters(int* TOP, int* FRE, double* TCF, double* ACF, int* GAPOP
 }
 /***********************************************************************/
 /*        1         2         3         4         5         6          */
-/* 					 Swap Function for Clusters 					   */
+/*                   Swap Function for Clusters                        */
 /*        1         2         3         4         5         6         7*/
 /***********************************************************************/
 void swap_clusters(int* TOPx, int* FREx, double* TCFx, double* ACFx, int* GAPOPx, int* TOPy, int* FREy, double* TCFy, double* ACFy, int* GAPOPy)

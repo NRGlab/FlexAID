@@ -131,7 +131,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		if(strcmp(field,"TEMPER") == 0)
 		{
 			sscanf(buffer, "%s %d", field, &FA->temperature);
-			if(FA->temperature >= 0) { FA->beta =  1 / FA->temperature; }
+			if(FA->temperature >= 0) { FA->beta = (double) (1 / FA->temperature); }
 			else
 			{
 				fprintf(stderr,"ERROR: Negative temperature given in input parameter.\n");
