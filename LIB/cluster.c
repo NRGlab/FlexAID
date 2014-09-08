@@ -89,7 +89,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 	{
 		for(j=0;j<num_chrom;j++){if(Clus_GAPOP[j]==-1){break;}}
 		//printf("at chromosome j=%d with app_evalue=%.3f\n", j, chrom[j].app_evalue);
-		double Pj = pow( E, ((-1) * (uint)FA->beta * chrom[j].app_evalue) ) / partition_function;
+		double Pj = pow( E, ((-1) * FA->beta * chrom[j].app_evalue) ) / partition_function;
 		Clus_GAPOP[j]=j;
 		Clus_RMSDT[j]=0.0;
 		n_unclus--;
@@ -106,7 +106,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		{
 			if(Clus_GAPOP[i]==-1)
 			{
-				double Pi = pow( E, ((-1) * (uint)FA->beta * chrom[i].app_evalue) ) / partition_function;
+				double Pi = pow( E, ((-1) * FA->beta * chrom[i].app_evalue) ) / partition_function;
 				rmsd=calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes,i,j);
 				//printf("rmsd(%d,%d)=%f\n",i,j,rmsd);
 				//PAUSE;
