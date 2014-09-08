@@ -247,10 +247,10 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 	// Clusters memory de-allocation
 	if(Clus_GAPOP != NULL) free(Clus_GAPOP);
 	if(Clus_RMSDT != NULL) free(Clus_RMSDT);
-	if(Clus_ACF != NULL) free(Clus_ACF);
-	if(Clus_TCF != NULL) free(Clus_TCF);
-	if(Clus_TOP != NULL) free(Clus_TOP);
-	if(Clus_FRE != NULL) free(Clus_FRE);
+	if(Clus_ACF   != NULL) free(Clus_ACF);
+	if(Clus_TCF   != NULL) free(Clus_TCF);
+	if(Clus_TOP   != NULL) free(Clus_TOP);
+	if(Clus_FRE   != NULL) free(Clus_FRE);
 	
 }
 /***********************************************************************/

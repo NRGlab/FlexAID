@@ -96,7 +96,8 @@ int main(int argc, char **argv){
 	FA->dee_clash = 0.5;
 	FA->intrafraction = 1.0;
 	FA->cluster_rmsd = 2.0f;
-
+	FA->temperature = 1;
+	FA->beta = 1.0;
 	FA->force_interaction=0;
 	FA->interaction_factor=5.0;
 	FA->atm_cnt=0;
