@@ -72,7 +72,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		Clus_TCF[j]=0.0;
 		Clus_TOP[j]=0;
 		Clus_FRE[j]=0;
-		partition_function += pow( E, ((-1) * (uint)FA->beta * chrom[j].app_evalue) );
+		partition_function += pow( E, ((-1) * FA->beta * chrom[j].app_evalue) );
 	}
     //printf("n_unclus=%d\n",n_unclus);
     //PAUSE;
