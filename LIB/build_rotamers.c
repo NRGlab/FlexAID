@@ -37,14 +37,6 @@ void build_rotamers(FA_Global* FA,atom** atoms,resid* residue,rot* rotamer){
   
 	FA->nflxsc_real = 0 ;
   
-	// set all atoms as rigid
-	for(k=1;k<=FA->res_cnt;k++){
-		//printf("residue[%d].fatm[0]=%d .latm[0]=%d\n",k,residue[k].fatm[0],residue[k].latm[0]);
-		for(i=residue[k].fatm[0];i<=residue[k].latm[0];i++){
-			(*atoms)[i].recs='r';
-		}
-	}
-  
 	// set side-chain atoms as mobile for flexible residues
 	for(k=0;k<FA->nflxsc;k++){
 		kres=FA->flex_res[k].inum;

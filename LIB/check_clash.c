@@ -33,16 +33,17 @@ int check_clash(FA_Global* FA,atom* atoms,resid* residue,int res_cnt,int total, 
 						rad=atoms[j].radius+atoms[list[k]].radius;
 						//if(dis<=2.0){
 	    
-						if(dis < FA->permeability*rad){
+						
+						if(dis < FA->rotamer_permeability*rad){
 	      
 							/*
-							//printf("RES %4d %s\n",residue[i].number,residue[i].name);
-							printf("RES %4d %s ATM %4d %s %c %f %f %f\n",
+							printf("RES %4d %s\n",residue[i].number,residue[i].name);
+							printf("RES %4d %s ATM %5d %4s %c %f %f %f\n",
 							       residue[atoms[j].ofres].number,residue[atoms[j].ofres].name,
 							       atoms[j].number,atoms[j].name,atoms[j].recs,
 							       atoms[j].coor[0],atoms[j].coor[1],atoms[j].coor[2]);
 	      
-							printf("RES %4d %s ATM %4d %s %c %f %f %f\n",
+							printf("RES %4d %s ATM %5d %4s %c %f %f %f\n",
 							       residue[atoms[list[k]].ofres].number,residue[atoms[list[k]].ofres].name,
 							       atoms[list[k]].number,atoms[list[k]].name,atoms[list[k]].recs,
 							       atoms[list[k]].coor[0],atoms[list[k]].coor[1],atoms[list[k]].coor[2]);
