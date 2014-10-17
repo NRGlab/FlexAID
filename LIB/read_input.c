@@ -118,6 +118,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		if(strcmp(field,"USEDEE") == 0){FA->useflexdee=1;}
 		if(strcmp(field,"IMATRX") == 0){strcpy(emat_forced,&buffer[7]);}
 		if(strcmp(field,"DEECLA") == 0){sscanf(buffer,"%s %f",field,&FA->dee_clash);}
+		if(strcmp(field,"ROTPER") == 0){sscanf(buffer,"%s %f",field,&FA->rotamer_permeability);}
 		if(strcmp(field,"CONSTR") == 0){strcpy(constraint_file,&buffer[7]);}
 		if(strcmp(field,"MAXRES") == 0){sscanf(buffer,"%s %d",field,&FA->max_results);}
 		if(strcmp(field,"SPACER") == 0){sscanf(buffer,"%s %f",field,&FA->spacer_length);}

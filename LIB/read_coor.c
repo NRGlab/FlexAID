@@ -50,7 +50,8 @@ void read_coor(FA_Global* FA,atom** atoms,resid** residue,char line[], char res_
 		// dummy atom type by default
 		// dummy type is always second last (solvent is last)
 		(*atoms)[FA->atm_cnt].type = FA->ntypes-1;
-        
+
+		(*atoms)[FA->atm_cnt].recs = 'r';
 		(*atoms)[FA->atm_cnt].eigen = NULL;
 		(*atoms)[FA->atm_cnt].ncons=0;
 		(*atoms)[FA->atm_cnt].cons=NULL;

@@ -1602,6 +1602,7 @@ atomindex* index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,
 			// only the atoms that correspond to the correct rotamer are copied
 			// the total number of atoms thus is equal to atm_cnt_real
             
+			// Calc[i].atom = NULL;
 			if(Calc[i].atom == NULL){
 				Calc[i].atom = &atoms[atmi];
 				Calc[i].residue = &residue[resi];

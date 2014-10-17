@@ -330,6 +330,7 @@ struct FA_Global_struct{
 	float cluster_rmsd;                  // rmsd between poses when clustering
 
 	float permeability;                  // allow permeability or not between atoms
+	float rotamer_permeability;          // rotamer acceptance vdw permeability
 	int   intramolecular;                // consider intramolecular forces (ligand only)
 	float solventterm;                   // solvent penalty term
 	float intrafraction;                 // intramolecular fraction interaction
