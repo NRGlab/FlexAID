@@ -331,6 +331,7 @@ struct FA_Global_struct{
 	uint temperature;					 // temperature parameter 
 	double beta;						 // Metropolis ß parament == 1/T *may be worth trying 1/kT*
 	float permeability;                  // allow permeability or not between atoms
+	float rotamer_permeability;          // rotamer acceptance vdw permeability
 	int   intramolecular;                // consider intramolecular forces (ligand only)
 	float solventterm;                   // solvent penalty term
 	float intrafraction;                 // intramolecular fraction interaction
