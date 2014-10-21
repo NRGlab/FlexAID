@@ -144,6 +144,7 @@ int main(int argc, char **argv){
 	FA->rotobs=0;
 	FA->contributions=NULL;
         FA->output_scored_only=0;
+	FA->score_ligand_only=0;
 	FA->permeability=1.0;
 	FA->intramolecular=1;
 	FA->solventterm=0.0f;
