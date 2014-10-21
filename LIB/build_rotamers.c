@@ -308,54 +308,55 @@ void build_rotamers(FA_Global* FA,atom** atoms,resid* residue,rot* rotamer){
 
 		if(residue[kres].trot > 0 && residue[kres].bonded == NULL){
       
-			FA->optres = (OptRes*)realloc(FA->optres,FA->MIN_OPTRES*sizeof(OptRes));
-			if(!FA->optres){
-				fprintf(stderr,"ERROR: Could not re-allocate memory for FA->optres.\n");
-				Terminate(2);
-			}
-			memset(&FA->optres[FA->MIN_OPTRES-1],0,sizeof(OptRes));
-      
-			natm = residue[kres].latm[0]-residue[kres].fatm[0]+1;
-     
-      
-			//printf("residue[%d].fatm = %d\n",residue[kres].number,residue[kres].fatm[0]);
-
-			FA->optres[FA->MIN_OPTRES-1].rnum = kres;
-			// 0: side-chain (protein)
-			FA->optres[FA->MIN_OPTRES-1].type = 0;
-			FA->optres[FA->MIN_OPTRES-1].tot = natm;
-
-			for(i=0;i<natm;i++){
-		
-				nbonded=0;
-
-				bondedlist(*atoms,residue[kres].fatm[0]+i,FA->bloops,&nbonded,bondlist,neighbours);
-	
+			if(!FA->score_ligand_only){
+				FA->optres = (OptRes*)realloc(FA->optres,FA->MIN_OPTRES*sizeof(OptRes));
+				if(!FA->optres){
+					fprintf(stderr,"ERROR: Could not re-allocate memory for FA->optres.\n");
+					Terminate(2);
+				}
+				memset(&FA->optres[FA->MIN_OPTRES-1],0,sizeof(OptRes));
+				
+				natm = residue[kres].latm[0]-residue[kres].fatm[0]+1;
+				
+				
+				//printf("residue[%d].fatm = %d\n",residue[kres].number,residue[kres].fatm[0]);
+				
+				FA->optres[FA->MIN_OPTRES-1].rnum = kres;
+				// 0: side-chain (protein)
+				FA->optres[FA->MIN_OPTRES-1].type = 0;
+				FA->optres[FA->MIN_OPTRES-1].tot = natm;
+				
+				for(i=0;i<natm;i++){
+					
+					nbonded=0;
+					
+					bondedlist(*atoms,residue[kres].fatm[0]+i,FA->bloops,&nbonded,bondlist,neighbours);
+					
+					/*
+					  printf("bondlist[%d] for atom %d\t",i,(*atoms)[residue[kres].fatm[0]+i].number);
+					  for(j=0;j<nbonded;j++) printf("%6d(%2d)",(*atoms)[bondlist[j]].number,neighbours[j]);
+					  printf("\n");
+					*/
+					
+					update_bonded(&residue[kres],natm,nbonded,bondlist,neighbours);
+				}
+				
+				// prints bonded matrix
 				/*
-				  printf("bondlist[%d] for atom %d\t",i,(*atoms)[residue[kres].fatm[0]+i].number);
-				  for(j=0;j<nbonded;j++) printf("%6d(%2d)",(*atoms)[bondlist[j]].number,neighbours[j]);
+				  for(i=0;i<natm;i++){
+				  printf("\t%5d\t",i);
+				  for(j=0;j<natm;j++){
+				  printf("%2d",residue[kres].bonded[i][j]);
+				  }
 				  printf("\n");
+				  }
+				  getchar();
 				*/
-
-				update_bonded(&residue[kres],natm,nbonded,bondlist,neighbours);
+				
+				FA->num_optres++;
+				
+				FA->MIN_OPTRES++;
 			}
-      
-			// prints bonded matrix
-			/*
-			  for(i=0;i<natm;i++){
-			  printf("\t%5d\t",i);
-			  for(j=0;j<natm;j++){
-			  printf("%2d",residue[kres].bonded[i][j]);
-			  }
-			  printf("\n");
-			  }
-			  getchar();
-			*/
-
-			FA->num_optres++;
-
-			FA->MIN_OPTRES++;
-
 		}else{
     
 			for(i=residue[kres].fatm[0];i<=residue[kres].latm[0];i++){

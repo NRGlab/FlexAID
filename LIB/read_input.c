@@ -128,6 +128,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		if(strcmp(field,"TEMPOP") == 0){strcpy(FA->temp_path,&buffer[7]);}
 		if(strcmp(field,"NRGSUI") == 0){FA->nrg_suite=1;}
 		if(strcmp(field,"NRGOUT") == 0){sscanf(buffer,"%s %d",field,&FA->nrg_suite_timeout);}
+		if(strcmp(field,"SCOLIG") == 0){FA->score_ligand_only=1;}
 		if(strcmp(field,"SCOOUT") == 0){FA->output_scored_only=1;}
 	}
 	
