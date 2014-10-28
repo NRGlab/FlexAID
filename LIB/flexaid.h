@@ -536,6 +536,7 @@ void   Hungarian_reset_assigned_row(int* row_assigned, int nTypes);
 void   Hungarian_reset_assigned_column(int* column_assigned, int nTypes);
 void   Hungarian_reset_row_count(int* row_count, int nTypes);
 void   Hungarian_reset_column_count(int* column_count, int nTypes);
+void   Hungarian_reset_case(int** matrix_case, int nTypes);
 void   Hungarian_update_matrix(float** matrix, int** matrix_case, int nTypes);
 void   Hungarian_draw_line(float** matrix, float** matrix_original, int** matrix_case, int* row_count, int* column_count, int* row_assigned, int* column_assigned, int* matrix_match, int nTypes);
 void   Hungarian_reduce_matrix(float** matrix, float** matrix_original, int nTypes);

@@ -157,12 +157,14 @@ void Hungarian(float** matrix, float** matrix_original, int** matrix_case, int* 
 }
 int Hungarian_assign_jobs(float** matrix, float** matrix_original, int** matrix_case, int* unique_atom_type, int* row_count, int* column_count, int* row_assigned, int* column_assigned, int* matrix_match, int nTypes, int num_het_atoms)
 {
+	// Reset the matrices to be used in this loop and initilizing number_assigned -> 0
 	Hungarian_reset_match(matrix_match, nTypes);
 	Hungarian_reset_assigned_row(row_assigned, nTypes);
 	Hungarian_reset_assigned_column(column_assigned, nTypes);
 	int number_assigned = 0;
 	while(number_assigned < nTypes+1)
 	{
+		// 0. Reset the row_count[] && column_count[]
 		Hungarian_reset_row_count(row_count, nTypes);
 		Hungarian_reset_column_count(column_count, nTypes);
 
@@ -182,27 +184,107 @@ int Hungarian_assign_jobs(float** matrix, float** matrix_original, int** matrix_
 			}
 		}
 
-	}
+		// 2. Identify the row OR column with the lowest number of 0s
+		float minimal_value = 1000000;
+		int row_col = 0; // Value of 0 : no more 0s left in matrix; Value of 1 : least number of 0s found in a row; Value of 2 : least number of 0s found in a col 
+
+		int row = -1;
+		int col = -1;
+
+		for(int i=0; i<nTypes; i++)
+		{
+			if(row_count[i] != 0 && row_count[i] < minimal_value)
+			{
+				minimal_value = row_count[i];
+				row = i;
+				row_col = 1;
+				col = -1;
+			}
+			if(column_count[i] != 0 && column_count[i] < minimal_value)
+			{
+				minimal_value = column_count[i];
+				col = i;
+				row_col = 2;
+				row = -1;
+			}
+		}
+
+		// 3. Make an assignment in the row or column with the least number of 0s
+		if(row_col == 0) { break; }
+		else if(row_col == 1)
+		{
+			for(int i=0; i<nTypes; i++)
+			{
+				if(matrix[row][i] == 0 && column_assigned[i] == 0)
+				{
+					matrix_match[row] = i;
+					row_assigned[row] = 1;
+					column_assigned[i] = 1;
+					break; // breaks the for loop
+				}
+			}
+		}
+		else if(row_col == 2)
+		{
+			for(int i=0; i<nTypes; i++)
+			{
+				if(matrix[i][col] == 0 && row_assigned[i] == 0)
+				{
+					matrix_match[i] = col;
+					column_assigned[col] = 1;
+					row_assigned[i] = 1;
+					break; // breaks the for loop
+				}
+			}
+		}
+		number_assigned++;
+	} // End of While loop : this will loop until all possible worker / job pairs are formed
+	return(number_assigned);
 }
 void Hungarian_reset_match(int* matrix_match, int nTypes)
 {
-
+	for(int i=0; i<nTypes; i++)
+	{
+		matrix_match[i] = -100;
+	}
 }
 void Hungarian_reset_assigned_row(int* row_assigned, int nTypes)
 {
-
+	for(int i=0; i<nTypes; i++)
+	{
+		row_assigned[i] = 0;
+	}
 }
 void Hungarian_reset_assigned_column(int* column_assigned, int nTypes)
 {
-
+	for(int i=0; i<nTypes; i++)
+	{
+		column_assigned[i] = 0;
+	}
 }
 void Hungarian_reset_row_count(int* row_count, int nTypes)
 {
-
+	for(int i=0; i<nTypes; i++)
+	{
+		row_count[i] = 0;
+	}
 }
 void Hungarian_reset_column_count(int* column_count, int nTypes)
 {
-
+	for(int i=0; i<nTypes; i++)
+	{
+		column_count[i] = 0;
+	}
+}
+void   Hungarian_reset_case(int** matrix_case, int nTypes)
+{
+	for(int i=0;i<nTypes;i++)
+	{
+		for(int j=0; j<nTypes;j++)
+		{
+			matrix_case[i][j] = 0;
+		}
+	}
 }
 void Hungarian_update_matrix(float** matrix, int** matrix_case, int nTypes)
 {
@@ -214,43 +296,43 @@ void Hungarian_draw_line(float** matrix, float** matrix_original, int** matrix_c
 }
 void Hungarian_reduce_matrix(float** matrix, float** matrix_original, int nTypes)
 {
-	for(int ii=0; ii<nTypes; ii++)
+	for(int i=0; i<nTypes; i++)
 	{
-		for(int jj=0; jj < nTypes; jj++)
+		for(int j=0; j < nTypes; j++)
 		{
-			matrix_original[ii][jj] = matrix[ii][jj];
+			matrix_original[i][j] = matrix[i][j];
 		}
 	}
 
-	for(int ii=0; ii<nTypes; ii++)
+	for(int i=0; i<nTypes; i++)
 	{
-		float minimal_value = float.MaxValue;
-		for(int jj=0; jj < nTypes; jj++)
+		float minimal_value = 1000000;
+		for(int j=0; j < nTypes; j++)
 		{
-			if(matrix[ii][jj] < minimal_value)
+			if(matrix[i][j] < minimal_value)
 			{
-				minimal_value = matrix[ii][jj];
+				minimal_value = matrix[i][j];
 			}
 		}
-		for(int jj =0; jj < nTypes; jj++)
+		for(int j =0; j < nTypes; j++)
 		{
-			matrix[ii][jj] -= minimal_value;
+			matrix[i][j] -= minimal_value;
 		}
 	}
 
-	for(int jj=0; jj<nTypes; jj++)
+	for(int j=0; j<nTypes; j++)
 	{
-		float minimal_value = float.MaxValue;
-		for(int ii =0; ii<nTypes; ii++)
+		float minimal_value = 1000000;
+		for(int i =0; i<nTypes; i++)
 		{
-			if(matrix[ii][jj] < minimal_value)
+			if(matrix[i][j] < minimal_value)
 			{
-				minimal_value = matrix[ii][jj];
+				minimal_value = matrix[i][j];
 			}
 		}
-		for(int ii=0; ii<nTypes;ii++)
+		for(int i=0; i<nTypes;i++)
 		{
-			matrix[ii][jj] -= minimal_value;
+			matrix[i][j] -= minimal_value;
 		}
 	}
 	return;
