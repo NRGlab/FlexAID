@@ -103,7 +103,7 @@ float calc_Hungarian_RMSD(FA_Global* FA, atom* atoms, resid* residue, gridpoint*
 					}
 					total_assignment += assignment;
 					
-					// Free dynamically allocated memory
+					// FREEING DYNAMICALLY ALLOCATED MEMORY below
 					if(matrix != NULL)
 					{
 						for(int ii = 0; ii < nTypes; ii++) {free(matrix[ii]);}
@@ -125,16 +125,19 @@ float calc_Hungarian_RMSD(FA_Global* FA, atom* atoms, resid* residue, gridpoint*
 					if(column_assigned != NULL) {free(column_assigned);}
 					if(matrix_match != NULL) {free(matrix_match);}
 				}
-				rmsd = sqrt(total_assignment/FA->num_het_atm);
 
 				// Freeing the unique_atom_type[] dynamically allocated memory (check if it could be placed elsewhere)
 				if(unique_atom_type != NULL) {free(unique_atom_type);}
 				
 				// Return symetry corrected RMSD
-				return(rmsd);
+				// rmsd = sqrt(total_assignment/FA->num_het_atm);
+				// return(rmsd);
 			}
 		}
 	}
+	// Return symetry corrected RMSD
+	rmsd = sqrt(total_assignment/FA->num_het_atm);
+	return(rmsd);
 }
 
 void Hungarian(float** matrix, float** matrix_original, int** matrix_case, int* unique_atom_type, int* row_count, int* column_count, int* row_assigned, int* column_assigned, int* matrix_match, int nTypes, int num_het_atoms)
@@ -276,7 +279,7 @@ void Hungarian_reset_column_count(int* column_count, int nTypes)
 		column_count[i] = 0;
 	}
 }
-void   Hungarian_reset_case(int** matrix_case, int nTypes)
+void Hungarian_reset_case(int** matrix_case, int nTypes)
 {
 	for(int i=0;i<nTypes;i++)
 	{
@@ -288,11 +291,124 @@ void   Hungarian_reset_case(int** matrix_case, int nTypes)
 }
 void Hungarian_update_matrix(float** matrix, int** matrix_case, int nTypes)
 {
-
+	// 0. Initialization of the variable used to store the minimal value of the matrix
+	float minimal_value = 1000000;
+	// 1. Find the minimal_value in matrix
+	for(int i=0; i<nTypes; i++)
+	{
+		for(int j=0; j<nTypes; j++)
+		{
+			if(matrix_case[i][j] == 0)
+			{
+				if(matrix[i][j] < minimal_value)
+				{
+					minimal_value = matrix[i][j];
+				}
+			}
+		}
+	}
+	// 2. Update every element of the matrix[][]
+	for(int i=0; i<nTypes; i++)
+	{
+		for(int j=0; j<nTypes; j++)
+		{
+			if(matrix_case[i][j] == 0)
+			{
+				matrix[i][j] -= minimal_value;
+			}
+			else if(matrix_case[i][j] == 1)
+			{
+				// Nothing to do here !
+			}
+			else if(matrix_case[i][j] == 2)
+			{
+				matrix[i][j] += minimal_value;
+			}
+		}
+	}
+	return;
 }
 void Hungarian_draw_line(float** matrix, float** matrix_original, int** matrix_case, int* row_count, int* column_count, int* row_assigned, int* column_assigned, int* matrix_match, int nTypes)
 {
+	int lines = 0; // the number of lines required to cross out all 0s in matrix[][]
+	// 0. reset the matrices used in this function
+	Hungarian_reset_assigned_row(row_assigned, nTypes);
+	Hungarian_reset_assigned_column(column_assigned, nTypes);
+	Hungarian_reset_case(matrix_case, nTypes);
 
+	// 1. Find/Mark rows without assignment
+	for(int i=0; i<nTypes; i++)
+	{
+		if(matrix_match[i] == -100)
+		{
+			row_assigned[i] = 1;
+		}
+	}
+
+	bool flag_update = true; // Flag indicating that an update was made during last iter
+	int count_updates = 0;	 // Loop counter
+
+	// Looping until which line to be drawn is decided
+	while(flag_update && count_updates < nTypes*2)
+	{
+		flag_update = false;
+
+		// 2. Mark all columns having 0s in those rows
+		for(int i=0; i<nTypes; i++) // Foreach row in matrix
+		{
+			if(row_assigned[i] == 1) // If this row have been previously assigned
+			{
+				for(int j=0; j < nTypes; j++) // For each column in this row 
+				{
+					if(matrix[i][j] == 0) // Check wheter there is a 0
+					{
+						column_assigned[j] = 1; // Mark && remember this position in colum_assigned
+					}
+				}
+			}
+		}
+
+		// 3. Mark all rows having assignments in those coloumns
+		for(int i=0; i< nTypes; i++) // for all the column in the matrix[][]
+		{
+			if(column_assigned[i] == 1) // If a the column have been marked
+			{
+				for(int j=0; j<nTypes; j++) // Then check each row in this column
+				{
+					if(matrix_match[j] == i && row_assigned[j] != 1) // and see if an assignment have been made :
+					{
+						row_assigned[j] = 1; // Mark that row
+						flag_update = true;  // Flag the update that have been made
+						count_updates++; 	 // Unsure if I need to update the counter here OR elsewhere OR if I need to get rid of it
+					} 
+				}
+			}
+		}
+	}
+
+	// 4. Draw lines htrough marked columns and unmarked rows
+	for(int i=0; i<nTypes; i++)				// for all of the cells in matrix[][]...
+	{
+		if(row_assigned[i] == 0)			// if a row has not been marked,
+		{
+			for(int j=0; j<nTypes; j++)		// draw a line through that row by incrementing every entry in
+			{
+				matrix_case[i][j]++;		// matrix_case[row][] by 1
+			}
+			lines++;						// a line was just drawn, increment lines by 1
+		}
+		if(column_assigned[i] == 1)
+		{
+			for(int j=0; j<nTypes; j++)		// if a column has been marked,
+			{								// draw a line through that column by incrementing every entry in
+				matrix_case[j][i]++;		// matrix_case[][column] by 1
+			}
+			lines++;						// a line was just drawn, increment lines by 1
+		}
+	}
+	// every cell in matrix_case[][] will now either be a 0 (no lines covering), 1 (one line covering),
+    // or 2 (two lines covering)
+	return;
 }
 void Hungarian_reduce_matrix(float** matrix, float** matrix_original, int nTypes)
 {
