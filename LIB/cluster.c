@@ -1,8 +1,9 @@
 #include "gaboom.h"
 #include "boinc.h"
 
-void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, 
-	     gridpoint* cleftgrid, int num_chrom, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp){
+void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int num_chrom, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
+{
+	bool Hungarian = true;
 
 	int i,j;
 	cfstr cf;                                /* complementarity function value */
@@ -189,7 +190,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		strcat(remark,tmpremark);
 		if(FA->refstructure == 1){
 			sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure\n",
-				calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, false));
+				calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian));
 			strcat(remark,tmpremark);
 		}
 		sprintf(tmpremark,"REMARK inputs: %s & %s\n",dockinp,gainp);
