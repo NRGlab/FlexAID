@@ -189,7 +189,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		strcat(remark,tmpremark);
 		if(FA->refstructure == 1){
 			sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure\n",
-				calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par));
+				calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, false));
 			strcat(remark,tmpremark);
 		}
 		sprintf(tmpremark,"REMARK inputs: %s & %s\n",dockinp,gainp);

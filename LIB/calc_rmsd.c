@@ -6,7 +6,7 @@
  * residue[opt_res[0]] after reconstructing the coordinates using opt_par       *
  ********************************************************************************/
 
-float calc_rmsd(FA_Global* FA,atom* atoms,resid* residue, gridpoint* cleftgrid,int npar, const double* icv){
+float calc_rmsd(FA_Global* FA,atom* atoms,resid* residue, gridpoint* cleftgrid,int npar, const double* icv, bool Hungarian){
 	float rmsd=0.0f;
 	int i,cat,j,l;
 	uint grd_idx;
@@ -83,19 +83,24 @@ float calc_rmsd(FA_Global* FA,atom* atoms,resid* residue, gridpoint* cleftgrid,i
 		*/
 		buildcc(FA,atoms,FA->nmov[i],FA->mov[i]);
 	}
- 
-	l=0;
-	for(i=1; i<=FA->res_cnt; i++){
-		rot = residue[i].rot;
-		for(j=residue[i].fatm[rot]; j<=residue[i].latm[rot]; j++){
-			if(atoms[j].coor_ref != NULL){
-				rmsd += sqrdist(atoms[j].coor,atoms[j].coor_ref);
-				l++;
+ 	if(Hungarian == false)
+ 	{
+		l=0;
+		for(i=1; i<=FA->res_cnt; i++){
+			rot = residue[i].rot;
+			for(j=residue[i].fatm[rot]; j<=residue[i].latm[rot]; j++){
+				if(atoms[j].coor_ref != NULL){
+					rmsd += sqrdist(atoms[j].coor,atoms[j].coor_ref);
+					l++;
+				}
 			}
 		}
+		rmsd = sqrtf(rmsd/((float)l));
 	}
-	
-	rmsd = sqrtf(rmsd/((float)l));
+	else if(Hungarian == true)
+	{
+		rmsd = calc_Hungarian_RMSD(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par);
+	}	
 	
 	//printf("RMSD=%f\n",rmsd); 
 	//PAUSE;

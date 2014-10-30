@@ -99,6 +99,7 @@ OBJ =	top.o			\
 	read_rmsdst.o		\
 	calc_rmsd_chrom.o	\
 	calc_rmsd.o		\
+	calc_Hungarian_RMSD.o \
 	write_rrd.o		\
 	write_rrg.o		\
 	write_sphere.o		\
@@ -264,6 +265,9 @@ calc_rmsd_chrom.o: $I/calc_rmsd_chrom.c $I/flexaid.h
 
 calc_rmsd.o: $I/calc_rmsd.c $I/flexaid.h
 	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/calc_rmsd.c
+
+calc_Hungarian_RMSD.o: $I/calc_Hungarian_RMSD.c $I/flexaid.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/calc_Hungarian_RMSD.c
 
 write_rrd.o: $I/write_rrd.c $I/flexaid.h $I/gaboom.h $I/boinc.h
 	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/write_rrd.c $(INCLUDES)
