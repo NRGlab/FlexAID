@@ -375,6 +375,8 @@ struct FA_Global_struct{
 	//int   hrnum;
 
 	int output_scored_only;              // ouptuts the ligand coordinates only in the results file
+	int score_ligand_only;              // scores the ligand only despite sidechains are enabled.
+
 	char vcontacts_self_consistency[6];  // A --> B and B --> A contacts self consistency
 	char vcontacts_planedef;             // plane definition for vcontacts
     
