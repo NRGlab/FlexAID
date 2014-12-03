@@ -331,6 +331,7 @@ struct FA_Global_struct{
 	uint temperature;					 // temperature parameter 
 	double beta;						 // Metropolis ß parament == 1/T *may be worth trying 1/kT*
 	float permeability;                  // allow permeability or not between atoms
+	float rotamer_permeability;          // rotamer acceptance vdw permeability
 	int   intramolecular;                // consider intramolecular forces (ligand only)
 	float solventterm;                   // solvent penalty term
 	float intrafraction;                 // intramolecular fraction interaction
@@ -374,6 +375,8 @@ struct FA_Global_struct{
 	//int   hrnum;
 
 	int output_scored_only;              // ouptuts the ligand coordinates only in the results file
+	int score_ligand_only;              // scores the ligand only despite sidechains are enabled.
+
 	char vcontacts_self_consistency[6];  // A --> B and B --> A contacts self consistency
 	char vcontacts_planedef;             // plane definition for vcontacts
     

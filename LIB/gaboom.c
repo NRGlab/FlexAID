@@ -320,12 +320,13 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 		
 		if(strcmp(GB->fitness_model,"PSHARE")==0){
 			QuickSort((*chrom),0,GB->num_chrom-1,false);
-			
+
 			if(print){
 				printf("best by fitnes\n");
 				print_par((*chrom),(*gene_lim),GB->num_print,GB->num_genes, stdout);
 			}
 		}
+		
 	}
 	
 	printf("%d ligand conformers rejected\n", nrejected);
@@ -537,7 +538,7 @@ int reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom, cons
 	if(strcmp(repmodel,"STEADY")==0){
 		nnew = GB->ssnum;
 	}else if(strcmp(repmodel,"BOOM")==0){
-		nnew=(int)(GB->pbfrac*(double)GB->num_chrom);
+		nnew = (int)(GB->pbfrac*(double)GB->num_chrom);
 	}else{
 		nnew = 0;
 	}
@@ -647,6 +648,7 @@ int reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom, cons
 	
 	if(strcmp(repmodel,"STEADY")==0){
 		// replace the n individuals from the old population with the new one (elitism)
+		QuickSort(chrom,0,GB->num_chrom-1,true);
 		for(i=0;i<nnew;i++) chrom[GB->num_chrom-1-i]=chrom[GB->num_chrom+i];
 		calculate_fitness(FA,GB,VC,chrom,gene_lim,atoms,residue,cleftgrid,
 				  GB->fitness_model,GB->num_chrom,print,target);

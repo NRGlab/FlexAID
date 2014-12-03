@@ -186,9 +186,12 @@ void rewrite_residue2(char lines[][100], int nlines, int* wrote, FILE* outfile_p
 	int i;
 	
 	while((i=get_NextLine(lines,nlines)) != -1){
-		fprintf(outfile_ptr,"%s",lines[i]);
+		char newline[100];
+		strncpy(newline,lines[i],6);
+		sprintf(&newline[6],"%5d",++(*wrote));
+		strcat(&newline[11],&lines[i][11]);
+		fprintf(outfile_ptr,"%s",newline);
 		strcpy(lines[i],"                    ");
-		(*wrote)++;
 	}
 	
 }

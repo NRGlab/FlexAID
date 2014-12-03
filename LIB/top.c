@@ -96,8 +96,11 @@ int main(int argc, char **argv){
 	FA->dee_clash = 0.5;
 	FA->intrafraction = 1.0;
 	FA->cluster_rmsd = 2.0f;
+
+	FA->rotamer_permeability = 0.8;
 	FA->temperature = 0;
 	FA->beta = 0.0;
+
 	FA->force_interaction=0;
 	FA->interaction_factor=5.0;
 	FA->atm_cnt=0;
@@ -144,6 +147,7 @@ int main(int argc, char **argv){
 	FA->rotobs=0;
 	FA->contributions=NULL;
         FA->output_scored_only=0;
+	FA->score_ligand_only=0;
 	FA->permeability=1.0;
 	FA->intramolecular=1;
 	FA->solventterm=0.0f;
