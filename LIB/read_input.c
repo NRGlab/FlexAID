@@ -133,9 +133,14 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		if(strcmp(field,"TEMPER") == 0)
 		{
 			sscanf(buffer, "%s %d", field, &FA->temperature);
-			if(FA->temperature > 0) { FA->beta = (double) (1 / FA->temperature); }
+			if(FA->temperature > 0) { FA->beta = (double)(1.0 / FA->temperature); }
+			else if(!FA->temperature)
+			{
+				FA->beta = 0;
+			}
 			else
 			{
+				// Terminate FlexAID if FA->temperature is a negative value
 				fprintf(stderr,"ERROR: Negative temperature given in input parameter.\n");
 				Terminate(2);
 			}
