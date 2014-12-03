@@ -130,11 +130,11 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		if(strcmp(field,"SCOOUT") == 0){FA->output_scored_only=1;}
 		if(strcmp(field,"TEMPER") == 0)
 		{
-			sscanf(buffer, "%s %d", field, &FA->temperature);
-			if(FA->temperature > 0) { FA->beta = (double) (1 / FA->temperature); }
+			sscanf(buffer, "%s %u", field, &FA->temperature);
+			if(FA->temperature > 0) { FA->beta = (double) (1.0 / FA->temperature); }
 			else
 			{
-				fprintf(stderr,"ERROR: Negative temperature given in input parameter.\n");
+				fprintf(stderr,"ERROR: Invalid temperature given in input parameter.\n");
 				Terminate(2);
 			}
 		}

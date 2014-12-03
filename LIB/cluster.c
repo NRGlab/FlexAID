@@ -12,7 +12,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 	FILE* outfile_ptr = NULL;
 
 	// will 
-	double partition_function = 0.0f;
+	double partition_function = 0.0;
 
 	float rmsd = 0.0f;
 	int num_of_results = FA->max_results;
@@ -72,13 +72,15 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		Clus_TCF[j]=0.0;
 		Clus_TOP[j]=0;
 		Clus_FRE[j]=0;
-		partition_function += pow( E, ((-1) * FA->beta * chrom[j].app_evalue) );
+		if(FA->temperature){
+			partition_function += pow( E, ((-1.0) * FA->beta * chrom[j].app_evalue) );
+		}
 	}
     //printf("n_unclus=%d\n",n_unclus);
     //PAUSE;
 	
 	// Verify that partition_function != NULL
-	if(!partition_function) 
+	if(FA->temperature && partition_function == 0.0) 
 	{
 		fprintf(stderr,"ERROR: The Partition Function is NULL in the clustering step.\n");
 		Terminate(2);
@@ -89,14 +91,19 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 	{
 		for(j=0;j<num_chrom;j++){if(Clus_GAPOP[j]==-1){break;}}
 		//printf("at chromosome j=%d with app_evalue=%.3f\n", j, chrom[j].app_evalue);
-		double Pj = pow( E, ((-1) * FA->beta * chrom[j].app_evalue) ) / partition_function;
 		Clus_GAPOP[j]=j;
 		Clus_RMSDT[j]=0.0;
 		n_unclus--;
 		// Clus_TCF[num_of_clusters]=chrom[j].app_evalue;
 		// Clus_TCF[num_of_clusters]=chrom[j].app_evalue;
-		Clus_ACF[num_of_clusters] = (double)( ( Pj * chrom[j].app_evalue) - (FA->temperature * Pj * log(Pj)) );
-		Clus_TCF[num_of_clusters] = (double)( ( Pj * chrom[j].app_evalue) - (FA->temperature * Pj * log(Pj)) );
+		if(FA->temperature){
+			double Pj = pow( E, ((-1.0) * FA->beta * chrom[j].app_evalue) ) / partition_function;
+			Clus_ACF[num_of_clusters] = (double)( ( Pj * chrom[j].app_evalue) - (FA->temperature * Pj * log(Pj)) );
+			Clus_TCF[num_of_clusters] = (double)( ( Pj * chrom[j].app_evalue) - (FA->temperature * Pj * log(Pj)) );
+		}else{
+			Clus_TCF[num_of_clusters] = chrom[j].app_evalue;
+			Clus_ACF[num_of_clusters] = chrom[j].app_evalue;
+		}
 		Clus_TOP[num_of_clusters]=j;
 		Clus_FRE[num_of_clusters]++;
 
@@ -106,7 +113,6 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		{
 			if(Clus_GAPOP[i]==-1)
 			{
-				double Pi = pow( E, ((-1) * FA->beta * chrom[i].app_evalue) ) / partition_function;
 				rmsd=calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes,i,j);
 				//printf("rmsd(%d,%d)=%f\n",i,j,rmsd);
 				//PAUSE;
@@ -116,7 +122,12 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 					Clus_RMSDT[i]=rmsd;
 					// printf("i=%d belongs to cluster of j=%d because rmsd=%.3f\n", i, j, rmsd);
 					n_unclus--;
-					Clus_ACF[num_of_clusters] += (double)( (Pi * chrom[i].app_evalue) - (FA->temperature * Pi * log(Pi)) );
+					if(FA->temperature){
+						double Pi = pow( E, ((-1.0) * FA->beta * chrom[i].app_evalue) ) / partition_function;
+						Clus_ACF[num_of_clusters] += (double)( (Pi * chrom[i].app_evalue) - (FA->temperature * Pi * log(Pi)) );
+					}else{
+						Clus_ACF[num_of_clusters] += chrom[i].app_evalue;
+					}
 					Clus_FRE[num_of_clusters]++;
 				}
 			}
@@ -127,8 +138,10 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		if(num_of_clusters == num_of_results){break;}
 	}
 
-	// Reordering the clusters properly by lowest ACF values first (after considering cluster's entropy !)
-	QuickSort_Clusters(Clus_TOP, Clus_FRE, Clus_TCF, Clus_ACF, Clus_GAPOP, 0, num_of_results-1);
+	if(FA->temperature){
+		// Reordering the clusters properly by lowest ACF values first (after considering cluster's entropy !)
+		QuickSort_Clusters(Clus_TOP, Clus_FRE, Clus_TCF, Clus_ACF, Clus_GAPOP, 0, num_of_results-1);
+	}
       
 	// print cluster information
 	sprintf(sufix,".cad");
