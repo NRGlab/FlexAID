@@ -108,10 +108,11 @@ float distance_n(float a[], float b[], int n){
 /******************************************************************************
  * SUBROUTINE sqrdist calculates the square distance between two points in d=3.
  ******************************************************************************/
-float sqrdist(float a[], float b[]){
+float sqrdist(float a[], float b[])
+ {
   float d;
   int i;
-  
+
   d=0.0;
   for(i=0;i<=2;i++){
     d += (a[i]-b[i])*(a[i]-b[i]); 
