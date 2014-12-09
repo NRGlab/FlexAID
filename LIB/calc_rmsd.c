@@ -196,12 +196,14 @@ float calc_Hungarian_RMSD(FA_Global* FA, atom* atoms, resid* residue, gridpoint*
                         {
                             count_i++;
                             count_j = -1;
+
+                            // Here is a mistake as 'l' does not equal 'k' (which is the appropriate scorable atom number)
                             for(int l = 0; l < FA->num_het_atm; l++)
                             {
-                                if(atoms[l].type == unique_atom_type[z])
+                                if(atoms[l+residue[j].fatm[0]].type == unique_atom_type[z])
                                 {
                                     count_j++;
-                                    matrix[count_i][count_j] = sqrdist(atoms[k].coor,atoms[l].coor_ref);
+                                    matrix[count_i][count_j] = sqrdist(atoms[k].coor,atoms[l+residue[j].fatm[0]].coor_ref);
                                 }
                             }
                         }
