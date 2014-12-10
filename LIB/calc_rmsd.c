@@ -113,7 +113,7 @@ float calc_Hungarian_RMSD(FA_Global* FA, atom* atoms, resid* residue, gridpoint*
 {
     int i,j,k;
     float rmsd = 0.0f;
-    float total_assignment = 0;
+    float total_assignment = 0.0f;
     int nTypes = 0;
     int nUniqueTypes = 0;
     bool unique_flag = true;
