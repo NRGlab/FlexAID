@@ -180,8 +180,9 @@ float calc_Hungarian_RMSD(FA_Global* FA, atom* atoms, resid* residue, gridpoint*
                     matrix = (float**) malloc(sizeof(float *) * nTypes);
                     matrix_original = (float**) malloc(sizeof(float *) * nTypes);
                     matrix_case = (int**) malloc(sizeof(int*) * nTypes);
-                    if(!matrix || !matrix_original || !matrix_case)
+                    if(matrix == NULL || matrix_original == NULL || matrix_case == NULL)
                     {
+                        printf("ERROR: memory allocation error for hungarian algorithm.\n");
                         fprintf(stderr,"ERROR: memory allocation error for hungarian algorithm.\n");
                         Terminate(2);
                     }
@@ -192,6 +193,7 @@ float calc_Hungarian_RMSD(FA_Global* FA, atom* atoms, resid* residue, gridpoint*
                         matrix_case[k] = (int *) malloc(sizeof(int) * nTypes);
                         if(matrix[k] == NULL || matrix_original[k] == NULL || matrix_case[k] == NULL)
                         {
+                            printf("ERROR: memory allocation error for hungarian algorithm.\n");
                             fprintf(stderr,"ERROR: memory allocation error for hungarian algorithm.\n");
                             Terminate(2);
                         }
@@ -201,19 +203,21 @@ float calc_Hungarian_RMSD(FA_Global* FA, atom* atoms, resid* residue, gridpoint*
                     row_assigned = (int*) malloc(sizeof(int) * nTypes);
                     column_assigned = (int*) malloc(sizeof(int) * nTypes);
                     matrix_match = (int*) malloc(sizeof(int) * nTypes);
-                    if(!row_count || !column_count || !column_assigned || !row_assigned || !matrix_match)
+                    if(row_count == NULL || column_count == NULL || column_assigned == NULL || row_assigned == NULL || matrix_match == NULL)
                     {
                         fprintf(stderr,"ERROR: memory allocation error for hungarian algorithm.\n");
                         Terminate(2);
                     }
                     // ~initialize() arrays
+                    // 1D array initialization (set to 0) for int arrays
+                    memset(row_count, 0, nTypes * sizeof(row_count[0]) );
+                    memset(column_count, 0, nTypes * sizeof(column_count[0]) );
+                    memset(row_assigned, 0, nTypes * sizeof(row_assigned[0]) );
+                    memset(column_assigned, 0, nTypes * sizeof(column_assigned[0]) );
+                    memset(matrix_match, 0, nTypes * sizeof(matrix_match[0]) );
+                    // 2D array init for floats arrays (matrix[][] && matrix_original[][]) and int array (matrix_case[][])
                     for(k = 0; k < nTypes; k++)
                     {
-                        row_count[k] = 0;
-                        column_count[k] = 0;
-                        row_assigned[k] = 0;
-                        column_assigned[k] = 0;
-                        matrix_match[k] = 0;
                         for(int kk = 0; kk < nTypes; kk++)
                         {
                             matrix[k][kk] = 0.0f;
@@ -221,8 +225,8 @@ float calc_Hungarian_RMSD(FA_Global* FA, atom* atoms, resid* residue, gridpoint*
                             matrix_case[k][kk] = 0; 
                         }
                     }
-                    
 
+                    // Init
                     int count_i = -1;
                     int count_j = -1;
                     
@@ -244,7 +248,7 @@ float calc_Hungarian_RMSD(FA_Global* FA, atom* atoms, resid* residue, gridpoint*
                                     // Placing MSD (sommes des distances au carrés) in matrix[][]
                                     for(int coord = 0; coord < 3; coord++)
                                     {
-                                        matrix[count_i][count_j] += pow(atoms[k].coor[coord] - atoms[k+l].coor_ref[coord], 2);
+                                        matrix[count_i][count_j] += pow((atoms[k].coor[coord] - atoms[k+l].coor_ref[coord]), 2);
                                     }
                                 }
                             }
@@ -578,7 +582,7 @@ void Hungarian_reduce_matrix(float** matrix, float** matrix_original, int nTypes
     
     for(int i=0; i<nTypes; i++)
     {
-        float minimal_value = 2147483647;
+        float minimal_value = 10000000;
         for(int j=0; j < nTypes; j++)
         {
             if(matrix[i][j] < minimal_value)
@@ -594,7 +598,7 @@ void Hungarian_reduce_matrix(float** matrix, float** matrix_original, int nTypes
     
     for(int j=0; j<nTypes; j++)
     {
-        float minimal_value = 2147483647;
+        float minimal_value = 10000000;
         for(int i =0; i<nTypes; i++)
         {
             if(matrix[i][j] < minimal_value)
