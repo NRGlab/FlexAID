@@ -210,11 +210,11 @@ float calc_Hungarian_RMSD(FA_Global* FA, atom* atoms, resid* residue, gridpoint*
                     }
                     // ~initialize() arrays
                     // 1D array initialization (set to 0) for int arrays
-                    memset(row_count, 0, nTypes * sizeof(row_count[0]) );
-                    memset(column_count, 0, nTypes * sizeof(column_count[0]) );
-                    memset(row_assigned, 0, nTypes * sizeof(row_assigned[0]) );
-                    memset(column_assigned, 0, nTypes * sizeof(column_assigned[0]) );
-                    memset(matrix_match, 0, nTypes * sizeof(matrix_match[0]) );
+                    memset( row_count, 0, nTypes * sizeof(row_count[0]) );
+                    memset( column_count, 0, nTypes * sizeof(column_count[0]) );
+                    memset( row_assigned, 0, nTypes * sizeof(row_assigned[0]) );
+                    memset( column_assigned, 0, nTypes * sizeof(column_assigned[0]) );
+                    memset( matrix_match, 0, nTypes * sizeof(matrix_match[0]) );
                     // 2D array init for floats arrays (matrix[][] && matrix_original[][]) and int array (matrix_case[][])
                     for(k = 0; k < nTypes; k++)
                     {
@@ -406,38 +406,43 @@ int Hungarian_assign_jobs(float** matrix, float** matrix_original, int** matrix_
 }
 void Hungarian_reset_match(int* matrix_match, int nTypes)
 {
-    for(int i=0; i<nTypes; i++)
-    {
-        matrix_match[i] = -100;
-    }
+    // for(int i=0; i<nTypes; i++)
+    // {
+    //     matrix_match[i] = -100;
+    // }
+    memset( matrix_match, -100, nTypes * sizeof(matrix_match[0]) );
 }
 void Hungarian_reset_assigned_row(int* row_assigned, int nTypes)
 {
-    for(int i=0; i<nTypes; i++)
-    {
-        row_assigned[i] = 0;
-    }
+    // for(int i=0; i<nTypes; i++)
+    // {
+    //     row_assigned[i] = 0;
+    // }
+    memset( row_assigned, 0, nTypes * sizeof(row_assigned[0]) );
 }
 void Hungarian_reset_assigned_column(int* column_assigned, int nTypes)
 {
-    for(int i=0; i<nTypes; i++)
-    {
-        column_assigned[i] = 0;
-    }
+    // for(int i=0; i<nTypes; i++)
+    // {
+    //     column_assigned[i] = 0;
+    // }
+    memset( column_assigned, 0, nTypes * sizeof(column_assigned[0]) );
 }
 void Hungarian_reset_row_count(int* row_count, int nTypes)
 {
-    for(int i=0; i<nTypes; i++)
-    {
-        row_count[i] = 0;
-    }
+    // for(int i=0; i<nTypes; i++)
+    // {
+    //     row_count[i] = 0;
+    // }
+    memset( row_count, 0, nTypes * sizeof(row_count[0]) );
 }
 void Hungarian_reset_column_count(int* column_count, int nTypes)
 {
-    for(int i=0; i<nTypes; i++)
-    {
-        column_count[i] = 0;
-    }
+    // for(int i=0; i<nTypes; i++)
+    // {
+    //     column_count[i] = 0;
+    // }
+    memset( column_count, 0, nTypes * sizeof(column_count[0]) );
 }
 void Hungarian_reset_case(int** matrix_case, int nTypes)
 {
