@@ -238,11 +238,7 @@ float calc_Hungarian_RMSD(FA_Global* FA, atom* atoms, resid* residue, gridpoint*
                                 if(atoms[k+l].type == unique_atom_type[z])
                                 {
                                     count_j++;
-                                    // Placing RMSD (racine de la sommes des distances au caré) in matrix[][]
-                                    // matrix[count_i][count_j] = sqrdist(atoms[k].coor,atoms[k+l].coor_ref);
-                                    // Placing MSD (sommes des distances au carrés) in matrix[][]
-                                    for(int coord = 0; coord < 3; coord++)
-                                        matrix[count_i][count_j] += pow((atoms[k].coor[coord] - atoms[k+l].coor_ref[coord]), 2);
+                                    matrix[count_i][count_j] = sqrdist(atoms[k].coor,atoms[k+l].coor_ref);
                                 }
                             }
                         }
@@ -294,8 +290,7 @@ float calc_Hungarian_RMSD(FA_Global* FA, atom* atoms, resid* residue, gridpoint*
         }
     }
     // Return symetry corrected RMSD
-     // rmsd = sqrt(total_assignment/(float)FA->num_het_atm);
-     rmsd = sqrt(total_assignment/FA->num_het_atm);
+     rmsd = sqrt(total_assignment/(float)FA->num_het_atm);
      return(rmsd);
 }
 
