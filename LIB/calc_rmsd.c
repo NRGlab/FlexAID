@@ -131,11 +131,7 @@ float calc_Hungarian_RMSD(FA_Global* FA, atom* atoms, resid* residue, gridpoint*
         Terminate(2);
     }
     // Initilization of the 'unique_atom_type[]' -> 0
-    for(i=0; i<FA->num_het_atm;i++)
-    {
-        unique_atom_type[i] = 0;
-    }
-    
+    memset(unique_atom_type, 0, FA->num_het_atm * sizeof(unique_atom_type[0]) );
     
     for(i = 1; i <= FA->num_het; i++)
     {
@@ -404,46 +400,35 @@ int Hungarian_assign_jobs(float** matrix, float** matrix_original, int** matrix_
     } // End of While loop : this will loop until all possible worker / job pairs are formed
     return(number_assigned);
 }
+
 void Hungarian_reset_match(int* matrix_match, int nTypes)
 {
-    // for(int i=0; i<nTypes; i++)
-    // {
-    //     matrix_match[i] = -100;
-    // }
-    memset( matrix_match, -100, nTypes * sizeof(matrix_match[0]) );
+    for(int i=0; i<nTypes; i++)
+    {
+        matrix_match[i] = -100;
+    }
 }
+
 void Hungarian_reset_assigned_row(int* row_assigned, int nTypes)
 {
-    // for(int i=0; i<nTypes; i++)
-    // {
-    //     row_assigned[i] = 0;
-    // }
     memset( row_assigned, 0, nTypes * sizeof(row_assigned[0]) );
 }
+
 void Hungarian_reset_assigned_column(int* column_assigned, int nTypes)
 {
-    // for(int i=0; i<nTypes; i++)
-    // {
-    //     column_assigned[i] = 0;
-    // }
     memset( column_assigned, 0, nTypes * sizeof(column_assigned[0]) );
 }
+
 void Hungarian_reset_row_count(int* row_count, int nTypes)
 {
-    // for(int i=0; i<nTypes; i++)
-    // {
-    //     row_count[i] = 0;
-    // }
     memset( row_count, 0, nTypes * sizeof(row_count[0]) );
 }
+
 void Hungarian_reset_column_count(int* column_count, int nTypes)
 {
-    // for(int i=0; i<nTypes; i++)
-    // {
-    //     column_count[i] = 0;
-    // }
     memset( column_count, 0, nTypes * sizeof(column_count[0]) );
 }
+
 void Hungarian_reset_case(int** matrix_case, int nTypes)
 {
     for(int i=0;i<nTypes;i++)
@@ -454,6 +439,7 @@ void Hungarian_reset_case(int** matrix_case, int nTypes)
         }
     }
 }
+
 void Hungarian_update_matrix(float** matrix, int** matrix_case, int nTypes)
 {
     // 0. Initialization of the variable used to store the minimal value of the matrix
@@ -493,6 +479,7 @@ void Hungarian_update_matrix(float** matrix, int** matrix_case, int nTypes)
     }
     return;
 }
+
 void Hungarian_draw_line(float** matrix, float** matrix_original, int** matrix_case, int* row_count, int* column_count, int* row_assigned, int* column_assigned, int* matrix_match, int nTypes)
 {
     int lines = 0; // the number of lines required to cross out all 0s in matrix[][]
@@ -551,7 +538,7 @@ void Hungarian_draw_line(float** matrix, float** matrix_original, int** matrix_c
         }
     }
     
-    // 4. Draw lines htrough marked columns and unmarked rows
+    // 4. Draw lines through marked columns and unmarked rows
     for(int i=0; i<nTypes; i++)				// for all of the cells in matrix[][]...
     {
         if(row_assigned[i] == 0)			// if a row has not been marked,
@@ -575,6 +562,7 @@ void Hungarian_draw_line(float** matrix, float** matrix_original, int** matrix_c
     // or 2 (two lines covering)
     return;
 }
+
 void Hungarian_reduce_matrix(float** matrix, float** matrix_original, int nTypes)
 {
     for(int i=0; i<nTypes; i++)
