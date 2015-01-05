@@ -230,7 +230,6 @@ float calc_Hungarian_RMSD(FA_Global* FA, atom* atoms, resid* residue, gridpoint*
                         if(atoms[k].type == unique_atom_type[z])
                         {
                             count_i++;
-                            printf("count_i : %d\n", count_i);
                             count_j = -1;
 
                             for(int l = 0; l < FA->num_het_atm; l++)
@@ -243,7 +242,6 @@ float calc_Hungarian_RMSD(FA_Global* FA, atom* atoms, resid* residue, gridpoint*
                             }
                         }
                     }
-                    printf("nTypes:%d count_i:%d count_j:%d\n",nTypes, count_i, count_j);
                     
                     // run the Hungarian assignment algorithm. matrix[][], matrix_case[][], matrix_match[], row_count[]. column_count[], row_assigned[] && column_assigned[] memory adresses will
                     Hungarian(matrix, matrix_original, matrix_case, unique_atom_type, row_count, column_count, row_assigned, column_assigned, matrix_match, nTypes, FA->num_het_atm);
@@ -253,7 +251,7 @@ float calc_Hungarian_RMSD(FA_Global* FA, atom* atoms, resid* residue, gridpoint*
                     for(int ii = 0; ii < nTypes; ii++)
                     {
                         assignment += matrix_original[ii][matrix_match[ii]];
-                        printf("%d:%d=%f (total=%f)\n",ii, matrix_match[ii], matrix_original[ii][matrix_match[ii]], assignment);
+                        printf("(%d:%d)=%f (total=%f)\n",ii, matrix_match[ii], matrix_original[ii][matrix_match[ii]], assignment);
                     }
                     total_assignment += assignment;
                     
