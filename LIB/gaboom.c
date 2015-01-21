@@ -46,6 +46,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 
 	unsigned int tt = static_cast<unsigned int>(time(0));
 	//tt = (unsigned)1;
+	printf("srand=%u\n", tt);
 	srand(tt);
 	RNGType rng(tt);
 	
@@ -311,6 +312,14 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 		  }
 		*/
 		
+		
+		//before reproducing for an extra generation, evaluate if population has converged.
+		//before calculating get avg and max fitness of the whole pop.
+		fitness_stats(GB,(*chrom),GB->num_chrom);
+		
+		printf("------fitness stats-------\navg=%8.3f\tmax=%8.3f\n",GB->fit_avg,GB->fit_max);
+		getchar();
+
 		nrejected = reproduce(FA,GB,VC,(*chrom),(*gene_lim),atoms,residue,(*cleftgrid),
 				      GB->rep_model,GB->mut_rate,GB->cross_rate,print,dice,duplicates,target);
 		
@@ -524,16 +533,6 @@ int reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom, cons
 	boost::variate_generator< RNGType, boost::uniform_int<> >
 		dice(rng, one_to_max_int32);
 	*/
-	
-	//before calculating get avg and max fitness of the whole pop.
-	if (GB->adaptive_ga) {
-		fitness_stats(GB,chrom,GB->num_chrom);
-		/*
-		  printf("------fitness stats-------\navg=%8.3f\tmax=%8.3f\n",GB->fit_avg,GB->fit_max);
-		  printf("k1=%5.3f\tk2=%5.3f\tk3=%5.3f\tk4=%5.3f\n",GB->k1,GB->k2,GB->k3,GB->k4);
-		  PAUSE;
-		*/
-	}
 	
 	if(strcmp(repmodel,"STEADY")==0){
 		nnew = GB->ssnum;
