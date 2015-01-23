@@ -1812,7 +1812,7 @@ int get_contlist4(atom* atoms,int atomzero, contactlist contlist[],
 				if(clash_value != NULL){
 					if(contlist[NC].dist < clashdist){
 						int fatm = residue[Calc[atomzero].atom->ofres].fatm[0];
-						if(!intramolecular || residue[Calc[atomzero].atom->ofres].bonded[num_atm[Calc[atomzero].atom->number-fatm]][num_atm[Calc[atomj].atom->number-fatm]] < 0){
+						if(!intramolecular || residue[Calc[atomzero].atom->ofres].bonded[num_atm[Calc[atomzero].atom->number]-fatm][num_atm[Calc[atomj].atom->number]-fatm] < 0){
 							*clash_value += KWALL*(pow(contlist[NC].dist,-12.0)-pow(clashdist,-12.0));
 						}
 					}
