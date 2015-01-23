@@ -529,7 +529,19 @@ void   write_contributions(FA_Global* FA, FILE* outfile_ptr, bool positive);
 const char* get_element(int type);
 void   write_grid(FA_Global* FA, const gridpoint* cleftgrid,char filename[]);                        // writes starting grid to PDB viewable format with 'grid' ext. PYTHON function
 void   calc_center(FA_Global* FA,atom* atoms,resid* residue);            // calculates center of geometry of protein
-float  calc_rmsd(FA_Global* FA,atom* atoms,resid* residue, gridpoint* cleftgrid, int npar, const double* icv);       // calculates rmsd
+float  calc_rmsd(FA_Global* FA,atom* atoms,resid* residue, gridpoint* cleftgrid, int npar, const double* icv, bool Hungarian);       // calculates rmsd
+float  calc_Hungarian_RMSD(FA_Global* FA, atom* atoms, resid* residue, gridpoint* cleftgrid,int npar, const double* icv); 			// Hungarian algorithm for RMSD calculation
+void   Hungarian(float** matrix, float** matrix_original, int** matrix_cases, int* unique_atom_type, int* row_count, int* column_count, int* row_assigned, int* column_assigned, int* matrix_match, int nTypes, int num_het_atoms);
+int    Hungarian_assign_jobs(float** matrix, float** matrix_original, int** matrix_cases, int* unique_atom_type, int* row_count, int* column_count, int* row_assigned, int* column_assigned, int* matrix_match, int nTypes, int num_het_atoms);
+void   Hungarian_reset_match(int* matrix_match, int nTypes);
+void   Hungarian_reset_assigned_row(int* row_assigned, int nTypes);
+void   Hungarian_reset_assigned_column(int* column_assigned, int nTypes);
+void   Hungarian_reset_row_count(int* row_count, int nTypes);
+void   Hungarian_reset_column_count(int* column_count, int nTypes);
+void   Hungarian_reset_case(int** matrix_case, int nTypes);
+void   Hungarian_update_matrix(float** matrix, int** matrix_case, int nTypes);
+void   Hungarian_draw_line(float** matrix, float** matrix_original, int** matrix_case, int* row_count, int* column_count, int* row_assigned, int* column_assigned, int* matrix_match, int nTypes);
+void   Hungarian_reduce_matrix(float** matrix, float** matrix_original, int nTypes);
 void   ic_bounds(FA_Global* FA, char* rngopt);              // determines internal coordinates bounds for GA opt.
 void   buildic_point(FA_Global* FA,float coor[],float *dis, float *ang, float *dih); // builds IC for one atom
 void   buildcc_point(FA_Global* FA,float coor[], float dis, float ang, float dih);   // builds CC for one atom

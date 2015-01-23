@@ -8,6 +8,7 @@ int write_rrg(FA_Global* FA,GB_Global* GB,const chromosome* chrom, const genlim*
 	FILE *outfile_ptr;
 	int  i,j,l;
 	float rmsd;
+	bool Hungarian = true;
   
 	outfile_ptr=NULL;
 	if(!OpenFile_B(outfile,"w",&outfile_ptr)){
@@ -18,7 +19,7 @@ int write_rrg(FA_Global* FA,GB_Global* GB,const chromosome* chrom, const genlim*
 				FA->opt_par[i] = chrom[j].genes[i].to_ic;
 			}
 
-			rmsd=calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par);
+			rmsd=calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian);
 
 			fprintf(outfile_ptr,"%3d %8.5f %8.5f [",j,rmsd,chrom[j].evalue);
 			for(l=0;l<FA->npar;l++){fprintf(outfile_ptr,"%8.5f ",FA->opt_par[l]);}

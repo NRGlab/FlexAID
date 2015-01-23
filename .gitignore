@@ -12,3 +12,6 @@
 !*Lovell_LIB.dat
 # makefiles
 !*Makefile.*
+!*.pdb
+!*.inp.pdb
+!*.clef.pdb

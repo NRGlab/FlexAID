@@ -1,8 +1,9 @@
 #include "gaboom.h"
 #include "boinc.h"
 
-void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, 
-	     gridpoint* cleftgrid, int num_chrom, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp){
+void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int num_chrom, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
+{
+	bool Hungarian = false;
 
 	int i,j;
 	cfstr cf;                                /* complementarity function value */
@@ -237,10 +238,13 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		}
 		//sprintf(tmpremark,"REMARK seed=%ld\n",FA->seed_ini);
 		strcat(remark,tmpremark);
-		if(FA->refstructure == 1)
-		{
-			sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure\n",
-				calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par));
+		if(FA->refstructure == 1){
+			sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure (no symmetry correction)\n",
+				calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian));
+			strcat(remark,tmpremark);
+			Hungarian = true;
+			sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure     (symmetry corrected)\n",
+				calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian));
 			strcat(remark,tmpremark);
 		}
 		sprintf(tmpremark,"REMARK inputs: %s & %s\n",dockinp,gainp);

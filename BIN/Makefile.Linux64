@@ -6,8 +6,8 @@
 #################################################################
 
 BOINC = 0
-DEBUG = 0
-DEBUG_LEVEL = 0
+DEBUG = 1
+DEBUG_LEVEL = 2
 
 # Include path
 I = ../LIB
