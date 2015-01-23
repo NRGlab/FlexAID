@@ -9,8 +9,9 @@ int write_rrd(FA_Global* FA,GB_Global* GB,const chromosome* chrom, const genlim*
 	int  i,j,l;
 	char sufix[10];
 	char tmp_end_strfile[MAX_PATH__];
-	float rmsd;
-	bool Hungarian = true;
+	float rmsd = 0.0f;
+	float rmsd_corrected = 0.0f;
+	bool Hungarian = false;
 
 	sprintf(sufix,".rrd");
 	strcpy(tmp_end_strfile,outfile);
@@ -24,9 +25,11 @@ int write_rrd(FA_Global* FA,GB_Global* GB,const chromosome* chrom, const genlim*
 			for(i=0;i<GB->num_genes;i++){
 				FA->opt_par[i] = chrom[j].genes[i].to_ic;
 			}
-			
+			Hungarian = false;
 			rmsd=calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian);
-			fprintf(outfile_ptr,"%3d %3d %8.5f %8.5f %8.5f [",j,Clus_GAPOP[j],Clus_RMSDT[j],rmsd,chrom[j].evalue);
+			Hungarian = true;
+			rmsd_corrected=calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian);
+			fprintf(outfile_ptr,"%3d %3d %8.5f %8.5f %8.5f %8.5f [",j,Clus_GAPOP[j],Clus_RMSDT[j],rmsd,rmsd_corrected,chrom[j].evalue);
 			for(l=0;l<FA->npar;l++){fprintf(outfile_ptr,"%8.5f ",FA->opt_par[l]);}
 			fprintf(outfile_ptr,"]\n");
 		}
