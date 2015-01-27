@@ -176,8 +176,8 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 		while(currindex != -1) {
 			
 			double radB  = (double)VC->Calc[VC->ca_rec[currindex].atom].atom->radius;
-			double radoB = radB + Rw;
-			double surfB = 4.0*PI*radoB*radoB;
+			// double radoB = radB + Rw;
+			// double surfB = 4.0*PI*radoB*radoB;
 			
 			double rAB   = radA+radB;
 			

@@ -25,10 +25,15 @@ int write_rrd(FA_Global* FA,GB_Global* GB,const chromosome* chrom, const genlim*
 			for(i=0;i<GB->num_genes;i++){
 				FA->opt_par[i] = chrom[j].genes[i].to_ic;
 			}
+
+			// Calculating standard RMSD saved inton 'rmsd'
 			Hungarian = false;
-			rmsd=calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian);
+			rmsd = calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian);
+
+			// Calculating symmetry-corrected RMSD (with the help of the Hungarian) saved into 'rmsd_corrected'
 			Hungarian = true;
-			rmsd_corrected=calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian);
+			rmsd_corrected = calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian);
+			
 			fprintf(outfile_ptr,"%3d %3d %8.5f %8.5f %8.5f %8.5f [",j,Clus_GAPOP[j],Clus_RMSDT[j],rmsd,rmsd_corrected,chrom[j].evalue);
 			for(l=0;l<FA->npar;l++){fprintf(outfile_ptr,"%8.5f ",FA->opt_par[l]);}
 			fprintf(outfile_ptr,"]\n");

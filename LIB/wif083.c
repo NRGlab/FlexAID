@@ -7,21 +7,22 @@
  ******************************************************************************/
 void wif083(FA_Global* FA){
 
-	int iqa,iqb,iqc,jj,k;
+	int iqa = 0,iqb = 0,iqc = 0,jj = 0,k = 0;
 	//int i,kmin,j,min;
 	double xb,yb,ph,ct,st;
 	//float mindst,dst,tmp;
 
-	iqa=0;
-	iqb=1;
+	iqa = 0;
+	iqb = 1;
 
-	while(iqb <= MAX_SPHERE_POINTS){
+	while(iqb <= MAX_SPHERE_POINTS)
+	{
 		iqc=iqa+iqb;
 		iqa=iqb;
 		iqb=iqc;
 	}
 
-	if(iqb > MAX_SPHERE_POINTS){
+	if(iqb > MAX_SPHERE_POINTS ){
 		iqb=iqa;
 		iqa=iqc-iqb;
 	}

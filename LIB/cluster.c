@@ -56,7 +56,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
   
     /******************************************************************/
   
-    //---------------------------------------------------------
+    //-------------------------------------------------------
     // fixed center clustering of chrmosome population around highest ranking
     // solutions with rmsd_threshold angstrons threshold
     // Clus_GAPOP[i]=j assigns for each chromosome i to which cluster it belongs
@@ -66,7 +66,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 	num_of_clusters=0;
 	
 	// CLustering Variable Initialization and partition_function calculation
-	for(j=0;j<num_chrom;j++)
+	for(j=0;j<num_chrom;++j)
 	{
 		Clus_GAPOP[j]=-1;
 		Clus_ACF[j]=0.0;
@@ -90,7 +90,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 	// Clustering part
 	while(n_unclus > 0)
 	{
-		for(j=0;j<num_chrom;j++){if(Clus_GAPOP[j]==-1){break;}}
+		for(j=0;j<num_chrom;++j){if(Clus_GAPOP[j]==-1){break;}}
 		//printf("at chromosome j=%d with app_evalue=%.3f\n", j, chrom[j].app_evalue);
 		Clus_GAPOP[j]=j;
 		Clus_RMSDT[j]=0.0;
@@ -106,15 +106,15 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 			Clus_ACF[num_of_clusters] = chrom[j].app_evalue;
 		}
 		Clus_TOP[num_of_clusters]=j;
-		Clus_FRE[num_of_clusters]++;
+		Clus_FRE[num_of_clusters++];
 
 		//printf("n_unclus=%d j=%d\n",n_unclus,j);
 		//PAUSE;
-		for(i=j+1;i<num_chrom;i++)
+		for(i=j+1;i<num_chrom;++i)
 		{
 			if(Clus_GAPOP[i]==-1)
 			{
-				rmsd=calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes,i,j);
+				rmsd = calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes,i,j);
 				//printf("rmsd(%d,%d)=%f\n",i,j,rmsd);
 				//PAUSE;
 				if(rmsd <= FA->cluster_rmsd)
@@ -129,7 +129,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 					}else{
 						Clus_ACF[num_of_clusters] += chrom[i].app_evalue;
 					}
-					Clus_FRE[num_of_clusters]++;
+					Clus_FRE[num_of_clusters++];
 				}
 			}
 		}
@@ -155,7 +155,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 	}
 	else
 	{
-		for(i=0;i<num_of_clusters;i++)
+		for(i=0;i<num_of_clusters;++i)
 		{
 			fprintf(outfile_ptr,"Cluster %d: TOP=%d TCF=%f ACF=%f freq=%d\n",i,
 				Clus_TOP[i],Clus_TCF[i],
@@ -164,9 +164,9 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		if(num_of_clusters > 1)
 		{
 			fprintf(outfile_ptr,"RMSD between clusters\n");
-			for(i=0;i<num_of_clusters;i++)
+			for(i=0;i<num_of_clusters;++i)
 			{
-				for(j=i+1;j<num_of_clusters;j++)
+				for(j=i+1;j<num_of_clusters;++j)
 				{
 					rmsd=calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes,Clus_TOP[i],Clus_TOP[j]);
 					fprintf(outfile_ptr,"rmsd(%d,%d)=%f\n",i,j,rmsd);
@@ -185,14 +185,14 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
         // output results, 10% of the number of chromosomes or 
         // the number of clusters, the smallest.
       
-	for(j=0;j<num_of_results;j++)
+	for(j=0;j<num_of_results;++j)
 	{
 		// get parameters of fittest individual in population
 		// after optimization -> best docking candidate
     
 		// cf=chrom[Clus_TOP[j]].app_evalue;
 
-		for(int k=0; k<GB->num_genes; k++)
+		for(int k=0; k<GB->num_genes; ++k)
 		{
 			FA->opt_par[k] = chrom[Clus_TOP[j]].genes[k].to_ic;
 		}
@@ -206,7 +206,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		sprintf(tmpremark,"REMARK CF.app=%8.5f\n",get_apparent_cf_evalue(&cf));
 		strcat(remark,tmpremark);
 
-		for(i=0;i<FA->num_optres;i++)
+		for(i=0;i<FA->num_optres;++i)
 		{
 	  
 			res_ptr = &residue[FA->optres[i].rnum];
@@ -231,7 +231,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		sprintf(tmpremark,"REMARK Cluster %d: Rank (top):%d Average CF:%8.5f Frequency:%d\n",
 			j,Clus_TOP[j],Clus_ACF[j],Clus_FRE[j]);
 		strcat(remark,tmpremark);
-		for(i=0;i<FA->npar;i++)
+		for(i=0;i<FA->npar;++i)
 		{
 			sprintf(tmpremark,"REMARK [%8.3f]\n",FA->opt_par[i]);
 			strcat(remark,tmpremark);
@@ -284,19 +284,23 @@ void QuickSort_Clusters(int* TOP, int* FRE, double* TCF, double* ACF, int* GAPOP
 	{
 		l = beg; p = beg + (end-beg)/2; r = end;
 		piv = ACF[p];
+		
 		while(1)
 		{
-			while( (l<=r) && QS_ASC(ACF[l],piv) <= 0 ) l++;
-			while( (l<=r) && QS_ASC(ACF[r],piv)  > 0 ) r--;
-			if (l>r) break;
+			while( (l<=r) && QS_ASC(ACF[l],piv) <= 0 ) ++l;
+			while( (l<=r) && QS_ASC(ACF[r],piv)  > 0 ) --r;
+			
+			if (l > r) break;
+			
 			swap_clusters(&TOP[l], &FRE[l], &TCF[l], &ACF[l], &GAPOP[l],&TOP[r], &FRE[r], &TCF[r], &ACF[r], &GAPOP[r]);
-			if (p==r) p=l;
-			l++;r--;
+			
+			if (p == r) p=l;
+			++l;--r;
 		}
 		swap_clusters(&TOP[p], &FRE[p], &TCF[p], &ACF[p], &GAPOP[p],&TOP[r], &FRE[r], &TCF[r], &ACF[r], &GAPOP[r]);
-		r--;
+		--r;
 
-		if((r-beg)<(end-l))
+		if( (r-beg) < (end-l) )
 		{
 			QuickSort_Clusters(TOP, FRE, TCF, ACF, GAPOP, beg, r);
 			beg = l;

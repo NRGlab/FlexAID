@@ -7,7 +7,7 @@
 float calc_rmsd_chrom(FA_Global* FA, GB_Global* GB, const chromosome* chrom, const genlim* gene_lim,atom* atoms,resid* residue,gridpoint* cleftgrid,int npar, int chrom_a, int chrom_b){
 
 	float rmsd_chrom=0.0f;
-	int i,j,k,l,m;
+	int i = 0,j = 0,k = 0,l = 0,m = 0;
 	int cat;
 	int rot;
     

@@ -6,34 +6,36 @@
  * the input file looks like this:
  ***********************************************************************************/
 
-void read_flexscfile(FA_Global* FA,resid* residue,rot** rotamer,char flexsclines[][MAX_PATH__], int nlines, char* rotlib, char* rotobs){
+void read_flexscfile(FA_Global* FA,resid* residue,rot** rotamer,char flexsclines[][MAX_PATH__], int nlines, char* rotlib, char* rotobs)
+{
 
-  FILE  *infile_ptr;        /* pointer to input file */
-  int i,j,k;    
+// FILE  *infile_ptr;        /* pointer to input file */
+    // int i = 0, j = 0, k = 0;     
+    int j = 0, k = 0;     
 
-  // memory allocation for rotamer
-  (*rotamer) = (rot*)malloc(FA->MIN_ROTAMER_LIBRARY_SIZE*sizeof(rot));
-  if(!(*rotamer)){
+    // memory allocation for rotamer
+    (*rotamer) = (rot*)malloc(FA->MIN_ROTAMER_LIBRARY_SIZE*sizeof(rot));
+    if(!(*rotamer)){
     fprintf(stderr,"ERROR: memory allocation error for rotamer\n");
-   Terminate(2);
-  }
-  
-  memset((*rotamer),0,FA->MIN_ROTAMER_LIBRARY_SIZE*sizeof(rot));
+    Terminate(2);
+    }
 
-  // memory allocation for flex_res
-  FA->flex_res = (flxsc*)malloc(FA->MIN_FLEX_RESIDUE*sizeof(flxsc));
-  if(!FA->flex_res){
+    memset((*rotamer),0,FA->MIN_ROTAMER_LIBRARY_SIZE*sizeof(rot));
+
+    // memory allocation for flex_res
+    FA->flex_res = (flxsc*)malloc(FA->MIN_FLEX_RESIDUE*sizeof(flxsc));
+    if(!FA->flex_res){
     fprintf(stderr,"ERROR: memory allocation error for flex_res\n");
     Terminate(2);
-  }
-  
-  memset(FA->flex_res,0,FA->MIN_FLEX_RESIDUE*sizeof(flxsc));
+    }
 
-  ////////////////////////////////////
+    memset(FA->flex_res,0,FA->MIN_FLEX_RESIDUE*sizeof(flxsc));
 
-  FA->nflxsc=0;
+    ////////////////////////////////////
 
-  for(k=0; k<nlines; k++){
+    FA->nflxsc=0;
+
+    for(k=0; k<nlines; k++){
 
 	  char reschn,field[7],resname[4];
 	  int resnum;
@@ -135,6 +137,5 @@ void read_flexscfile(FA_Global* FA,resid* residue,rot** rotamer,char flexsclines
 	  }
 	  
   }
-  
   return;
 }

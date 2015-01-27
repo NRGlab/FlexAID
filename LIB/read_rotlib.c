@@ -27,7 +27,8 @@ void read_rotlib(FA_Global* FA,rot** rotamer,char* libfile){
   char  res[4];
   //int   nid;
   //char  name[9];
-  int   obs,total;
+  int   obs = 0;
+  int total = 0;
   //int   nchi;
   //float chi[4];
   int   ndihedrals = 0;          
@@ -40,7 +41,8 @@ void read_rotlib(FA_Global* FA,rot** rotamer,char* libfile){
   dr=0;
   FA->rotlibsize=0;
 
-  while(fgets(buffer, sizeof(buffer),infile_ptr)){
+  while(fgets(buffer, sizeof(buffer),infile_ptr))
+  {
     //printf("%s",buffer);
     for(i=0;i<3;i++){field[i]=buffer[i];}
     field[3]='\0';
@@ -57,14 +59,16 @@ void read_rotlib(FA_Global* FA,rot** rotamer,char* libfile){
       help[4]='\0';
       sscanf(help,"%d",&total);
     }
-    if(strcmp(field,"ROT") == 0){
+    if(strcmp(field,"ROT") == 0)
+    {
       dr=0;
       (*rotamer)[FA->rotlibsize].numrng++;
       strcpy((*rotamer)[FA->rotlibsize].res,res);
       
-      if (strcmp(res,"PHE")==0 || strcmp(res,"TYR")==0) {
-	(*rotamer)[FA->rotlibsize].numrng++;
-	rangeflag = 1;
+      if ( strcmp(res,"PHE")==0 || strcmp(res,"TYR")==0 	) 
+      {
+	   	(*rotamer)[FA->rotlibsize].numrng++;
+		rangeflag = 1;
       }
 
       (*rotamer)[FA->rotlibsize].nchi=ndihedrals;
@@ -82,7 +86,7 @@ void read_rotlib(FA_Global* FA,rot** rotamer,char* libfile){
 
       (*rotamer)[FA->rotlibsize].tot = 0;
       (*rotamer)[FA->rotlibsize].obs = obs;
-      (*rotamer)[FA->rotlibsize].pro = (float)obs/(float)total;
+      (*rotamer)[FA->rotlibsize].pro = (float)obs / (float)total;
 
 
       for(i=0;i<ndihedrals;i++){

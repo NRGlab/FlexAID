@@ -7,7 +7,10 @@
 /////////////////////////////////////////////////////////////////////////////
 
 void assign_shift(atom* atoms,resid* residue,int rnum, int tot, int *buildlist, int **fdihlist){
-  int i,j,k,l;                           // dumb counters
+  int i = 0;                             // dumb counter
+  int j = 0;                             // dumb counter
+  int k = 0;                             // dumb counter
+  int l = 0;                             // dumb counter
   int flag;                              // flag to check if an atom defines a flex. bond
   int built;                             // flag to determine if an atom was already built
   int rec;                               // atoms' rec[0]

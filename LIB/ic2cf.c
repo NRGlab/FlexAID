@@ -15,7 +15,7 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,
 			gridpoint* cleftgrid,int npar, double* icv)
 {
   
-	static int nbranch = 0;
+	// static int nbranch = 0;
 	
 	int i,j,k;
 	int cat;    /* atom number constrained to the one considered */
