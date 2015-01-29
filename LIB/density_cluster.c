@@ -11,9 +11,11 @@
 #define Chi(a,d) 	( ((a-d) < 0.0) ? 1 : 0 )
 
 // Function prototypes
-void QuickSort_Density_Clusters(chromosome* chrom, double* appCF, float* di, int* density, int* assigned_cluster, int beg, int end);
-void swap_density_clusters(	chromosome* CHROMx, double* appCFx, float* DISTx, int* DENSITYx, int* CLUSx,
-						   	chromosome* CHROMy, double* appCFy, float* DISTy, int* DENSITYy, int* CLUSy);
+void calculate_stddev(	float* PiDi, int num_chrom);
+void QuickSort_Density(	chromosome* chrom, double* appCF, float* di, int* density, float* PiDi, int* assigned_cluster, int beg, int end);
+void QuickSort_PiDi(	chromosome* chrom, double* appCF, float* di, int* density, float* PiDi, int* assigned_cluster, int beg, int end);
+void swap_elements(		chromosome* CHROMx, double* appCFx, float* DISTx, int* DENSITYx, float* PiDix, int* CLUSx,
+						chromosome* CHROMy, double* appCFy, float* DISTy, int* DENSITYy, float* PiDiy, int* CLUSy);
 // Clustering structures
 struct cluster{
 	int id;
@@ -30,9 +32,8 @@ struct clusters{
 	int nClusters;
 	int nOutliers;
 
-	Cluster* first;
-	Cluster* next;
-	Cluster* previous;
+	Cluster* first,last;
+	Cluster* next, previous;
 	chromosome* outliers; 
 };
 typedef struct clusters Clusters;
@@ -50,7 +51,8 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 		(2) Build Local Density matrix of each chrom (Eq. 1) [pij] : pi = ∑jCHI(dij - d_cutoff)
 		(3) Build Distance from Density Centers matrix (Eq. 2) [∂i] = min(dij) for pj > pi
 		(4) Order chrom in decreasing ∂i : ∂i is much larger for chrom which are local/global maxima in density
-		(5) Cluster centers are recognized as chrom with anomalously large ∂i values
+		(5) Count Clusters (count centers) Cluster centers are recognized as chrom with anomalously large ∂i values
+		(6) 
 	*/
 
 	// variables initialization
@@ -64,10 +66,12 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	int nClusters = 0;												/* number of defined clusters */
 	int nOutliers = 0;												/* number of defined outliers (chrom that has not been assigned to a cluster) */
 	int nUnclustered = 0;
+	float stddev = 0.0f;
 	float* rmsd_matrix = NULL;										/* Step (1) */
 	int* density_matrix = NULL;										/* Step (2) */ 
 	float* distance_matrix = NULL;									/* Step (3) */ 
 	int* assigned_cluster = NULL;									/* Assigned Cluster (0:unclustered, -1:outlier) */
+	int* nearest_center = NULL;
 	double* appCF = NULL;
 	float* PiDi = NULL;
 	// memory allocation
@@ -75,10 +79,11 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	density_matrix = (int*)malloc(num_chrom*sizeof(int));		// num_chrom * sizeof is used to build a 1D array
 	distance_matrix = (float*)malloc(num_chrom*sizeof(float));	// num_chrom * sizeof is used to build a 1D array
 	assigned_cluster = (int*)malloc(num_chrom*sizeof(int));		/* Assigned Cluster (0:unclustered, -1:outlier) is 1D array sizeof(num_chrom*(int)) */
+	nearest_center = (int*)malloc(num_chrom*sizeof(int));		/* Assigned Cluster (0:unclustered, -1:outlier) is 1D array sizeof(num_chrom*(int)) */
 	appCF = (double*)malloc(num_chrom*sizeof(double));			/* appCF */
 	PiDi = (float*)malloc(num_chrom*sizeof(float));
 	// memory check
-	if(!rmsd_matrix || !density_matrix || !distance_matrix || !appCF || !assigned_cluster || !PiDi)
+	if(!rmsd_matrix || !density_matrix || !distance_matrix || !appCF || !assigned_cluster || !PiDi || nearest_center)
 	{
 		fprintf(stderr,"ERROR: memory allocation error for clusters\n");
 		Terminate(2);
@@ -112,21 +117,23 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 			if(i != j) rmsd_matrix[ K(i,j,num_chrom) ] = calc_rmsd_chrom(FA,GB,chrom,gen_lim,atoms,residue,cleftgrid,GB->num_genes,i,j);
 	}
 
+	
 	// (2) build local density matrix
 	for(i = 0; i < num_chrom; ++i) 
 		for(j = 0; j < num_chrom; ++j) 
 			if(i != j) density_matrix[i] += Chi( rmsd_matrix[K(i,j,num_chrom)], FA->cluster_rmsd );
 
+	
 	// (3) build distance_matrix from rmsd_matrix && density_matrix
 	for(i = 0; i < num_chrom; ++i)
 	{
-		for(j = 0, distance = FLT_MAX; j < num_chrom; ++j) 
-			if( i != j && density_matrix[j] > density_matrix[i] && rmsd_matrix[K(i,j,num_chrom)] < distance) distance = rmsd_matrix[K(i,j,num_chrom)];
+		for(j = 0, distance = FLT_MAX; j < num_chrom; ++j) if( i != j && density_matrix[j] > density_matrix[i] && rmsd_matrix[K(i,j,num_chrom)] < distance) distance = rmsd_matrix[K(i,j,num_chrom)];
 		distance_matrix[i] = distance;
+		assigned_cluster[i] = j;
 	}
+	if(rmsd_matrix != NULL) free(rmsd_matrix); // Freeing rmsd_matrix before sorting clusters, as pairwise RMSD is no longer needed.
 
 	// Setting a ∂i value to the chrom with highest density_matrix value (distance will have the max)
-	// double check this algorithm
 	for(i=0, j=0, k=0; i<num_chrom; ++i) if(distance_matrix[i] > distance_matrix[j]) 
 	{
 		if(distance_matrix[i] < FLT_MAX	)
@@ -137,32 +144,64 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 		else k = i;
 	}
 	distance_matrix[k] = distance_matrix[j];
-	PiDi[k] = distance_matrix[k] * density_matrix[k];
-	// Filling out 
-	if(rmsd_matrix != NULL) free(rmsd_matrix); // Freeing rmsd_matrix before sorting clusters, as pairwise RMSD is no longer needed.
+	PiDi[k] = distance_matrix[k] * density_matrix[k]; // Filling out 
 
-	// (4) Order chromosomes in decreasing ∂i values (which are stored in distance_matrix[])
-	QuickSort_Density_Clusters(chrom, appCF, distance_matrix, density_matrix, assigned_cluster, 0, num_chrom-1);
+	// (4) Order chromosomes in decreasing ∂i values (which are stored in density_matrix[])
+	QuickSort_PiDi(chrom, appCF, distance_matrix, density_matrix, PiDi, assigned_cluster, 0, num_chrom-1);
 
-	// (5) Identify Cluster Centers
-	for(i = 0, distance = distance_matrix[0], nUnclustered = num_chrom, nClusters = 1; i < num_chrom && nUnclustered > 0; i++)
-	{
-		while(distance_matrix[i] <= distance)
-		{
-			distance = distance_matrix[i];
-			assigned_cluster[i] = nClusters;
-		}
-		++nClusters;
-	}
+	
+	// (5) Count Clusters and assign cluster centers
+	stddev = calculate_stddev(PiDi, num_chrom); nClusters = 0;
+	while( (PiDi[nClusters] - PiDi[nClusters+1]) > 2*stddev) ++nClusters; // Check the stop condition on this loop
+
+	
+	// (6) Identify Cluster Centers
+
+	
 	// freeing dynamically allocated memory
 	if(appCF != NULL) free(appCF);
 	if(assigned_cluster != NULL) free(assigned_cluster);
 	if(density_matrix != NULL) free(density_matrix);
 	if(distance_matrix != NULL) free(distance_matrix);
+	if(PiDi != NULL) free(PiDi);
+	if(nearest_center) free(nearest_center);
 }
 
+void QuickSort_PiDi(chromosome* chrom, double* appCF, float* distance_matrix, int* density_matrix, float* PiDi, int* assigned_cluster, int beg, int end)
+{
+	int l,r,p;
+	int value;
+	while(beg < end)
+	{
+		l = beg; p = beg + (end-beg)/2; r = end;
+		value = PiDi[p];
+
+		while(1)
+		{
+			while( (l<=r) && QS_DSC(density_matrix[l],value) <= 0 ) ++l;
+			while( (l<=r) && QS_DSC(density_matrix[r],value)  > 0 ) --r;
+			
+			if (l > r) break;
+
+			swap_elements(	&chrom[p],&appCF[p],&distance_matrix[p],&density_matrix[p],&PiDi[p], &assigned_cluster[p],
+							&chrom[r],&appCF[r],&distance_matrix[r],&density_matrix[r],&PiDi[r], &assigned_cluster[r] );
+			--r;
+
+			if( (r-beg) < (end-l) )
+			{
+				QuickSort_PiDi(chrom, appCF, distance_matrix, density_matrix, PiDi, assigned_cluster, beg, r);
+				beg = l;
+			}
+			else
+			{
+				QuickSort_PiDi(chrom, appCF, distance_matrix, density_matrix, PiDi, assigned_cluster, l, end);
+				end = r;
+			}
+		}
+	}
+}
 // this function is used to reorder cluster by decreasing density
-void QuickSort_Density_Clusters(chromosome* chrom, double* appCF, float* distance_matrix, int* density_matrix, int* assigned_cluster, int beg, int end)
+void QuickSort_Density(chromosome* chrom, double* appCF, float* distance_matrix, int* density_matrix, float* PiDi, int* assigned_cluster, int beg, int end)
 {
 	int l,r,p;
 	int value;
@@ -173,37 +212,50 @@ void QuickSort_Density_Clusters(chromosome* chrom, double* appCF, float* distanc
 
 		while(1)
 		{
-			while( (l<=r) && QS_ASC(density_matrix[l],value) <= 0 ) ++l;
-			while( (l<=r) && QS_ASC(density_matrix[r],value)  > 0 ) --r;
+			while( (l<=r) && QS_DSC(density_matrix[l],value) <= 0 ) ++l;
+			while( (l<=r) && QS_DSC(density_matrix[r],value)  > 0 ) --r;
 			
 			if (l > r) break;
 
-			swap_density_clusters(	&chrom[p],&appCF[p],&distance_matrix[p],&density_matrix[p],&assigned_cluster[p],
-									&chrom[r],&appCF[r],&distance_matrix[r],&density_matrix[r],&assigned_cluster[r] );
+			swap_elements(	&chrom[p],&appCF[p],&distance_matrix[p],&density_matrix[p],&PiDi[p], &assigned_cluster[p],
+							&chrom[r],&appCF[r],&distance_matrix[r],&density_matrix[r],&PiDi[r], &assigned_cluster[r] );
 			--r;
 
 			if( (r-beg) < (end-l) )
 			{
-				QuickSort_Density_Clusters(chrom, appCF, distance_matrix, density_matrix, assigned_cluster, beg, r);
+				QuickSort_Density(chrom, appCF, distance_matrix, density_matrix, PiDi, assigned_cluster, beg, r);
 				beg = l;
 			}
 			else
 			{
-				QuickSort_Density_Clusters(chrom, appCF, distance_matrix, density_matrix, assigned_cluster, l, end);
+				QuickSort_Density(chrom, appCF, distance_matrix, density_matrix, PiDi, assigned_cluster, l, end);
 				end = r;
 			}
 		}
 	}
 }
-void swap_density_clusters(	chromosome* CHROMx, double* appCFx, float* DISTx, int* DENSITYx, int* CLUSx,
-						   	chromosome* CHROMy, double* appCFy, float* DISTy, int* DENSITYy, int* CLUSy ){
+void swap_elements(	chromosome* CHROMx, double* appCFx, float* DISTx, int* DENSITYx, float* PiDix,int* CLUSx,
+					chromosome* CHROMy, double* appCFy, float* DISTy, int* DENSITYy, float* PiDiy,int* CLUSy )
+{
 	// temporary variables 
 	chromosome CHROMt;
 	double appCFt = 0.0;
-	float RMSDt = 0.0f, DISTt = 0.0f;
+	float RMSDt = 0.0f, DISTt = 0.0f, PiDit = 0.0f;
 	int DENSITYt = 0, CLUSt = 0;
 	CHROMt = *CHROMx; *CHROMx = *CHROMy; *CHROMy = CHROMt;
 	DISTt = *DISTx; *DISTx = *DISTy; *DISTy = DISTt;
+	PiDit = *PiDix; *PiDix = *PiDiy; *PiDiy = PiDit;
 	DENSITYt = *DENSITYx; *DENSITYx = *DENSITYy; *DENSITYy = DENSITYt;
 	CLUSt = *CLUSx; *CLUSx = *CLUSy; *CLUSy = CLUSt;
+}
+
+float calculate_stddev(float* PiDi, int num_chrom)
+{
+	int i;
+	float mean = 0.0f;
+	float sqrtot = 0.0f;
+	for(i = 0; i < num_chrom; ++i) mean += PiDi[i];
+	mean /= num_chrom;
+	for(i = 0; i < num_chrom; ++i) sqrtot += pow((mean - PiDi[i]),2);
+	return sqrtf(sqrtot);
 }
