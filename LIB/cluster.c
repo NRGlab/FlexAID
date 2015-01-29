@@ -326,5 +326,4 @@ void swap_clusters(int* TOPx, int* FREx, double* TCFx, double* ACFx, int* GAPOPx
 	TCFt = *TCFx; *TCFx = *TCFy; *TCFy = TCFt;
 	ACFt = *ACFx; *ACFx = *ACFy; *ACFy = ACFt;
 	GAPOPt = *GAPOPx; *GAPOPx = *GAPOPy; *GAPOPy = GAPOPt;
-	return;
 }

@@ -28,8 +28,6 @@
 #include <utility>
 #include <map>
 
-//#include "/home/francis/valgrind/include/valgrind/memcheck.h"
-
 //const int endian_t = 1;
 //#define IS_BIG_ENDIAN() ( ( *(char *) &endian_t ) == 0 ) // cross-platform development
 
