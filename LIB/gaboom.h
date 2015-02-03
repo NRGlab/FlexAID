@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <math.h>
+#include <float.h>
 #include <time.h>
 #include <limits.h>
 
