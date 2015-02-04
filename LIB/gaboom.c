@@ -318,7 +318,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 		fitness_stats(GB,(*chrom),GB->num_chrom);
 		
 		printf("------fitness stats-------\navg=%8.3f\tmax=%8.3f\n",GB->fit_avg,GB->fit_max);
-		getchar();
+        //getchar();
 
 		nrejected = reproduce(FA,GB,VC,(*chrom),(*gene_lim),atoms,residue,(*cleftgrid),
 				      GB->rep_model,GB->mut_rate,GB->cross_rate,print,dice,duplicates,target);
