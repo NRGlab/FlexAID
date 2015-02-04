@@ -1,10 +1,6 @@
 #include "gaboom.h"
 #include "boinc.h"
 
-// the following macro is used to retrieve the appropriate index (k) or indices (i,j) of a 1D array instead of an equivalent 2D matrix and vice-versa
-#define K(i, j, n) 	( (n*(n-1)/2) - (n-i)*((n-i)-1)/2 + j - i - 1 )
-#define I(k,n) 		( n - 2 - floor(sqrt(-8*k + 4*n*(n-1)-7)/2.0 - 0.5))
-#define J(k,n) 		( k + i + 1 - n*(n-1)/2 + (n-i)*((n-i)-1)/2 )
 // Chi(x) function as defined in :
 //   Science 344(6191):1492-1496, 2014, Eq. (1)
 #define Chi(a,d) 	( ((a-d) < 0.0) ? 1 : 0 )
@@ -75,30 +71,36 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	float* PiDi = NULL;
 	
 	// memory allocation
-	rmsd_matrix = (float*)malloc(dim*sizeof(float)); 			// dim * sizeof is used to simulate 2D array of chrom*chrom (real size of dim = chrom(chrom+1)/2)
 	density_matrix = (int*)malloc(num_chrom*sizeof(int));		// num_chrom * sizeof is used to build a 1D array
 	distance_matrix = (float*)malloc(num_chrom*sizeof(float));	// num_chrom * sizeof is used to build a 1D array
 	assigned_cluster = (int*)malloc(num_chrom*sizeof(int));		/* Assigned Cluster (0:unclustered, -1:outlier) is 1D array sizeof(num_chrom*(int)) */
 	nearest_center = (int*)malloc(num_chrom*sizeof(int));		/* Assigned Cluster (0:unclustered, -1:outlier) is 1D array sizeof(num_chrom*(int)) */
 	appCF = (double*)malloc(num_chrom*sizeof(double));			/* appCF */
 	PiDi = (float*)malloc(num_chrom*sizeof(float));
+	rmsd_matrix = (float**) malloc(sizeof(float*) * num_chrom); // dim * sizeof is used to simulate 2D array of chrom*chrom (real size of dim = chrom(chrom+1)/2)
+	
 	// memory check
 	if(!rmsd_matrix || !density_matrix || !distance_matrix || !appCF || !assigned_cluster || !PiDi || !nearest_center)
 	{
 		fprintf(stderr,"ERROR: memory allocation error for clusters\n");
 		Terminate(2);
 	}
-
+	for(i = 0; i < num_chrom; ++i)
+	{
+		rmsd_matrix[i] = (float*) malloc(sizeof(float) * num_chrom);
+		if(!rmsd_matrix[i]) fprintf(stderr,"ERROR: memory allocation error for clusters\n"); Terminate(2);
+	}
+	
 	// matrices initialization
-	memset(rmsd_matrix, 0.0, dim);
-	for(i = 0; i <= num_chrom; ++i)
+	memset(rmsd_matrix, 0.0, num_chrom*num_chrom);
+	for(i = 0; i < num_chrom; ++i)
 	{
 		density_matrix[i] = 0;
 		distance_matrix[i] = 0.0;
 		assigned_cluster[i] = 0;
 		nearest_center[i] = 0;
 		appCF[i] = 0.0;
-		// line below uses of this loop to iterate through all chrom to calculate the partition_function of the population
+		// line below uses this loop to iterate through all chrom to calculate the partition_function of the population
 		if(FA->temperature) partition_function += pow( E, ((-1.0) * FA->beta * chrom[i].app_evalue) );
 	}
 
@@ -129,41 +131,41 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	
 	// (2) build local density matrix
 	for(i = 0; i < num_chrom; ++i) 
-		for(j = 0; j < num_chrom; ++j) 
+		for(j = 0; j < num_chrom; ++j)
 			if(i != j) density_matrix[i] += Chi( rmsd_matrix[K(i,j,num_chrom)], FA->cluster_rmsd );
 	
 	// (3) build distance_matrix from rmsd_matrix && density_matrix
-	for(i = 0; i < num_chrom; ++i)
-	{
-		for(j = 0, distance = FLT_MAX; j < num_chrom; ++j)
-		{
-			if( i != j && density_matrix[j] > density_matrix[i] && rmsd_matrix[K(i,j,num_chrom)] < distance) 
+    for(i = 0; i < num_chrom; ++i){
+        for(j = num_chrom, distance = FLT_MAX; j >= 0; --j){
+			if( i != j && density_matrix[j] > density_matrix[i] && rmsd_matrix[K(i,j,num_chrom)] < distance )
 			{
-				distance = rmsd_matrix[K(i,j,num_chrom)];
-				distance_matrix[i] = distance;
+                distance = rmsd_matrix[K(i,j,num_chrom)];
 				nearest_center[i] = j;
+                distance_matrix[i] = distance;
 			}
-		}
-	}
+        }
+    }
 
 	// Setting a ∂i value to the chrom with highest density_matrix value (distance will have the maximal distance)
 	// Profit of this loop to compute Gamma = PiDi !
-	for(i=0, j=0; i<num_chrom; ++i) (distance_matrix[i] > distance_matrix[j]) ? (j = i) : (PiDi[i] = distance_matrix[i] * density_matrix[i]);
-	distance_matrix[0] = distance_matrix[j];
-	PiDi[0] = distance_matrix[0] * density_matrix[0];
-    
-	if(rmsd_matrix != NULL) free(rmsd_matrix); // Freeing rmsd_matrix before sorting clusters, as pairwise RMSD is no longer needed.
-    // (4) Order chromosomes in decreasing Pi∂i values (which are stored in density_matrix[])
-    QuickSort_PiDi(chrom, appCF, distance_matrix, density_matrix, PiDi, assigned_cluster, nearest_center, 0, num_chrom-1);
-    // (*) Printing 
-    for(i = 0; i<num_chrom;++i) printf("i:%3d\tdensity:%3d\tdistance:%g\tPiDi:%g\n",i,density_matrix[i], distance_matrix[i], PiDi[i]);
+	for(i=0, j=0; i<num_chrom; ++i)
+	{
+        if(!distance_matrix[i])
+		(distance_matrix[i] > distance_matrix[j]) ? (j = i) : (PiDi[i] = distance_matrix[i] * density_matrix[i]);
+	}
 
+    // (4) Order chromosomes in decreasing Pi∂i values (which are stored in density_matrix[])
+	if(rmsd_matrix != NULL) free(rmsd_matrix); // Freeing rmsd_matrix before sorting clusters, as pairwise RMSD is no longer needed.
+                                               //QuickSort_Density(chrom, appCF, distance_matrix, density_matrix, PiDi, assigned_cluster, nearest_center, 0, num_chrom-1);
+    // (*) Printing
+//    for(i = 0; i<num_chrom;++i) printf("i:%3d\tdensity:%3d\tdistance:%g\tCF:%g\tnearest center:%d\tPiDi:%g\n",i,density_matrix[i], distance_matrix[i], appCF[i], nearest_center[i], PiDi[i]);
+    for(i=0;i<num_chrom;++i){
+            for(j=0;j<num_chrom;++j) printf("%d ",K(i,j,dim));
+        printf("\n");
+    }
 
     // (5) Count Clusters and Identify Cluster Centers
-	stddev = calculate_stddev(PiDi, num_chrom);
-	nClusters = 1;
-	nUnclustered = num_chrom;
-	
+	stddev = calculate_stddev(PiDi, num_chrom); nClusters = 1; nUnclustered = num_chrom;
     while( (PiDi[nClusters] - PiDi[nClusters+1]) > 2*stddev )  // while the difference in Pi*Di is anomalously large (please Science define the fuck out of this)
 	{
 		assigned_cluster[nClusters] = nClusters;
@@ -177,11 +179,7 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	{
 		for(i = 0; i < num_chrom; ++i) if(assigned_cluster[i] < 1) break; // identify the next unclustered chrom
 		
-		if( assigned_cluster[nearest_center[i]] > 0 )
-		{
-			assigned_cluster[i] = assigned_cluster[nearest_center[i]];
-			--nUnclustered;
-		}
+        // Cluster HERE
 	}
 
 	// freeing dynamically allocated memory
@@ -295,7 +293,7 @@ float calculate_stddev(float* PiDi, int num_chrom)
     {
         mean += PiDi[i];
     }
-	mean = mean / num_chrom;
+	mean /= num_chrom;
     // printf("mean PiDi = %g\n", mean);
 	for(i = 0; i < num_chrom; ++i)
     {
