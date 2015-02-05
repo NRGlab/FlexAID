@@ -4,7 +4,7 @@
 // Chi(x) function as defined in :
 //   Science 344(6191):1492-1496, 2014, Eq. (1)
 #define Chi(a,d) 	( ((a-d) < 0.0) ? 1 : 0 )
-#define K(i,j,n) ( (j >= i) ? (i*n+j) : (j*n+i) )
+#define K(i,j,n) ( (i < j) ? (i*n+j) : (j*n+i) )
 // Function prototypes
 float calculate_stddev(float* PiDi, int num_chrom);
 void QuickSort_Density(chromosome* chrom, double* appCF, float* di, int* density, float* PiDi, int* assigned_cluster, int* nearest_center, int beg, int end);
@@ -61,7 +61,7 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	int nOutliers = 0;												/* number of defined outliers (chrom that has not been assigned to a cluster) */
 	int nUnclustered = 0;
 	float stddev = 0.0f;
-	int dim = (num_chrom * (num_chrom+1))/2;
+	int dim = num_chrom*num_chrom;
 	float* rmsd_matrix = NULL;										/* Step (1) */
 	int* density_matrix = NULL;										/* Step (2) */ 
 	float* distance_matrix = NULL;									/* Step (3) */ 
@@ -124,17 +124,22 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 
 	
 	// (2) build local density matrix
-	for(i = 0; i < num_chrom; ++i) for(j = i+1; j < num_chrom; ++j) density_matrix[i] += Chi( rmsd_matrix[K(i,j,num_chrom)], FA->cluster_rmsd );
+	for(i = 0; i < num_chrom; ++i)
+    {
+        for(j=i+1; j < num_chrom; ++j) density_matrix[i] += Chi( rmsd_matrix[K(i,j,num_chrom)], FA->cluster_rmsd );
+    }
 	
 	// (3) build distance_matrix from rmsd_matrix && density_matrix
-    for(i = 0; i < num_chrom; ++i) for(j =0, distance = FLT_MAX; j < num_chrom; ++j)
+    for(i = 0; i < num_chrom; ++i)
     {
-        printf("i=%d j=%d k=%d\n",i, j, K(i,j,num_chrom));
-        if(density_matrix[j] > density_matrix[i] && rmsd_matrix[K(i,j,num_chrom)] < distance )
+        for(j = 0, distance = FLT_MAX; j < num_chrom; ++j)
         {
-            distance = rmsd_matrix[K(i,j,num_chrom)];
-            nearest_center[i] = j;
-            distance_matrix[i] = distance;
+            if(i!=j && density_matrix[j] > density_matrix[i] && rmsd_matrix[K(i,j,num_chrom)] < distance )
+            {
+                distance = rmsd_matrix[K(i,j,num_chrom)];
+                nearest_center[i] = j;
+                distance_matrix[i] = distance;
+            }
         }
     }
 	// Setting a ∂i value to the chrom with highest density_matrix value (distance will have the maximal distance)
