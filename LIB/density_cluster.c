@@ -11,7 +11,7 @@ void  QuickSort_Density(chromosome* chrom, double* appCF, float* di, int* densit
 void  QuickSort_PiDi(float* PiDi,int beg, int end);
 void  swap_PiDi(float* PiDix, float* PiDiy);
 void  swap_elements(chromosome* CHROMx, double* appCFx, float* DISTx, int* DENSITYx, int* CLUSx, int* CENx, chromosome* CHROMy, double* appCFy, float* DISTy, int* DENSITYy, int* CLUSy, int* CENy);
-void assign_cluster_from_density_neighborhood(int i, int* nUnclustered, int* nOutliers, int* density_matrix, float* distance_matrix, int* nearest_center, int* assigned_cluster)
+int assign_cluster_from_density_neighborhood(int i, int* nUnclustered, int* nOutliers, int* density_matrix, float* distance_matrix, int* nearest_center, int* assigned_cluster)
 ;
 // Clustering structures
 struct Cluster{
@@ -149,6 +149,7 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	// Profit of this loop to compute PiDi[i] !
 	for(i=0, j=0, k=0; i<num_chrom; ++i)
 	{
+		if(i == j) continue; // should not be necessary
 		// save highest_distance found
 		if( distance_matrix[i] > distance_matrix[j] ) j = i;
 		// In case distance haven't yet been defined
@@ -178,21 +179,36 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	if(rmsd_matrix != NULL) free(rmsd_matrix); 	// Freeing rmsd_matrix before sorting clusters, as pairwise RMSD is no longer needed.
 	QuickSort_Density(chrom, appCF, distance_matrix, density_matrix, assigned_cluster, nearest_center, 0, num_chrom-1);
     
-    // (6) Identify and assign Cluster centers
+    // (6) Identify cluster centers
     nUnclustered = num_chrom; // total number of unclustered chrom as of now
+    stddev = calculate_stddev(distance_matrix, num_chrom);
+    k = 1; // k now represents the current cluster_id to be assigned
+    for(i = 0; i< num_chrom; ++i) if(nearest_center[i] == -1)
+    {
+    	if(density_matrix[i] == density_matrix[0]) { assigned_cluster[i] = k; --nUnclustered; }
+    }
+    ++k; // 1st Cluster Center(s) assigned
+    while(k < nClusters)
+    {
+    	for(i = 1; i < num_chrom && fabs(distance_matrix[i] - distance_matrix[i-1]) < 1.5*stddev; ++i);
+    	assigned_cluster[i] = k;
+	    --nUnclustered;
+    	++k; // +1 Cluster Center assigned
+    }
 
     // (7) Clustering Step
     while(nUnclustered)
 	{
-		for(i = num_chrom-1; i >= 0; --i) if(assigned_cluster[i] < 1) break; // identify the next unclustered chrom
+		for(i = num_chrom-1; i >= 0 && assigned_cluster[i] < 1; --i) // identify the next unclustered chrom
         // Cluster HERE
-        assign_cluster_from_density_neighborhood(i, &nUnclustered, &nOutliers, density_matrix, distance_matrix, nearest_center, assigned_cluster);
-	    if(assigned_cluster[i] == -1) ++nOutliers;
-		if(assigned_cluster[i] !=  0) --nUnclustered;
+        assigned_cluster[i] = assign_cluster_from_density_neighborhood(i, &nUnclustered, &nOutliers, density_matrix, distance_matrix, nearest_center, assigned_cluster);
+	    if(assigned_cluster[i] == -1) { ++nOutliers; --nUnclustered; }
+		else if(assigned_cluster[i] > 0) --nUnclustered;
 	}
 
     // (*) Printing
-    for(i = 0; i<num_chrom;++i) printf("i:%3d\tdensity:%3d\tdistance:%1.4g\tCF:%4.4g\tnearest center:%d\tPiDi:%g\n",i,density_matrix[i], distance_matrix[i], appCF[i], nearest_center[i], density_matrix[i]*distance_matrix[i]);
+    printf("number of clusters:%d\n",nClusters);
+    for(i = 0; i<num_chrom;++i) printf("i:%3d\tdensity:%3d\tdistance:%1.4g\tCF:%4.4g\tnearest center:%d\tCluster:%d\n",i,density_matrix[i], distance_matrix[i], appCF[i], nearest_center[i], assigned_cluster[i]);
 
 	// freeing dynamically allocated memory
 	if(appCF != NULL) 			free(appCF);
@@ -203,10 +219,12 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 }
 
 
-void assign_cluster_from_density_neighborhood(int i, int* nUnclustered, int* nOutliers, int* density_matrix, float* distance_matrix, int* nearest_center, int* assigned_cluster)
+int assign_cluster_from_density_neighborhood(int i, int* nUnclustered, int* nOutliers, int* density_matrix, float* distance_matrix, int* nearest_center, int* assigned_cluster)
 {
-	if(assigned_cluster[nearest_center[i]] > 0) {assigned_cluster[i] = assigned_cluster[nearest_center[i]]; --(*nUnclustered);}
-	else assign_cluster_from_density_neighborhood(nearest_center[i], nUnclustered, nOutliers, density_matrix, distance_matrix, nearest_center, assigned_cluster);
+    if(!assigned_cluster || !nearest_center || !nOutliers || !nUnclustered || !distance_matrix || !density_matrix) return -1;
+    else if(assigned_cluster[nearest_center[i]] > 0) { --(*nUnclustered); return assigned_cluster[nearest_center[i]];}
+	else if(nearest_center[i] != -1) return assign_cluster_from_density_neighborhood(nearest_center[i], nUnclustered, nOutliers, density_matrix, distance_matrix, nearest_center, assigned_cluster);
+    else return -1;
 }
 
 
