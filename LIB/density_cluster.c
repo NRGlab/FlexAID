@@ -9,7 +9,7 @@
 float calculate_stddev(float* PiDi, int num_chrom);
 void  QuickSort_Density(chromosome* chrom, double* appCF, float* di, int* density, int* assigned_cluster, int* nearest_center, int beg, int end);
 void  QuickSort_PiDi(float* PiDi,int beg, int end);
-void swap_PiDi(float* PiDix, float* PiDiy);
+void  swap_PiDi(float* PiDix, float* PiDiy);
 void  swap_elements(chromosome* CHROMx, double* appCFx, float* DISTx, int* DENSITYx, int* CLUSx, int* CENx, chromosome* CHROMy, double* appCFy, float* DISTy, int* DENSITYy, int* CLUSy, int* CENy);
 // Clustering structures
 struct Cluster{
@@ -31,7 +31,7 @@ struct Clusters{
 	Cluster* next, previous;
 	chromosome* outliers; 
 };
-typedef struct Clusters clusters;
+typedef struct Clusters Clusters;
 
 
 // Main Function
@@ -142,37 +142,50 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
             }
         }
     }
-	// Setting a ∂i value to the chrom with highest density_matrix value (distance will have the maximal distance)
-	// Profit of this loop to compute Gamma = PiDi !
-	for(i=0, j=0; i<num_chrom; ++i)
+	// Getting the maximal Di value
+	// Setting a Di value if nearest_center != -1 
+	// Profit of this loop to compute PiDi[i] !
+	for(i=0, j=0, k=0; i<num_chrom; ++i)
 	{
-		if( !distance_matrix[i] && nearest_center[i] > -1)
-		{
-			distance_matrix[i] = rmsd_matrix[K(i,nearest_center[i],num_chrom)];
-		}
-		else if(!distance_matrix[i] && nearest_center[i] == -1)
-		{
-			
-		}
+		// save highest_distance found
 		if( distance_matrix[i] > distance_matrix[j] ) j = i;
+		// In case distance haven't yet been defined
+		if( !distance_matrix[i] && nearest_center[i] > -1 && density_matrix[nearest_center[i]] > density_matrix[i]) distance_matrix[i] = rmsd_matrix[K(i,nearest_center[i],num_chrom)];		
+		// k will serve to count the number of !distance_matrix[i] && nearest_center[i] == -1 occurences
+		if( !distance_matrix[i] && nearest_center[i] > -1 ) ++k;
+		// Compute PiDi[i]
 		PiDi[i] = distance_matrix[i] * density_matrix[i];
 	}
-
+	// retriving the maximal density point (k is mostly supposed to equal 1 but can be >1 when multiple points are of equal highest density values)
+	while(k > 0)
+	{	
+		for(i=0; nearest_center[i] != -1; ++i); 			// This loop increments i until we find a point which has no nearest higher density value points (nearest_center[i] == -1)
+		distance_matrix[i] = distance_matrix[j]; 			// j memorizes the position of highest value withn distance_matrix
+		PiDi[i] = distance_matrix[i] * density_matrix[i];   // refreses the PiDi value after modifying distance_matrix[i] value
+		--k;
+	}
+    
     // (4) Order chromosomes in decreasing Pi∂i values (which are stored in density_matrix[])
     QuickSort_PiDi(PiDi, 0, num_chrom-1);
-    // (*) Printing
-    for(i = 0; i<num_chrom;++i) printf("i:%3d\t\tdensity:%3d\t\tdistance:%1.4g\t\tCF:%4.4g\t\t\tnearest center:%d\t\tPiDi:%g\n",i,density_matrix[i], distance_matrix[i], appCF[i], nearest_center[i], PiDi[i]);
-    // (5) Count Clusters and Identify Cluster Centers
-    for(nClusters=0, stddev = calculate_stddev(PiDi, num_chrom), nUnclustered = num_chrom; (PiDi[nClusters] - PiDi[nClusters+1]) > 2*stddev; i++, nClusters++, nUnclustered--) assigned_cluster[nClusters] = nClusters+1;
-	// (6) Clustering step!
-	if(rmsd_matrix != NULL) free(rmsd_matrix); // Freeing rmsd_matrix before sorting clusters, as pairwise RMSD is no longer needed.
-    if(PiDi != NULL) 		free(PiDi);
+    
+    // (5) Count Clusters && Identify Cluster Centers
+    // * HOW TO MARK CENTERS ?
+    for(nClusters=0,stddev = calculate_stddev(PiDi, num_chrom); (PiDi[nClusters] - PiDi[nClusters+1]) > 1.5*stddev; ++i, ++nClusters);
+    if(PiDi != NULL) free(PiDi);		 	// PiDi has been sorted without sorting the other arrays.
+	
+	// (*) Density sorting
+	if(rmsd_matrix != NULL) free(rmsd_matrix); 	// Freeing rmsd_matrix before sorting clusters, as pairwise RMSD is no longer needed.
 	QuickSort_Density(chrom, appCF, distance_matrix, density_matrix, assigned_cluster, nearest_center, 0, num_chrom-1);
-	while(nUnclustered)
+
+    // (*) Printing
+    nUnclustered = num_chrom; // total number of unclustered chrom as of now
+    for(i = 0; i<num_chrom;++i) printf("i:%3d\tdensity:%3d\tdistance:%1.4g\tCF:%4.4g\tnearest center:%d\tPiDi:%g\n",i,density_matrix[i], distance_matrix[i], appCF[i], nearest_center[i], density_matrix[i]*distance_matrix[i]);
+    // (6) Clustering Step
+    while(nUnclustered)
 	{
-		for(i = 0; i < num_chrom; ++i) if(assigned_cluster[i] < 1) break; // identify the next unclustered chrom
-		
+		for(i = num_chrom-1; i >= 0; --i) if(assigned_cluster[i] < 1) break; // identify the next unclustered chrom
         // Cluster HERE
+        
 	}
 
 	// freeing dynamically allocated memory
@@ -180,7 +193,6 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	if(assigned_cluster != NULL)free(assigned_cluster);
 	if(density_matrix != NULL) 	free(density_matrix);
 	if(distance_matrix != NULL) free(distance_matrix);
-	if(PiDi != NULL) 			free(PiDi);
 	if(nearest_center != NULL)	free(nearest_center);
 }
 
@@ -204,7 +216,7 @@ void QuickSort_PiDi(float* PiDi, int beg, int end)
 			if (p == r) p=l;
 			++l;--r;
 		}
-		swap_PiDi(&PiDi[r],&PiDi[r]);
+		swap_PiDi(&PiDi[p],&PiDi[r]);
 		
 		--r;
 
