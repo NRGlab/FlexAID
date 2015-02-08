@@ -4,7 +4,8 @@
  * SUBROUTINE calc_rmsd_chrom calculates the rmsd between any two chromosomes  
  * present in the population.
  *****************************************************************************/
-float calc_rmsd_chrom(FA_Global* FA, GB_Global* GB, const chromosome* chrom, const genlim* gene_lim,atom* atoms,resid* residue,gridpoint* cleftgrid,int npar, int chrom_a, int chrom_b){
+float calc_rmsd_chrom(FA_Global* FA, GB_Global* GB, const chromosome* chrom, const genlim* gene_lim,atom* atoms,resid* residue,gridpoint* cleftgrid,int npar, int chrom_a, int chrom_b,
+                      float* coor_a_dest, float* coor_b_dest, bool calc_rmsd){
 
 	float rmsd_chrom=0.0f;
 	int i = 0,j = 0,k = 0,l = 0,m = 0;
@@ -13,8 +14,17 @@ float calc_rmsd_chrom(FA_Global* FA, GB_Global* GB, const chromosome* chrom, con
     
 	//float* coor_a;
 	//float* coor_b;
-    float coor_a[MAX_ATM_HET][3];
-    float coor_b[MAX_ATM_HET][3];
+    
+    float coor_a[MAX_ATM_HET*3];
+    float coor_b[MAX_ATM_HET*3];
+    
+    if(coor_a_dest == NULL){
+        coor_a_dest = coor_a;
+    }
+    
+    if(coor_b_dest == NULL){
+        coor_b_dest = coor_b;
+    }
     
 	uint grd_idx;
 	int normalmode=-1;
@@ -24,7 +34,7 @@ float calc_rmsd_chrom(FA_Global* FA, GB_Global* GB, const chromosome* chrom, con
 
 		j=chrom_a;
 		if(k==1){j=chrom_b;}
-
+        
 		for(i=0;i<npar;i++){ FA->opt_par[i] = chrom[j].genes[i].to_ic; }
   
 		/*
@@ -114,19 +124,20 @@ float calc_rmsd_chrom(FA_Global* FA, GB_Global* GB, const chromosome* chrom, con
 			//     atoms[i].coor[1],
 			//     atoms[i].coor[2]);
 			for(j=0;j<3;j++){
-				if(k==0){coor_a[m][j]=atoms[i].coor[j];}
-				if(k==1){coor_b[m][j]=atoms[i].coor[j];}
+				if(k==0){coor_a[m*MAX_ATM_HET+j]=atoms[i].coor[j];}
+				if(k==1){coor_b[m*MAX_ATM_HET+j]=atoms[i].coor[j];}
 			}
 			m++;
 		}    
 	}
   
-	for(i=0;i<m;i++)
-		rmsd_chrom += sqrdist(coor_a[i],coor_b[i]);
-	
-	rmsd_chrom = sqrt(rmsd_chrom/((float)m));
-  
-	//printf("RMSD=%f\n",rmsd_chrom); 
+    if(calc_rmsd){
+        for(i=0;i<m;i++)
+            rmsd_chrom += sqrdist(&coor_a[i*MAX_ATM_HET],&coor_b[i*MAX_ATM_HET]);
+        
+        rmsd_chrom = sqrt(rmsd_chrom/((float)m));
+    }
+	//printf("RMSD=%f\n",rmsd_chrom);
 	//PAUSE;
 
 	return rmsd_chrom;

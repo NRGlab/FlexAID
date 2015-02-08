@@ -71,8 +71,9 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	int* nearest_center = NULL;
 	double* appCF = NULL;
 	float* PiDi = NULL;
-	
+	float* cartesian_coord = NULL;
 	// memory allocation
+	cartesian_coord = (float*)malloc(num_chrom*3*MAX_ATM_HET*sizeof(float));
 	density_matrix = (int*)malloc(num_chrom*sizeof(int));		// num_chrom * sizeof is used to build a 1D array
 	distance_matrix = (float*)malloc(num_chrom*sizeof(float));	// num_chrom * sizeof is used to build a 1D array
 	assigned_cluster = (int*)malloc(num_chrom*sizeof(int));		/* Assigned Cluster (0:unclustered, -1:outlier) is 1D array sizeof(num_chrom*(int)) */
@@ -82,7 +83,7 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	rmsd_matrix = (float*)malloc(dim*sizeof(float));
 	
 	// memory check
-	if(!rmsd_matrix || !density_matrix || !distance_matrix || !appCF || !assigned_cluster || !PiDi || !nearest_center)
+	if(!rmsd_matrix || !density_matrix || !distance_matrix || !appCF || !assigned_cluster || !PiDi || !nearest_center || !cartesian_coord)
 	{
 		fprintf(stderr,"ERROR: memory allocation error for clusters\n");
 		Terminate(2);
@@ -121,7 +122,7 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 		// else: the normal apparent CF value will be used
 		else appCF[i] = chrom[i].app_evalue;
 		// INNER LOOP: calculate pairwise RMSD values between each chrom and stores if in rmsd_matrix[]
-		for(j = i+1; j < num_chrom; ++j) rmsd_matrix[ K(i,j,num_chrom) ] = calc_rmsd_chrom(FA,GB,chrom,gen_lim,atoms,residue,cleftgrid,GB->num_genes,i,j);
+		for(j = i+1; j < num_chrom; ++j) rmsd_matrix[ K(i,j,num_chrom) ] = calc_rmsd_chrom(FA,GB,chrom,gen_lim,atoms,residue,cleftgrid,GB->num_genes,i,j, &cartesian_coord[3*i], &cartesian_coord[3*j], true);
 	}
 
 	
@@ -134,7 +135,16 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	// (3) build distance_matrix from rmsd_matrix && density_matrix
     for(i = 0; i < num_chrom; ++i)
     {
-        for(j = 0, distance = FLT_MAX; j < num_chrom; ++j)
+        for(j = i+1, distance = FLT_MAX; j < num_chrom; ++j)
+        {
+            if(i!=j && density_matrix[j] > density_matrix[i] && rmsd_matrix[K(i,j,num_chrom)] < distance )
+            {
+                distance = rmsd_matrix[K(i,j,num_chrom)];
+                nearest_center[i] = j;
+                distance_matrix[i] = distance;
+            }
+        }
+        for(j = num_chrom-1, distance = FLT_MAX; j >= 0; --j)
         {
             if(i!=j && density_matrix[j] > density_matrix[i] && rmsd_matrix[K(i,j,num_chrom)] < distance )
             {
@@ -221,7 +231,7 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 
 void assign_cluster_from_density_neighborhood(int i, int* nUnclustered, int* nOutliers, int* density_matrix, float* distance_matrix, int* nearest_center, int* assigned_cluster)
 {
-    // rewrite this function
+    // rewrite this function to assign cluster recursively
 }
 
 

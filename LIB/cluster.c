@@ -114,7 +114,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		{
 			if(Clus_GAPOP[i]==-1)
 			{
-				rmsd = calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes,i,j);
+				rmsd = calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes,i,j, NULL, NULL, true);
 				//printf("rmsd(%d,%d)=%f\n",i,j,rmsd);
 				//PAUSE;
 				if(rmsd <= FA->cluster_rmsd)
@@ -168,7 +168,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 			{
 				for(j=i+1;j<num_of_clusters;++j)
 				{
-					rmsd=calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes,Clus_TOP[i],Clus_TOP[j]);
+					rmsd=calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes,Clus_TOP[i],Clus_TOP[j], NULL, NULL, true);
 					fprintf(outfile_ptr,"rmsd(%d,%d)=%f\n",i,j,rmsd);
 				}
 			} 
