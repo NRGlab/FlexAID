@@ -30,8 +30,8 @@ float calc_rmsd_chrom(FA_Global* FA, GB_Global* GB, const chromosome* chrom, con
 	int normalmode=-1;
 	int rot_idx=0;
 
-	for(k=0;k<2;k++){
-
+	for(k=0;k<2;k++)
+	{
 		j=chrom_a;
 		if(k==1){j=chrom_b;}
         
@@ -45,10 +45,12 @@ float calc_rmsd_chrom(FA_Global* FA, GB_Global* GB, const chromosome* chrom, con
 		*/
     
     
-		for(i=0;i<npar;i++){
+		for(i=0;i<npar;i++)
+		{
 			//printf("[%8.3f]",FA->opt_par[i]);
       
-			if(FA->map_par[i].typ==-1) { //by index
+			if(FA->map_par[i].typ==-1) 
+			{ //by index
 				grd_idx = (uint)FA->opt_par[i];
 				//printf("FA->opt_par(index): %d\n", grd_idx);
 				//PAUSE;
@@ -56,13 +58,18 @@ float calc_rmsd_chrom(FA_Global* FA, GB_Global* GB, const chromosome* chrom, con
 				atoms[FA->map_par[i].atm].ang = cleftgrid[grd_idx].ang;
 				atoms[FA->map_par[i].atm].dih = cleftgrid[grd_idx].dih;
 	
-			}else if(FA->map_par[i].typ==0)  {
+			}
+			else if(FA->map_par[i].typ==0) 
+			{
 				atoms[FA->map_par[i].atm].dis = (float)FA->opt_par[i];
 	
-			}else if(FA->map_par[i].typ==1)  {
+			}
+			else if(FA->map_par[i].typ==1) 
+			{
 				atoms[FA->map_par[i].atm].ang = (float)FA->opt_par[i];
-	
-			}else if(FA->map_par[i].typ==2)  {
+			}
+			else if(FA->map_par[i].typ==2)
+			{
 				atoms[FA->map_par[i].atm].dih = (float)FA->opt_par[i];
 	
 				j=FA->map_par[i].atm;
@@ -74,8 +81,8 @@ float calc_rmsd_chrom(FA_Global* FA, GB_Global* GB, const chromosome* chrom, con
 						cat=atoms[j].rec[3];
 					}
 				}
-	
-			}else if(FA->map_par[i].typ==3) { //by index
+			}else if(FA->map_par[i].typ==3)
+			{ //by index
 				grd_idx = (uint)FA->opt_par[i];
 				//printf("FA->opt_par(index): %d\n", grd_idx);
 				//PAUSE;
@@ -83,7 +90,8 @@ float calc_rmsd_chrom(FA_Global* FA, GB_Global* GB, const chromosome* chrom, con
 				// serves as flag , but also as grid index
 				normalmode=grd_idx;
 	
-			}else if(FA->map_par[i].typ==4)  {
+			}else if(FA->map_par[i].typ==4)\
+			{
 				rot_idx = (int)(FA->opt_par[i]+0.5);
 	
 				residue[atoms[FA->map_par[i].atm].ofres].rot=rot_idx;
@@ -95,7 +103,6 @@ float calc_rmsd_chrom(FA_Global* FA, GB_Global* GB, const chromosome* chrom, con
 				  residue[atoms[FA->map_par[i].atm].ofres].fatm[rot_idx],
 				  residue[atoms[FA->map_par[i].atm].ofres].latm[rot_idx]);
 				*/
-	
 			}
       
 		}
@@ -123,9 +130,10 @@ float calc_rmsd_chrom(FA_Global* FA, GB_Global* GB, const chromosome* chrom, con
 			//printf("i:%d %f %f %f\n",i,atoms[i].coor[0],
 			//     atoms[i].coor[1],
 			//     atoms[i].coor[2]);
-			for(j=0;j<3;j++){
-				if(k==0){coor_a[m*MAX_ATM_HET+j]=atoms[i].coor[j];}
-				if(k==1){coor_b[m*MAX_ATM_HET+j]=atoms[i].coor[j];}
+			for(j=0;j<3;j++)
+			{
+				if(k==0) coor_a_dest[m*3+j]=atoms[i].coor[j];
+				if(k==1) coor_b_dest[m*3+j]=atoms[i].coor[j];
 			}
 			m++;
 		}    
@@ -133,7 +141,7 @@ float calc_rmsd_chrom(FA_Global* FA, GB_Global* GB, const chromosome* chrom, con
   
     if(calc_rmsd){
         for(i=0;i<m;i++)
-            rmsd_chrom += sqrdist(&coor_a[i*MAX_ATM_HET],&coor_b[i*MAX_ATM_HET]);
+            rmsd_chrom += sqrdist(&coor_a_dest[i*3],&coor_b_dest[i*3]);
         
         rmsd_chrom = sqrt(rmsd_chrom/((float)m));
     }
