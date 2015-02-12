@@ -9,8 +9,7 @@
 float calculate_stddev(float* PiDi, int num_chrom);
 void  QuickSort_Density(chromosome* chrom, double* appCF, float* di, int* density, int* assigned_cluster, int* nearest_center, float* PiDi, float* coord, float* rmsd, int num_chrom, int beg, int end);
 void  QuickSort_PiDi(chromosome* chrom, double* appCF, float* di, int* density, int* assigned_cluster, int* nearest_center, float* PiDi, float* coord, float* rmsd, int num_chrom, int beg, int end);
-void  swap_PiDi(float* PiDix, float* PiDiy);
-void swap_elements(chromosome* CHROMx, double* appCFx, float* DISTx, int* DENSITYx, int* CLUSx, int* CENx, float* PiDix, float* COORDx, float* RMSDx, chromosome* CHROMy, double* appCFy, float* DISTy, int* DENSITYy, int* CLUSy, int* CENy, float* PiDiy, float* COORDy, float* RMSDy, int num_chrom);
+void  swap_elements(chromosome* CHROMx, double* appCFx, float* DISTx, int* DENSITYx, int* CLUSx, int* CENx, float* PiDix, float* COORDx, float* RMSDx, chromosome* CHROMy, double* appCFy, float* DISTy, int* DENSITYy, int* CLUSy, int* CENy, float* PiDiy, float* COORDy, float* RMSDy, int num_chrom);
 
 void  assign_cluster_from_density_neighborhood(int i, int* nUnclustered, int* nOutliers, int* density_matrix, float* distance_matrix, int* nearest_center, int* assigned_cluster);
 
@@ -296,10 +295,6 @@ void QuickSort_PiDi(chromosome* chrom, double* appCF, float* distance_matrix, in
 	}
 }
 
-
-void swap_PiDi(float* PiDix, float* PiDiy)	{ float PiDit = 0.0f; PiDit = *PiDix; *PiDix = *PiDiy; *PiDiy = PiDit; }
-
-
 // this function is used to reorder cluster by decreasing density
 void QuickSort_Density(chromosome* chrom, double* appCF, float* distance_matrix, int* density_matrix, int* assigned_cluster, int* nearest_center, float* PiDi, float* coord, float* rmsd, int num_chrom, int beg, int end)
 {
@@ -340,19 +335,29 @@ void QuickSort_Density(chromosome* chrom, double* appCF, float* distance_matrix,
 }
 
 
-void swap_elements(chromosome* CHROMx, double* appCFx, float* DISTx, int* DENSITYx, int* CLUSx, int* CENx, float* PiDix, float* cartesian_coord, float* rmsd_matrix, chromosome* CHROMy, double* appCFy, float* DISTy, int* DENSITYy, int* CLUSy, int* CENy, float* PiDiy, int num_chrom)
+void swap_elements(chromosome* CHROMx, double* appCFx, float* DISTx, int* DENSITYx, int* CLUSx, int* CENx, float* PiDix, float* COORx, float* RMSDx, chromosome* CHROMy, double* appCFy, float* DISTy, int* DENSITYy, int* CLUSy, int* CENy, float* PiDiy, float* COORy, float* RMSDy, int num_chrom)
 {
 	// temporary variables 
-	chromosome CHROMt;
+	int i,j;
 	double appCFt = 0.0;
-	float DISTt = 0.0f;
+	chromosome CHROMt;
+	float DISTt = 0.0f, PiDit = 0.0f;
 	int DENSITYt = 0, CLUSt = 0, CENt = 0;
+	float* COORt = (float*) malloc(MAX_ATM_HET*3*sizeof(float));
+	float* RMSDt  = (float*) malloc(num_chrom*sizeof(float));
+	if(!COORt || !RMSDt) {fprintf(stderr,"ERROR: The Partition Function is NULL in the clustering step.\n"); Terminate(2);}
+	memset(COORt, 0.0f, MAX_ATM_HET*3);
+	memset(RMSDt, 0.0f, num_chrom);
 	appCFt = *appCFx; *appCFx = *appCFy; *appCFy = appCFt;
 	CHROMt = *CHROMx; *CHROMx = *CHROMy; *CHROMy = CHROMt;
 	DISTt = *DISTx; *DISTx = *DISTy; *DISTy = DISTt;
 	DENSITYt = *DENSITYx; *DENSITYx = *DENSITYy; *DENSITYy = DENSITYt;
 	CLUSt = *CLUSx; *CLUSx = *CLUSy; *CLUSy = CLUSt;
 	CENt = *CENx; *CENx = *CENy; *CENy = CENt;
+	for(i=0;i<num_chrom;++i)
+	{
+
+	}
 }
 
 
