@@ -195,7 +195,7 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	nUnclustered = num_chrom;
 	for(pChrom=NULL, i=0, nClusters=0, stddev=calculate_mean(Chrom, num_chrom), mean=calculate_mean(Chrom, num_chrom); (&Chrom[nClusters])->PiDi - (&Chrom[nClusters+1])->PiDi > mean+stddev; ++i)
 	{
-		pChrom = &Chrom[i];
+		pChrom = &Chrom[nClusters];
 		if(pChrom != NULL)
 		{	
 			pChrom->Cluster = ++nClusters;
@@ -220,7 +220,7 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
         printf("Density:%d\tDistance:%g\tCluster:%d\tPiDi:%g\n",(&Chrom[i])->Density,(&Chrom[i])->DPdist,(&Chrom[i])->Cluster,(&Chrom[i])->PiDi);
         if((&Chrom[i])->DP != NULL && (&Chrom[i])->Density > (&Chrom[i])->DP->Density) j++;
     }
-    printf("There is %d chromosomes which DP are of lower Density.\n",j);
+    printf("There is %d chromosomes which DP are of lower Density.\nMean:%g\tStdDev:%g\n",j,calculate_mean(Chrom, num_chrom),calculate_stddev(Chrom, num_chrom));
 	// (*) Memory deallocation
 	if(Chrom) free(Chrom);
 
