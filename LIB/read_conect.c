@@ -9,7 +9,7 @@ void read_conect(FA_Global* FA,atom** atoms,char line[]){
     int i,j;                          /* dumb counter */
     int atm;                          /* number of the atom we read info */
     //int atn;                          /* atn is covelently bonded to atm */
-    int tmp[4];
+    int tmp[6];
     char number[6];
     unsigned int len;
     int ncont;
