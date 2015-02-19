@@ -116,10 +116,11 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	for(i = 0; i < num_chrom; ++i)
 	{
 		iChrom = &Chrom[i];
-		for(j = i+1; j < num_chrom; ++j)
+		// for(j = i+1; j < num_chrom; ++j)
+		for(j = 0; j < num_chrom; ++j)
 		{
 			jChrom	= &Chrom[j];
-			iChrom->Density += Chi(RMSD[K(i,j,num_chrom)], FA->cluster_rmsd);
+			if(jChrom != iChrom) iChrom->Density += Chi(RMSD[K(i,j,num_chrom)], FA->cluster_rmsd);
 		}
 	}
 
@@ -194,7 +195,7 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 			}
 		}
 		pChrom->PiDi = pChrom->Density * pChrom->DPdist;
-		--k;
+		if(pChrom->PiDi > 0.0) --k;
 	}
 	
 	if(RMSD) free(RMSD); // free-ing RMSD
@@ -216,7 +217,7 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	}
 
 	// (*) QuickSort by decreasing Density value
-//	QuickSort_ChromCluster_by_Density(Chrom, num_chrom, 0, num_chrom-1);
+	QuickSort_ChromCluster_by_Density(Chrom, num_chrom, 0, num_chrom-1);
 
 	// (7) Clustering Step
 	for(i=0, pChrom=NULL; i<num_chrom && nUnclustered > 0; ++i)
@@ -225,14 +226,15 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 		iChrom = &Chrom[i];
 		while(pChrom->Cluster <= 0 && pChrom->DP != NULL) pChrom = pChrom->DP;
 		if(pChrom->Cluster > 0) iChrom->Cluster = pChrom->Cluster;
-		nUnclustered--;
+		if(iChrom->Cluster > 0) --nUnclustered;
 	}
     for(i=0,j=0;i<num_chrom;++i)
     {
-        printf("Density:%d\tDistance:%g\tCluster:%d\tPiDi:%g\n",(&Chrom[i])->Density,(&Chrom[i])->DPdist,(&Chrom[i])->Cluster,(&Chrom[i])->PiDi);
+        printf("Add:%p\tDensity:%d\tDistance:%g\tCluster:%d\tDP:%p\tPiDi:%g\n",&Chrom[i],(&Chrom[i])->Density,(&Chrom[i])->DPdist,(&Chrom[i])->Cluster,(&Chrom[i])->DP,(&Chrom[i])->PiDi);
         if((&Chrom[i])->DP != NULL && (&Chrom[i])->Density > (&Chrom[i])->DP->Density) j++;
     }
     printf("There is %d chromosomes which DP are of lower Density.\nMean:%g\tStdDev:%g\n",j,calculate_mean(Chrom, num_chrom),calculate_stddev(Chrom, num_chrom));
+	
 	// (*) Memory deallocation
 	if(Chrom) free(Chrom);
 
