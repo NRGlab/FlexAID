@@ -6,7 +6,8 @@
 #define Chi(a,d) 	( ((a-d) < 0.0) ? 1 : 0 )
 #define K(i,j,n) ( (i < j) ? (i*n+j) : (j*n+i) )
 
-struct ClusterChrom{
+struct ClusterChrom
+{
 	chromosome* Chromosome;			// Chromosomes list
 	int Cluster;					// Assigned Cluster
 	int Density;					// Density of points in distance cut-off
@@ -16,6 +17,16 @@ struct ClusterChrom{
 	float Coord[3*MAX_ATM_HET];		// Cartesian Coordinates
 	struct ClusterChrom* DP;		// Nearest Density Peak (point of higher density)
 }; typedef struct ClusterChrom ClusterChrom;
+
+struct Cluster
+{
+       int ID;
+       int Frequency;
+       double totCF;
+       ClusterChrom* Center;
+       ClusterChrom* BestCF;
+};
+typedef struct Cluster Cluster;
 
 void QuickSort_ChromCluster_by_Density(ClusterChrom* Chrom, int num_chrom, int beg, int end);
 void QuickSort_ChromCluster_by_PiDi(ClusterChrom* Chrom, int num_chrom, int beg, int end);
@@ -198,13 +209,14 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 		pChrom = &Chrom[nClusters];
 		if(pChrom != NULL)
 		{	
-			pChrom->Cluster = ++nClusters;
+			if(pChrom->DP && pChrom->DP->Cluster >= 1) pChrom->Cluster = pChrom->DP->Cluster;
+			else pChrom->Cluster = (++nClusters);
 			--nUnclustered;
 		}
 	}
 
 	// (*) QuickSort by decreasing Density value
-	QuickSort_ChromCluster_by_Density(Chrom, num_chrom, 0, num_chrom-1);
+//	QuickSort_ChromCluster_by_Density(Chrom, num_chrom, 0, num_chrom-1);
 
 	// (7) Clustering Step
 	for(i=0, pChrom=NULL; i<num_chrom && nUnclustered > 0; ++i)
