@@ -36,12 +36,12 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
     //// memory allocation for /////
     //// for clustering chrom  /////
     ////////////////////////////////
-	Clus_GAPOP = (int*)malloc(num_chrom*sizeof(int));
-	Clus_RMSDT = (float*)malloc(num_chrom*sizeof(float));
-	Clus_ACF = (double*)malloc(num_chrom*sizeof(double));
-	Clus_TCF = (double*)malloc(num_chrom*sizeof(double));
-	Clus_TOP = (int*)malloc(num_chrom*sizeof(int));
-	Clus_FRE = (int*)malloc(num_chrom*sizeof(int));
+	Clus_GAPOP = (int*)malloc(num_chrom*sizeof(int));		// Population (Cluster)	
+	Clus_RMSDT = (float*)malloc(num_chrom*sizeof(float));	// RMSD
+	Clus_ACF = (double*)malloc(num_chrom*sizeof(double));	// Apparent CF
+	Clus_TCF = (double*)malloc(num_chrom*sizeof(double));	// Total CF
+	Clus_TOP = (int*)malloc(num_chrom*sizeof(int));			// Best Chromosome in Cluster
+	Clus_FRE = (int*)malloc(num_chrom*sizeof(int));			// Frequency
       
 	if(!Clus_GAPOP || !Clus_RMSDT || !Clus_ACF ||
 	   !Clus_TCF   || !Clus_TOP   || !Clus_FRE)   

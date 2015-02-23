@@ -5,7 +5,7 @@
 //   Science 344(6191):1492-1496, 2014, Eq. (1)
 #define Chi(a,d) 	( ((a-d) < 0.0) ? 1 : 0 )
 #define K(i,j,n) ( (i < j) ? (i*n+j) : (j*n+i) )
-
+#define Cluster(Cluster)
 struct ClusterChrom
 {
 	chromosome* Chromosome;			// Chromosomes list
@@ -22,11 +22,21 @@ struct Cluster
 {
        int ID;
        int Frequency;
+       float refRMSD;
        double totCF;
        ClusterChrom* Center;
        ClusterChrom* BestCF;
 };
 typedef struct Cluster Cluster;
+
+struct ClusteredChromosomes
+{
+	int nClusters;
+	int nOutliers;
+	Cluster* first;
+	Cluster* next;
+	Cluster* outliers;
+}; typedef struct ClusteredChromosomes ClusteredChrom;
 
 void QuickSort_ChromCluster_by_Density(ClusterChrom* Chrom, int num_chrom, int beg, int end);
 void QuickSort_ChromCluster_by_PiDi(ClusterChrom* Chrom, int num_chrom, int beg, int end);
@@ -48,6 +58,7 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	double partition_function;
 	ClusterChrom* Chrom;
 	ClusterChrom *pChrom, *iChrom, *jChrom;
+	Cluster* Clust;
 
 	// dynamic memory allocation
 	Chrom = (ClusterChrom*) malloc(num_chrom*sizeof(ClusterChrom));
@@ -56,7 +67,7 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	//  dynamically allocated memory check-up
 	if(!Chrom || !RMSD)
 	{
-		fprintf(stderr,"ERROR: The Partition Function is NULL in the clustering step.\n");
+		fprintf(stderr,"ERROR: memory allocation error for clusters\n");
 		Terminate(2);
 	}
 
@@ -182,7 +193,7 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	while(k)
 	{
 		i = 0; pChrom = Chrom; // equivalent to pChrom = &Chrom[0]
-		while(pChrom->DP != NULL && i < num_chrom) {pChrom++; i++;}
+		while(pChrom->DP != NULL && pChrom->DPdist > 0.0 && i < num_chrom) {pChrom++; i++;}
 		if(pChrom->Density == maxDensity) pChrom->DPdist = maxDist;
 		else for(j=0, minDist = FLT_MAX; j < num_chrom; ++j)
 		{
@@ -198,22 +209,28 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 		if(pChrom->PiDi > 0.0) --k;
 	}
 	
-	if(RMSD) free(RMSD); // free-ing RMSD
+	if(RMSD) { free(RMSD); RMSD=NULL; }// free-ing RMSD
 
 	// (*) Sort Chrom by decreasing PiDi value
 	QuickSort_ChromCluster_by_PiDi(Chrom,num_chrom,0,num_chrom-1);
 	
 	// (6) Identify Cluster Centers
 	nUnclustered = num_chrom;
-	for(pChrom=NULL, i=0, nClusters=0, stddev=calculate_mean(Chrom, num_chrom), mean=calculate_mean(Chrom, num_chrom); (&Chrom[nClusters])->PiDi - (&Chrom[nClusters+1])->PiDi > mean+stddev; ++i)
+	for(pChrom=NULL, i=0, nClusters=0, stddev=calculate_mean(Chrom, num_chrom), mean=calculate_mean(Chrom, num_chrom); ((&Chrom[nClusters])->PiDi - (&Chrom[nClusters+1])->PiDi) > stddev; ++i)
 	{
 		pChrom = &Chrom[nClusters];
+		
 		if(pChrom != NULL)
 		{	
 			if(pChrom->DP && pChrom->DP->Cluster >= 1) pChrom->Cluster = pChrom->DP->Cluster;
 			else pChrom->Cluster = (++nClusters);
-			--nUnclustered;
+			if(pChrom->Cluster != 0) --nUnclustered;
 		}
+	}
+	if( (num_chrom-nUnclustered) != nClusters )
+	{
+		fprintf(stderr,"num_chrom(%d)-nUnclustered(%d) != nClusters(%d)\n",num_chrom,nUnclustered,nClusters);
+		Terminate(2);
 	}
 
 	// (*) QuickSort by decreasing Density value
@@ -226,17 +243,25 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 		iChrom = &Chrom[i];
 		while(pChrom->Cluster <= 0 && pChrom->DP != NULL) pChrom = pChrom->DP;
 		if(pChrom->Cluster > 0) iChrom->Cluster = pChrom->Cluster;
-		if(iChrom->Cluster > 0) --nUnclustered;
+		if(iChrom->Cluster > 0 && iChrom!=pChrom) --nUnclustered;
 	}
     for(i=0,j=0;i<num_chrom;++i)
     {
-        printf("Add:%p\tDensity:%d\tDistance:%g\tCluster:%d\tDP:%p\tPiDi:%g\n",&Chrom[i],(&Chrom[i])->Density,(&Chrom[i])->DPdist,(&Chrom[i])->Cluster,(&Chrom[i])->DP,(&Chrom[i])->PiDi);
+        printf("Add:%p\tDensity:%d\tDistance:%g\tCluster:%d\tDP:%p\tPiDi:%g\tCF:%g\n",&Chrom[i],(&Chrom[i])->Density,(&Chrom[i])->DPdist,(&Chrom[i])->Cluster,(&Chrom[i])->DP,(&Chrom[i])->PiDi,(&Chrom[i])->CF);
         if((&Chrom[i])->DP != NULL && (&Chrom[i])->Density > (&Chrom[i])->DP->Density) j++;
     }
     printf("There is %d chromosomes which DP are of lower Density.\nMean:%g\tStdDev:%g\n",j,calculate_mean(Chrom, num_chrom),calculate_stddev(Chrom, num_chrom));
 	
 	// (*) Memory deallocation
-	if(Chrom) free(Chrom);
+	if(Chrom) { free(Chrom); Chrom=NULL; } 
+
+	// (*) CODE SAVED FOR LATHER PURPOSES
+	// Clust = (Cluster*)malloc(sizeof(Cluster));
+	// if(!Clust)
+	// {
+	// 	fprintf(stderr,"ERROR: memory allocation error for clusters\n");
+	// 	Terminate(2);
+	// }
 
 }
 void QuickSort_ChromCluster_by_Density(ClusterChrom* Chrom, int num_chrom, int beg, int end)
@@ -320,7 +345,7 @@ void swap_elements(ClusterChrom* Chrom, ClusterChrom* ChromX, ClusterChrom* Chro
 	
 	if(!ChromT)
 	{
-		fprintf(stderr,"ERROR: The Partition Function is NULL in the clustering step.\n");
+		fprintf(stderr,"ERROR: memory allocation error for clusters\n");
 		Terminate(2);
 	}
 	
@@ -346,7 +371,7 @@ void swap_elements(ClusterChrom* Chrom, ClusterChrom* ChromX, ClusterChrom* Chro
 		ChromT->Coord[i] = ChromX->Coord[i]; ChromX->Coord[i] = ChromY->Coord[i]; ChromY->Coord[i] = ChromT->Coord[i];
 	}
 	
-	if(ChromT) free(ChromT);
+	if(ChromT) { free(ChromT); ChromT=NULL; }
 }
 float calculate_stddev(ClusterChrom* Chrom, int num_chrom)
 {
