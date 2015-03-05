@@ -6,6 +6,10 @@
 #define Chi(a,d) 	( ((a-d) < 0.0) ? 1 : 0 )
 #define K(i,j,n) ( (i < j) ? (i*n+j) : (j*n+i) )
 
+// #DEFINE neighborRateLow and neighborRateHigh 
+#define NEIGHBORRATELOW 0.010
+#define NEIGHBORRATEHIGH 0.020
+
 struct ClusterChrom
 {
 	uint index;						// original index in chrommose* chrom (at the input of density_cluster function)
@@ -149,7 +153,7 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	}
 
 	// (*) Determine Distance Cut-Off
-	dc = getDistanceCutoff(RMSD, 0.010, 0.020, num_chrom);
+	dc = getDistanceCutoff(RMSD, NEIGHBORRATELOW, NEIGHBORRATEHIGH, num_chrom);
 	printf("DC:%g\n",dc);
 
 	// (3) Build Local Density Matrix
@@ -160,7 +164,7 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 		for(j = 0; j < num_chrom; ++j)
 		{
 			jChrom	= &Chrom[j];
-			if(jChrom != iChrom) iChrom->Density += Chi(RMSD[K(i,j,num_chrom)], FA->cluster_rmsd);
+			if(jChrom != iChrom) iChrom->Density += Chi(RMSD[K(i,j,num_chrom)], dc);
 		}
 	}
 
@@ -211,13 +215,35 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	}
 
 	// pChrom (which points to the highest density chrom) should not have pChrom->DP defined
-	if(pChrom->DP == NULL)
+	if(pChrom != NULL)
 	{
-		pChrom->DPdist = maxDist;
-		pChrom->PiDi = pChrom->Density * pChrom->DPdist;
-		--k;
+		if(pChrom->DP == NULL)
+		{
+			pChrom->DPdist = maxDist;
+			pChrom->PiDi = pChrom->Density * pChrom->DPdist;
+			--k;
+		}
+		for(i=0, iChrom=Chrom; i<num_chrom; ++iChrom, ++i)
+		{
+			if(iChrom == pChrom) continue;
+			if(iChrom->DP == NULL && iChrom->Density == maxDensity) 
+			{
+				if(RMSD[K(iChrom->index,pChrom->index,num_chrom)] <= dc)
+				{
+					iChrom->DP = pChrom;
+					iChrom->DPdist = RMSD[K(iChrom->index,pChrom->index,num_chrom)];
+					iChrom->PiDi = iChrom->Density * iChrom->DPdist;
+					--k;
+				}
+				else
+				{
+					iChrom->DPdist = maxDist;
+					iChrom->PiDi = iChrom->Density * iChrom->DPdist;
+					--k;
+				}
+			}
+		}
 	}
-	
 	// (*) Dealing with multiple Chrom->DP == NULL
 	while(k)
 	{
@@ -244,22 +270,22 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 
 	// (6) Identify Cluster Centers
 	nUnclustered = num_chrom;
-	for(pChrom=NULL, i=0, nClusters=0, stddev=calculate_mean(Chrom, num_chrom), mean=calculate_mean(Chrom, num_chrom); ((&Chrom[nClusters])->PiDi - (&Chrom[nClusters+1])->PiDi) > stddev; ++i)
+	for(pChrom=NULL, i=0, nClusters=0, stddev=calculate_mean(Chrom, num_chrom), mean=calculate_mean(Chrom, num_chrom); ((&Chrom[nClusters])->PiDi - (&Chrom[nClusters+1])->PiDi) > stddev && i < num_chrom; ++i)
 	{
 		pChrom = &Chrom[nClusters];
 		
 		if(pChrom != NULL)
 		{	
-			if(pChrom->DP && pChrom->DP->Cluster >= 1) pChrom->Cluster = pChrom->DP->Cluster;
+			if(pChrom->DP != NULL && pChrom->DP->Cluster >= 1) pChrom->Cluster = pChrom->DP->Cluster;
 			else
 			{
 				pChrom->Cluster = (++nClusters);		// cluster assigned
 				pChrom->isCenter = true; 				// cluster center assigned
 			}
-			if(pChrom->Cluster != 0) --nUnclustered;
+			if(pChrom->Cluster > 0) --nUnclustered;
 		}
 	}
-	
+	printf("nClusters:%d\n",nClusters);
 	// (*) QuickSort by decreasing Density value
 	QuickSort_ChromCluster_by_Density(Chrom, num_chrom, 0, num_chrom-1);
 
@@ -285,7 +311,7 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 			{
 				for(j=0, jChrom=Chrom; j<num_chrom; ++j, ++jChrom) if(jChrom->Cluster > 0 && jChrom->Cluster != k)
 				{
-					if( RMSD[K(iChrom->index, jChrom->index, num_chrom)] < FA->cluster_rmsd /*&& iChrom->Density > maxDensity*/)
+					if( RMSD[K(iChrom->index, jChrom->index, num_chrom)] < dc /*&& iChrom->Density > maxDensity*/)
 					{
 						iChrom->isBorder = true;
 					}
@@ -299,7 +325,7 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 					maxDensity = pChrom->Density;
 				}
 			}
-			for(i=0, iChrom=Chrom; i<num_chrom; ++i, ++iChrom) if( k == iChrom->Cluster ) if(iChrom->Density < pChrom->Density) iChrom->isHalo = true;
+			if(pChrom) for(i=0, iChrom=Chrom; i<num_chrom; ++i, ++iChrom) if( k == iChrom->Cluster) if(iChrom->Density < pChrom->Density) iChrom->isHalo = true;
 		}
 
 		// (9) Cluster Creation
@@ -333,9 +359,9 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	// (*) Printing informations
     for(i=0,j=0;i<num_chrom;++i)
     {
-        printf("Add:%p\tDensity:%d\tDistance:%g\tCluster:%d\tDP:%p\tPiDi:%g\tCF:%g\tisCenter:%s\n",&Chrom[i],(&Chrom[i])->Density,(&Chrom[i])->DPdist,(&Chrom[i])->Cluster,(&Chrom[i])->DP,(&Chrom[i])->PiDi,(&Chrom[i])->CF,(&Chrom[i])->isCenter ? "true" : "false");
+        printf("i:%d\tAdd:%p\tDensity:%d\tDistance:%g\tCluster:%d\tDP:%p\tPiDi:%g\tCF:%g\tisCenter:%s\n",(&Chrom[i])->index,&Chrom[i],(&Chrom[i])->Density,(&Chrom[i])->DPdist,(&Chrom[i])->Cluster,(&Chrom[i])->DP,(&Chrom[i])->PiDi,(&Chrom[i])->CF,(&Chrom[i])->isCenter ? "true" : "false");
         if((&Chrom[i])->DP != NULL && (&Chrom[i])->Density > (&Chrom[i])->DP->Density) j++;
-    }
+    }printf("number of chrom with DP of lower density:%d\n",j);
 	
 	// (*) Memory deallocation
 	if(Chrom) { free(Chrom); Chrom=NULL; } 
@@ -363,7 +389,7 @@ float getDistanceCutoff(float* RMSD, float neighborRateLow, float neighborRateHi
 				if(neighbors > nHigh) goto DCPLUS;
 			}
 		}
-		DCPLUS: dc += 0.02;
+		DCPLUS: dc += 0.05;
 	}
 	return dc;
 }
