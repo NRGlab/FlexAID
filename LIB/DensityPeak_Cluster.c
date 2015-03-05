@@ -9,8 +9,9 @@
 struct ClusterChrom
 {
 	uint index;						// original index in chrommose* chrom (at the input of density_cluster function)
-	bool isCore;					// is part of cluster core?
+	bool isHalo;					// is part of cluster core?
 	bool isCenter;					// is cluster center?
+	bool isBorder;					// is part of the border region
 	chromosome* Chromosome;			// Chromosomes list
 	int Cluster;					// Assigned Cluster
 	int Density;					// Density of points in distance cut-off
@@ -48,6 +49,9 @@ typedef struct Cluster_struct Cluster;
 // 	Cluster* next;
 // 	ClusterChrom* outliers;
 // }; typedef struct ClusteredChromosomes ClusteredChrom;
+
+
+float getDistanceCutoff(float* RMSD, float neighborRateLow, float neighborRateHigh, int num_chrom);
 void QuickSort_ChromCluster_by_CF(ClusterChrom* Chrom, int num_chrom, int beg, int end);
 void QuickSort_ChromCluster_by_Density(ClusterChrom* Chrom, int num_chrom, int beg, int end);
 void QuickSort_ChromCluster_by_PiDi(ClusterChrom* Chrom, int num_chrom, int beg, int end);
@@ -59,10 +63,11 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 {
 	// variables declaration
 	int i,j,k;
+	float dc = 0.0f;
 	const int nAtoms = residue[atoms[FA->map_par[0].atm].ofres].latm[0] - residue[atoms[FA->map_par[0].atm].ofres].fatm[0] + 1;
 	uint maxDensity;
 	int mean, stddev;
-	int nClusters, nUnclustered, nOutliers;
+	int nClusters, nUnclustered;
 	float maxDist, minDist;
 	float* RMSD;
 	double Pi;
@@ -72,14 +77,18 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	Cluster* Clust;
 	Cluster* pCluster;
 
-	// dynamic memory allocation
-	Chrom = (ClusterChrom*) malloc(num_chrom*sizeof(ClusterChrom));
-	RMSD = (float*) malloc(num_chrom*num_chrom*sizeof(float));
-	
 	//  dynamically allocated memory check-up
-	if(!Chrom || !RMSD)
+	Chrom = (ClusterChrom*) malloc(num_chrom*sizeof(ClusterChrom));
+	if(Chrom == NULL)
 	{
-		fprintf(stderr,"ERROR: memory allocation error for clusters\n");
+		fprintf(stderr,"ERROR: memory allocation error for ChromClusters data structures.\n");
+		Terminate(2);
+	}
+
+	RMSD = (float*) malloc(num_chrom*num_chrom*sizeof(float));
+	if(RMSD == NULL)
+	{
+		fprintf(stderr,"ERROR: memory allocation error for RMSD matrix.\n");
 		Terminate(2);
 	}
 
@@ -91,8 +100,9 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 		if(pChrom)
 		{
 			pChrom->index = i;
-			pChrom->isCore = false;
+			pChrom->isHalo = false;
 			pChrom->isCenter = false;
+			pChrom->isBorder = false;
 			pChrom->Chromosome = &chrom[i];
 			pChrom->Cluster = 0;
 			pChrom->Density = 0;
@@ -117,7 +127,7 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	{
 		pChrom = &Chrom[i];
 		if(i+1 == num_chrom) calc_rmsd_chrom(FA,GB,chrom,gen_lim,atoms,residue,cleftgrid,GB->num_genes,i,i, pChrom->Coord, NULL, false);
-		else calc_rmsd_chrom(FA,GB,chrom,gen_lim,atoms,residue,cleftgrid,GB->num_genes,i,i+1, pChrom->Coord, (pChrom++)->Coord, false);
+        else {calc_rmsd_chrom(FA,GB,chrom,gen_lim,atoms,residue,cleftgrid,GB->num_genes,i,i+1, pChrom->Coord, (pChrom++)->Coord, false); ++i;}
 	}
 
 	// (2) Build RMSD Matrix
@@ -137,6 +147,10 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 			RMSD[K(i,j,num_chrom)] = sqrtf(minDist/(float)num_chrom);
 		}
 	}
+
+	// (*) Determine Distance Cut-Off
+	dc = getDistanceCutoff(RMSD, 0.010, 0.020, num_chrom);
+	printf("DC:%g\n",dc);
 
 	// (3) Build Local Density Matrix
 	for(i = 0; i < num_chrom; ++i)
@@ -260,43 +274,40 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	}
 	
 	// (*) At this point, the cluster core vs cluster halo assignation is unuseful if there is a single cluster (unable to separe halore (noise) from core data points in dataset)
-	nOutliers = 0;
 	if(nClusters > 1)
 	{
 		// (8) Assignation of chromosome to its cluster Core/Halo
 		// 		1. Find for each Cluster(k): define the border region 
 		// 		2. Find for each Cluster(m): the point of highest density(Pb) within the border region
-		for(k = 1, maxDensity=0; k <= nClusters; ++k)
+		for(k = 1, maxDensity=0, pChrom=NULL; k <= nClusters; ++k)
 		{
-			for(i=0, iChrom=Chrom, pChrom=NULL, maxDensity=0; i<num_chrom; ++i, ++iChrom) if( k == iChrom->Cluster )
+			for(i=0, iChrom=Chrom; i<num_chrom; ++i, ++iChrom) if( k == iChrom->Cluster )
 			{
-				for(j=0, jChrom=Chrom; j<num_chrom; ++j, ++jChrom) 
+				for(j=0, jChrom=Chrom; j<num_chrom; ++j, ++jChrom) if(jChrom->Cluster > 0 && jChrom->Cluster != k)
 				{
-					if(jChrom->Cluster > 0 && jChrom->Cluster != k && Chi(RMSD[K(iChrom->index, jChrom->index, num_chrom)],FA->cluster_rmsd) && iChrom->Density > maxDensity)
+					if( RMSD[K(iChrom->index, jChrom->index, num_chrom)] < FA->cluster_rmsd /*&& iChrom->Density > maxDensity*/)
 					{
-						pChrom = iChrom;
-						maxDensity = pChrom->Density;
+						iChrom->isBorder = true;
 					}
 				}
 			}
-			for(i=0, iChrom=Chrom; i<num_chrom; ++i, ++iChrom) if( k == iChrom->Cluster && pChrom != NULL)
+			for(i=0, iChrom = Chrom; i<num_chrom; ++i, ++iChrom) if( k == iChrom->Cluster)
 			{
-				if(iChrom->Density >= pChrom->Density) iChrom->isCore = true;
-				else
+				if(iChrom->isBorder && iChrom->Density > maxDensity)
 				{
-					// we could assume that if pChrom->isCore == false, the Chromosome should be assigned to the outliers and modify pChrom->Cluster = -1 (but we lose the cluster assignation info)
-					// iChrom->Cluster = -1;
-					++nOutliers;
+					pChrom = iChrom;
+					maxDensity = pChrom->Density;
 				}
 			}
+			for(i=0, iChrom=Chrom; i<num_chrom; ++i, ++iChrom) if( k == iChrom->Cluster ) if(iChrom->Density < pChrom->Density) iChrom->isHalo = true;
 		}
-		printf("outliers:%d\n",nOutliers);
+
 		// (9) Cluster Creation
-		Clust = (Cluster*) malloc((nClusters+nOutliers)*sizeof(Cluster));
-		//  dynamically allocated memory check-up
+		Clust = (Cluster*) malloc((nClusters)*sizeof(Cluster));
+		// //  dynamically allocated memory check-up
 		if(Clust == NULL) 
 		{
-			fprintf(stderr,"ERROR: memory allocation error for clusters\n");
+			fprintf(stderr,"ERROR: memory allocation error for Clusters data structures\n");
 			Terminate(2);
 		}
 		for(k = 1, pCluster=Clust; k <= nClusters && pCluster != NULL; ++k, ++pCluster)
@@ -308,22 +319,16 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 			pCluster->BestCF = NULL;
 			pCluster->Center = NULL;
 
-			for(pChrom=Chrom, i=0; i<num_chrom; ++i, ++pChrom) if(pChrom->isCore && pChrom->Cluster == k)
+			for(pChrom=Chrom, i=0; i<num_chrom; ++i, ++pChrom) if(!pChrom->isHalo && pChrom->Cluster == k)
 			{
 				pCluster->totCF += pChrom->CF;
-				++(pCluster->Frequency);
+				pCluster->Frequency += 1;
 				if(pChrom->isCenter) pCluster->Center = pChrom;
-				if( (pCluster->BestCF == NULL) || (pChrom->Chromosome->app_evalue < pCluster->BestCF->Chromosome->app_evalue) ) pCluster->BestCF = pChrom;
+				if( (pCluster->BestCF == NULL) || (pChrom->CF < pCluster->BestCF->CF) ) pCluster->BestCF = pChrom;
 			}
 		}
-		// free-ing Clust
-		if(Clust)  { free(Clust); Clust=NULL; }		
 	}
-	else if(nClusters == 1)
-	{
-		// In cases where there is single cluster 
-		QuickSort_ChromCluster_by_CF(Chrom, num_chrom, 0, num_chrom-1);
-	}
+	// 	QuickSort_ChromCluster_by_CF(Chrom, num_chrom, 0, num_chrom-1);
 
 	// (*) Printing informations
     for(i=0,j=0;i<num_chrom;++i)
@@ -335,6 +340,32 @@ void density_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	// (*) Memory deallocation
 	if(Chrom) { free(Chrom); Chrom=NULL; } 
 	if(RMSD)  { free(RMSD); RMSD=NULL; }
+    if(nClusters > 1 && Clust) { free(Clust); Clust=NULL; }
+}
+
+float getDistanceCutoff(float* RMSD, float neighborRateLow, float neighborRateHigh, int num_chrom)
+{
+	int i,j;
+	float dc = 0.0f;
+	int neighbors = 0;
+	int nLow = neighborRateLow * num_chrom * num_chrom;
+	int nHigh = neighborRateHigh * num_chrom * num_chrom;
+	while(neighbors < nLow || neighbors > nHigh)
+	{
+		neighbors = 0;
+		for(i=0; i<num_chrom-1; ++i)
+		{
+			for(j=0; j<num_chrom; ++j)
+			{
+				if(i==j) continue;
+				if(RMSD[K(i,j,num_chrom)] <= dc) ++neighbors;
+				// if(neighbors > nHigh) dc += 0.25;
+				if(neighbors > nHigh) goto DCPLUS;
+			}
+		}
+		DCPLUS: dc += 0.02;
+	}
+	return dc;
 }
 
 void QuickSort_ChromCluster_by_Density(ClusterChrom* Chrom, int num_chrom, int beg, int end)
@@ -454,13 +485,14 @@ void swap_elements(ClusterChrom* Chrom, ClusterChrom* ChromX, ClusterChrom* Chro
 	ChromT = (ClusterChrom*)malloc(sizeof(ClusterChrom));
 	if(ChromT == NULL)
 	{
-		fprintf(stderr,"ERROR: memory allocation error for clusters\n");
+		fprintf(stderr,"ERROR: memory allocation error for clusters in swap_elements()\n");
 		Terminate(2);
 	}
 
 	ChromT->index = ChromX->index; ChromX->index = ChromY->index; ChromY->index = ChromT->index;
-	ChromT->isCore = ChromX->isCore; ChromX->isCore = ChromY->isCore; ChromY->isCore = ChromT->isCore;
+	ChromT->isHalo = ChromX->isHalo; ChromX->isHalo = ChromY->isHalo; ChromY->isHalo = ChromT->isHalo;
 	ChromT->isCenter = ChromX->isCenter; ChromX->isCenter = ChromY->isCenter; ChromY->isCenter = ChromT->isCenter;
+	ChromT->isBorder = ChromX->isBorder; ChromX->isBorder = ChromY->isBorder; ChromY->isBorder = ChromT->isBorder;
 	ChromT->Chromosome = ChromX->Chromosome; ChromX->Chromosome = ChromY->Chromosome; ChromY->Chromosome = ChromT->Chromosome;
 	ChromT->Cluster = ChromX->Cluster; ChromX->Cluster = ChromY->Cluster; ChromY->Cluster = ChromT->Cluster;
 	ChromT->CF = ChromX->CF; ChromX->CF = ChromY->CF; ChromY->CF = ChromT->CF;
