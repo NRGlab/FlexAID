@@ -9,7 +9,7 @@
 // #DEFINE neighborRateLow and neighborRateHigh 
 #define NEIGHBORRATELOW 0.0195
 #define NEIGHBORRATEHIGH 0.0205
-#define CONSIDER_HALO_IN_CLUSTER 1
+#define EXCLUDE_HALO true
 
 struct ClusterChrom
 {
@@ -17,6 +17,7 @@ struct ClusterChrom
 	bool isHalo;					// is part of cluster core?
 	bool isCenter;					// is cluster center?
 	bool isBorder;					// is part of the border region
+	bool isClustered;
 	chromosome* Chromosome;			// Chromosomes list
 	int Cluster;					// Assigned Cluster
 	int Density;					// Density of points in distance cut-off
@@ -40,9 +41,10 @@ struct Cluster_struct
 typedef struct Cluster_struct Cluster;
 
 
-void QuickSort_ChromCluster_by_CF(Cluster* Clust, int beg, int end);
+void QuickSort_Cluster_by_CF(Cluster* Clust, int beg, int end);
 void swap_clusters(Cluster* xClust, Cluster* yClust);
 float getDistanceCutoff(float* RMSD, float neighborRateLow, float neighborRateHigh, int num_chrom);
+void QuickSort_ChromCluster_by_CF(ClusterChrom* Chrom, int num_chrom, int beg, int end);
 void QuickSort_ChromCluster_by_Density(ClusterChrom* Chrom, int num_chrom, int beg, int end);
 void QuickSort_ChromCluster_by_PiDi(ClusterChrom* Chrom, int num_chrom, int beg, int end);
 void swap_elements(ClusterChrom* Chrom, ClusterChrom* ChromX, ClusterChrom* ChromY, int num_chrom);
@@ -103,6 +105,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 			pChrom->isHalo = false;
 			pChrom->isCenter = false;
 			pChrom->isBorder = false;
+			pChrom->isClustered = false;
 			pChrom->Chromosome = &chrom[i];
 			pChrom->Cluster = 0;
 			pChrom->Density = 0;
@@ -296,8 +299,11 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 		if(pChrom->Cluster > 0) iChrom->Cluster = pChrom->Cluster;
 	}
 
+	// Sorting ChromCluster elements by ASCENCING CF values
+	QuickSort_ChromCluster_by_CF(Chrom, num_chrom, 0, num_chrom-1);
+
 	// (*) At this point, the cluster core vs cluster halo assignation is unuseful if there is a single cluster (unable to separe halore (noise) from core data points in dataset)
-	if(nClusters > 1)
+	if(EXCLUDE_HALO && nClusters > 1)
 	{
 		// (8) Assignation of chromosome to its cluster Core/Halo
 		// 		1. Find for each Cluster(k): define the border region 
@@ -308,7 +314,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 			{
 				for(j=0, jChrom=Chrom; j<num_chrom; ++j, ++jChrom) if(jChrom->Cluster > 0 && jChrom->Cluster != k)
 				{
-					if( RMSD[K(iChrom->index, jChrom->index, num_chrom)] < (dc < FA->cluster_rmsd ? dc : FA->cluster_rmsd) /*&& iChrom->Density > maxDensity*/)
+					if( RMSD[K(iChrom->index, jChrom->index, num_chrom)] < ( (dc < FA->cluster_rmsd) ? dc : FA->cluster_rmsd) /*&& iChrom->Density > maxDensity*/)
 					{
 						iChrom->isBorder = true;
 					}
@@ -333,37 +339,56 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 			if( iChrom->isHalo ) j++;
 		}
 		printf("nOutliers:%d\tnHalo:%d\n",nOutliers, j);
-
-		// (9) Cluster Creation
-		Clust = (Cluster*) malloc((nClusters+nOutliers)*sizeof(Cluster));
-		// //  dynamically allocated memory check-up
-		if(Clust == NULL) 
-		{
-			fprintf(stderr,"ERROR: memory allocation error for Clusters data structures\n");
-			Terminate(2);
-		}
-		// Building UP the Clusters 
-		for(k = 1, pCluster=Clust; k <= nClusters && pCluster != NULL; ++k, ++pCluster)
-		{
-			// initializing the Cluster element
-			pCluster->ID = k;
-			pCluster->Frequency = 0;
-			pCluster->totCF = 0.0;
-			pCluster->BestCF = NULL;
-			pCluster->Center = NULL;
-
-			for(pChrom=Chrom, i=0; i<num_chrom; ++i, ++pChrom) if( !pChrom->isHalo && pChrom->Cluster == k )
-			{
-				pCluster->totCF += pChrom->CF;
-				pCluster->Frequency++;
-				if( pChrom->isCenter ) pCluster->Center = pChrom;
-				if( pCluster->BestCF == NULL || (pChrom->CF < pCluster->BestCF->CF) ) pCluster->BestCF = pChrom;
-			}
-		}
-		// Building up the *outliers*
-        // for(i=0;i<num_chrom;++i)
 	}
 
+	// (9) Cluster Creation
+	Clust = (Cluster*) malloc( FA->max_results * sizeof(Cluster) );
+	// //  dynamically allocated memory check-up
+	if(Clust == NULL) 
+	{
+		fprintf(stderr,"ERROR: memory allocation error for Clusters data structures\n");
+		Terminate(2);
+	}
+	
+	// Building UP the Clusters 
+	for(k = 1, pCluster=Clust; k <= nClusters && pCluster != NULL; ++k, ++pCluster)
+	{
+		// initializing the Cluster element
+		pCluster->ID = k;
+		pCluster->Frequency = 0;
+		pCluster->totCF = 0.0;
+		pCluster->BestCF = NULL;
+		pCluster->Center = NULL;
+
+		for(pChrom=Chrom, i=0; i<num_chrom; ++i, ++pChrom) if( !pChrom->isHalo && pChrom->Cluster == k && !pChrom->isClustered)
+		{
+			pCluster->totCF += pChrom->CF;
+			pCluster->Frequency++;
+			if( pChrom->isCenter ) pCluster->Center = pChrom;
+			if( pCluster->BestCF == NULL || (pChrom->CF < pCluster->BestCF->CF) ) pCluster->BestCF = pChrom;
+			pChrom->isClustered = true;
+		}
+	}
+	while(k <= FA->max_results)
+	{
+		pCluster = &Clust[k];
+		// looking for an interesting individual chrom to output 
+		for(pChrom=Chrom, i=0; i<num_chrom; ++i, ++pChrom) if (pChrom->isHalo && !pChrom->isClustered && iChrom->Chromosome->app_evalue < 1000) break;
+		if(i==num_chrom) break; 		// if no interesting chrom has been found through the FOR loop above
+		pCluster->ID = k;
+		pCluster->totCF += pChrom->CF;
+		pCluster->Frequency++;
+		pCluster->Center = pChrom;
+		pCluster->BestCF = pChrom;
+		++nClusters;
+		++k;
+	}
+
+	// (11) Sort Clusters by ascending CF (lowest first)
+	QuickSort_Cluster_by_CF( Clust, 0, nClusters-1 );
+
+	// (12) Output Clusters
+	
 	printf("mean:%g\tstddev:%g\n", calculate_mean(Chrom, num_chrom), calculate_stddev(Chrom, num_chrom));
 	// (*) Printing informations
     for(i=0,j=0;i<num_chrom;++i)
@@ -371,14 +396,12 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
         printf("i:%d\tAdd:%p\tDensity:%d\tDistance:%g\tCluster:%d\tDP:%p\tPiDi:%g\tCF:%g\tisCore:%s\tisCenter:%s\n",(&Chrom[i])->index, &Chrom[i], (&Chrom[i])->Density, (&Chrom[i])->DPdist, (&Chrom[i])->Cluster, (&Chrom[i])->DP, (&Chrom[i])->PiDi, (&Chrom[i])->CF, ((&Chrom[i])->isHalo ? "false" : "true"), ((&Chrom[i])->isCenter ? "true" : "false"));
     }
 
-	// 	QuickSort_ChromCluster_by_CF(Chrom, num_chrom, 0, num_chrom-1);
 	
 	// (*) Memory deallocation
 	if(Chrom) { free(Chrom); Chrom=NULL; } 
 	if(RMSD)  { free(RMSD); RMSD=NULL; }
     if(nClusters > 1 && Clust) { free(Clust); Clust=NULL; }
 }
-
 float getDistanceCutoff(float* RMSD, float neighborRateLow, float neighborRateHigh, int num_chrom)
 {
 	int i,j;
@@ -404,7 +427,7 @@ float getDistanceCutoff(float* RMSD, float neighborRateLow, float neighborRateHi
 	}
 	return dc;
 }
-void QuickSort_ChromCluster_by_CF(Cluster* Clust, int beg, int end)
+void QuickSort_Cluster_by_CF(Cluster* Clust, int beg, int end)
 {
 	int l, r, p;
 	double pivot;
@@ -415,8 +438,8 @@ void QuickSort_ChromCluster_by_CF(Cluster* Clust, int beg, int end)
 
 		while(1)
 		{
-			while( (l<=r) && QS_ASC((&Clust[l])->totCF,pivot) <= 0 ) ++l;
-			while( (l<=r) && QS_ASC((&Clust[r])->totCF,pivot)  > 0 ) --r;
+			while( (l<=r) && QS_ASC( (&Clust[l])->totCF, pivot ) <= 0.0 ) ++l;
+			while( (l<=r) && QS_ASC( (&Clust[r])->totCF, pivot )  > 0.0 ) --r;
 			
 			if (l > r) break;
 
@@ -430,12 +453,12 @@ void QuickSort_ChromCluster_by_CF(Cluster* Clust, int beg, int end)
 
 		if( (r-beg) < (end-l) )
 		{
-			QuickSort_ChromCluster_by_CF(Clust, beg, r);
+			QuickSort_Cluster_by_CF(Clust, beg, r);
 			beg = l;
 		}
 		else
 		{
-			QuickSort_ChromCluster_by_CF(Clust, l, end);
+			QuickSort_Cluster_by_CF(Clust, l, end);
 			end = r;
 		}
 	}
@@ -455,6 +478,42 @@ void swap_clusters(Cluster* xCluster, Cluster* yCluster)
 	tCluster->Frequency = xCluster->Frequency; xCluster->Frequency = yCluster->Frequency; yCluster->Frequency = tCluster->Frequency;
 	
 	if(tCluster) {free(tCluster); tCluster = NULL; }
+}
+void QuickSort_ChromCluster_by_CF(ClusterChrom* Chrom, int num_chrom, int beg, int end)
+{
+	int l, r, p;
+	double pivot;
+	while(beg < end)
+	{
+		l = beg; p = beg + (end-beg)/2; r = end;
+		pivot = (&Chrom[p])->CF;
+
+		while(1)
+		{
+			while( (l<=r) && QS_ASC((&Chrom[l])->CF,pivot) <= 0.0 ) ++l;
+			while( (l<=r) && QS_ASC((&Chrom[r])->CF,pivot)  > 0.0 ) --r;
+			
+			if (l > r) break;
+
+			swap_elements(Chrom, &Chrom[l],&Chrom[r], num_chrom);
+			if (p == r) p=l;
+			++l;--r;
+		}
+		swap_elements(Chrom, &Chrom[p], &Chrom[r], num_chrom);
+		
+		--r;
+
+		if( (r-beg) < (end-l) )
+		{
+			QuickSort_ChromCluster_by_CF(Chrom, num_chrom, beg, r);
+			beg = l;
+		}
+		else
+		{
+			QuickSort_ChromCluster_by_CF(Chrom, num_chrom, l, end);
+			end = r;
+		}
+	}
 }
 void QuickSort_ChromCluster_by_Density(ClusterChrom* Chrom, int num_chrom, int beg, int end)
 {
@@ -545,6 +604,7 @@ void swap_elements(ClusterChrom* Chrom, ClusterChrom* ChromX, ClusterChrom* Chro
 	ChromT->isHalo = ChromX->isHalo; ChromX->isHalo = ChromY->isHalo; ChromY->isHalo = ChromT->isHalo;
 	ChromT->isCenter = ChromX->isCenter; ChromX->isCenter = ChromY->isCenter; ChromY->isCenter = ChromT->isCenter;
 	ChromT->isBorder = ChromX->isBorder; ChromX->isBorder = ChromY->isBorder; ChromY->isBorder = ChromT->isBorder;
+	ChromT->isClustered = ChromX->isClustered; ChromX->isClustered = ChromY->isClustered; ChromY->isClustered = ChromT->isClustered;
 	ChromT->Chromosome = ChromX->Chromosome; ChromX->Chromosome = ChromY->Chromosome; ChromY->Chromosome = ChromT->Chromosome;
 	ChromT->Cluster = ChromX->Cluster; ChromX->Cluster = ChromY->Cluster; ChromY->Cluster = ChromT->Cluster;
 	ChromT->CF = ChromX->CF; ChromX->CF = ChromY->CF; ChromY->CF = ChromT->CF;
