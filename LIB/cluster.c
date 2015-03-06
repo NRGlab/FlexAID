@@ -6,11 +6,11 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 	bool Hungarian = false;
 
 	int i,j;
-	cfstr cf;                                /* complementarity function value */
-	resid *res_ptr = NULL;
-	cfstr* cf_ptr = NULL;
+cfstr cf;                                /* complementarity function value */
+resid *res_ptr = NULL;
+cfstr* cf_ptr = NULL;
 
-	FILE* outfile_ptr = NULL;
+FILE* outfile_ptr = NULL;
 
 	// will 
 	double partition_function = 0.0;
@@ -20,9 +20,9 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 	int num_of_clusters = 0;
 	int n_unclus = 0;
 
-	char sufix[10];
-	char remark[MAX_REMARK];
-	char tmpremark[MAX_REMARK];
+char sufix[10];
+char remark[MAX_REMARK];
+char tmpremark[MAX_REMARK];
 
 	// Clustering Variable Definitions
 	int* Clus_GAPOP = NULL;
