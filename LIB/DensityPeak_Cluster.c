@@ -9,7 +9,7 @@
 // #DEFINE neighborRateLow and neighborRateHigh 
 #define NEIGHBORRATELOW 0.01
 #define NEIGHBORRATEHIGH 0.02
-#define EXCLUDE_HALO true
+#define EXCLUDE_HALO false
 #define OUTPUT_CLUSTER_CENTER true
 
 struct ClusterChrom
@@ -345,8 +345,8 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	}
 
 	// (9) Cluster Creation
-	Clust = (Cluster*) malloc( FA->max_results * sizeof(Cluster) );
-
+	if(FA->max_results > nClusters) Clust = (Cluster*) malloc( FA->max_results * sizeof(Cluster) );
+    else                            Clust = (Cluster*) malloc( nClusters * sizeof(Cluster) );
 	// //  dynamically allocated memory check-up
 	if(Clust == NULL) 
 	{
@@ -378,20 +378,21 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 			pChrom->isClustered = true;
 		}
 	}
-	while(k < FA->max_results)
+	
+	// pCluster = &Clust[k];
+	// looking for an interesting individual chrom to output 
+	for(pChrom=Chrom, i=0; i<num_chrom; ++i, ++pChrom)
 	{
-		// pCluster = &Clust[k];
-		// looking for an interesting individual chrom to output 
-		for(pChrom=Chrom, i=0; i<num_chrom; ++i, ++pChrom) if (pChrom->isHalo == false && pChrom->isClustered == false && pChrom->Chromosome->app_evalue < 1000) break;
-		if(i == num_chrom) break; 		// if no interesting chrom has been found through the FOR loop above
-		else if(pChrom)
-		{	
+        if(FA->max_results > nClusters && k >= nClusters) break;
+        else if(k >= FA->max_results) break;
+        if (pChrom && pChrom->isHalo == false && pChrom->isClustered == false)// && pChrom->Chromosome->app_evalue < 1000)
+		{
 			pCluster->ID = k;
 			pCluster->totCF += pChrom->CF;
 			pCluster->Frequency += 1;
 			pCluster->Center = pChrom;
 			pCluster->BestCF = pChrom;
-			++nClusters;
+            pChrom->isClustered = true;
 			++pCluster;
 			++k;
 		}
@@ -411,10 +412,10 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	}
 	else
 	{
-		for(i = 0;i < FA->max_results; ++i)
+		for(i = 0; i < FA->max_results; ++i)
 		{
             pCluster = &Clust[i];
-			fprintf(outfile_ptr, "Cluster %d: Center:%d (CF:%g) Best:%d (CF:%g) TCF=%f Frequency=%d\n",
+			if(pCluster) fprintf(outfile_ptr, "Cluster %d: Center:%d (CF:%g) Best:%d (CF:%g) TCF=%f Frequency=%d\n",
 				pCluster->ID, 
 				pCluster->Center->index, 
 				pCluster->Center->CF,
@@ -449,11 +450,13 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 		if(pCluster != NULL)
 		{
 			// setting pChrom to either BestCF or ClusterCenter
-			if(OUTPUT_CLUSTER_CENTER) pChrom = pCluster->Center;
-			else pChrom = pCluster->BestCF;
+			if(OUTPUT_CLUSTER_CENTER) 	pChrom = pCluster->Center;
+			else 						pChrom = pCluster->BestCF;
 			// outputting cluster center
 			for(k=0; k<GB->num_genes ; ++k) FA->opt_par[k] = pChrom->Chromosome->genes[k].to_ic;
+			
 			CF = ic2cf(FA, VC, atoms, residue, cleftgrid, GB->num_genes, FA->opt_par);
+			
 			strcpy(remark,"REMARK optimized structure\n");
 			sprintf(tmpremark,"REMARK Density Peak clustering algorithm used to output %s as cluster representatives\n", (OUTPUT_CLUSTER_CENTER == true ? "the lowest CF" : "the center of highest density"));
 			strcat(remark,tmpremark);
@@ -486,7 +489,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 					pCluster->ID, pCluster->BestCF->CF, pCluster->Center->CF, pCluster->totCF, pCluster->Frequency);
 			strcat(remark,tmpremark);
 			
-			for(i=0; i<FA->npar; ++i)
+			for(i=0; i < FA->npar; ++i)
 			{
 				sprintf(tmpremark, "REMARK [%8.3f]\n",FA->opt_par[i]);
 				strcat(remark,tmpremark);
