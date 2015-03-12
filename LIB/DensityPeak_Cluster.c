@@ -9,7 +9,7 @@
 // #DEFINE neighborRateLow and neighborRateHigh 
 #define NEIGHBORRATELOW 0.01
 #define NEIGHBORRATEHIGH 0.02
-#define EXCLUDE_HALO false
+#define EXCLUDE_HALO true
 #define OUTPUT_CLUSTER_CENTER true
 
 struct ClusterChrom
@@ -61,6 +61,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	const int nAtoms = residue[atoms[FA->map_par[0].atm].ofres].latm[0] - residue[atoms[FA->map_par[0].atm].ofres].fatm[0] + 1;
 	uint maxDensity;
 	int mean, stddev;
+	int nResults;
 	int nClusters, nUnclustered, nOutliers;
 	float maxDist, minDist;
 	float* RMSD;
@@ -216,7 +217,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 		iChrom->PiDi = iChrom->Density * iChrom->DPdist;
 	}
 
-	// pChrom (which points to the highest density chrom) should not have pChrom->DP defined
+	// (5.1) pChrom (which points to the highest density chrom) should not have pChrom->DP defined
 	if(pChrom != NULL)
 	{
 		if(pChrom->DP == NULL)
@@ -246,7 +247,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 			}
 		}
 	}
-	// (*) Dealing with multiple Chrom->DP == NULL
+	// (5.2) Dealing with multiple Chrom->DP == NULL
 	while(k)
 	{
 		i = 0; pChrom = Chrom; // equivalent to pChrom = &Chrom[0]
@@ -271,7 +272,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	}
 	
 
-	// (*) Sort Chrom by decreasing PiDi value
+	// (5.3) Sort Chrom by decreasing PiDi value
 	QuickSort_ChromCluster_by_PiDi(Chrom,num_chrom,0,num_chrom-1);
 
 	// (6) Identify Cluster Centers
@@ -290,7 +291,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 		}
 	}
 	printf("nClusters:%d\n",nClusters);
-	// (*) QuickSort by decreasing Density value
+	// (6.1) QuickSort by decreasing Density value
 	QuickSort_ChromCluster_by_Density(Chrom, num_chrom, 0, num_chrom-1);
 
 	// (7) Clustering Step
@@ -303,21 +304,21 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	}
 
 	// Sorting ChromCluster elements by ASCENCING CF values
-	// QuickSort_ChromCluster_by_CF(Chrom, num_chrom, 0, num_chrom-1);
+	QuickSort_ChromCluster_by_CF(Chrom, num_chrom, 0, num_chrom-1);
 
-	// (*) At this point, the cluster core vs cluster halo assignation is unuseful if there is a single cluster (unable to separe halore (noise) from core data points in dataset)
+	// (8) Assignation of chromosome to its cluster Core/Halo 
+	// At this point, the cluster core vs cluster halo assignation is unuseful if there is a single cluster (unable to separe halore (noise) from core data points in dataset)
 	if(EXCLUDE_HALO && nClusters > 1)
 	{
-		// (8) Assignation of chromosome to its cluster Core/Halo
-		// 		1. Find for each Cluster(k): define the border region 
-		// 		2. Find for each Cluster(m): the point of highest density(Pb) within the border region
+		// (8.1) Find for each Cluster(k): define the border region 
+		// (8.2) Find for each Cluster(m): the point of highest density(Pb) within the border region
 		for(k = 1, maxDensity=0, pChrom=NULL; k <= nClusters; ++k)
 		{
 			for(i=0, iChrom=Chrom; i<num_chrom; ++i, ++iChrom) if( k == iChrom->Cluster )
 			{
 				for(j=0, jChrom=Chrom; j<num_chrom; ++j, ++jChrom) if(jChrom->Cluster > 0 && jChrom->Cluster != k)
 				{
-					if( RMSD[K(iChrom->index, jChrom->index, num_chrom)] < ( (dc < FA->cluster_rmsd) ? dc : FA->cluster_rmsd) /*&& iChrom->Density > maxDensity*/)
+					if( RMSD[K(iChrom->index, jChrom->index, num_chrom)] < ( (dc < FA->cluster_rmsd) ? dc*0.5 : FA->cluster_rmsd) /*&& iChrom->Density > maxDensity*/)
 					{
 						iChrom->isBorder = true;
 					}
@@ -345,15 +346,17 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	}
 
 	// (9) Cluster Creation
-	if(FA->max_results > nClusters) Clust = (Cluster*) malloc( FA->max_results * sizeof(Cluster) );
-    else                            Clust = (Cluster*) malloc( nClusters * sizeof(Cluster) );
+	if(nClusters < FA->max_results) nResults = nClusters;
+	else nResults = FA->max_results;
+
+	Clust = (Cluster*) malloc( nResults * sizeof(Cluster) );
 	// //  dynamically allocated memory check-up
 	if(Clust == NULL) 
 	{
 		fprintf(stderr,"ERROR: memory allocation error for Clusters data structures\n");
 		Terminate(2);
 	}
-	for(i=0; i<FA->max_results; ++i)
+	for(i=0; i < nResults; ++i)
 	{
 		pCluster = &Clust[i];
 		// initializing the Cluster element
@@ -363,43 +366,46 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 		pCluster->BestCF = NULL;
 		pCluster->Center = NULL;
 	}
-	// Building UP the Clusters 
-	for(k = 1, pCluster=&Clust[0]; k <= nClusters && pCluster != NULL && k <= FA->max_results; ++k, ++pCluster)
+	// (10) Building UP the Clusters 
+	for(k = 1, pCluster=NULL; k <= nResults; ++k)
 	{
+		pCluster = &Clust[k-1];
 		pCluster->ID = k;
-		for(pChrom=Chrom, i=0; i<num_chrom; ++i, ++pChrom) if( !pChrom->isHalo && pChrom->Cluster == k && !pChrom->isClustered )
+		for(i=0; i<num_chrom; ++i)
 		{
-			pCluster->totCF += pChrom->CF;
-			pCluster->Frequency += 1;
-			if( pChrom->isCenter ) pCluster->Center = pChrom;
-			
-			if( pCluster->BestCF == NULL) pCluster->BestCF = pChrom;
-			else if( pChrom->CF < pCluster->BestCF->CF ) pCluster->BestCF = pChrom;
-			pChrom->isClustered = true;
+            pChrom = &Chrom[i];
+            if(pChrom && !pChrom->isHalo && pChrom->Cluster == k && !pChrom->isClustered )
+            {
+                pCluster->totCF += pChrom->CF;
+                pCluster->Frequency += 1;
+                if( pChrom->isCenter ) pCluster->Center = pChrom;
+                
+                if( pCluster->BestCF == NULL || pChrom->CF < pCluster->BestCF->CF) pCluster->BestCF = pChrom;
+                pChrom->isClustered = true;
+            }
 		}
 	}
 	
-	// pCluster = &Clust[k];
 	// looking for an interesting individual chrom to output 
-	for(pChrom=Chrom, i=0; i<num_chrom; ++i, ++pChrom)
+	for(i=0; i < num_chrom && k <= nResults; ++i)
 	{
-        if(FA->max_results > nClusters && k >= nClusters) break;
-        else if(k >= FA->max_results) break;
-        if (pChrom && pChrom->isHalo == false && pChrom->isClustered == false)// && pChrom->Chromosome->app_evalue < 1000)
+        pChrom = &Chrom[i];
+        if (pChrom && !pChrom->isClustered && pChrom->Cluster == 0)// && pChrom->Chromosome->app_evalue < 1000)
 		{
+			pCluster = &Clust[k];
 			pCluster->ID = k;
-			pCluster->totCF += pChrom->CF;
-			pCluster->Frequency += 1;
+			pCluster->totCF = pChrom->CF;
+			pCluster->Frequency = 1;
 			pCluster->Center = pChrom;
 			pCluster->BestCF = pChrom;
+			pChrom->isCenter = true;
             pChrom->isClustered = true;
-			++pCluster;
 			++k;
 		}
 	}
 
 	// (11) Sort Clusters by ascending CF (lowest first) && Chromosomes by DESCENDING Density
-	QuickSort_Cluster_by_CF( Clust, 0, nClusters-1 );
+    QuickSort_Cluster_by_CF( Clust, 0, nResults-1 );
 
 	// (12) Output Cluster information
 	sprintf(sufix,".cad");
@@ -412,11 +418,11 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	}
 	else
 	{
-		for(i = 0; i < FA->max_results; ++i)
+		for(i = 0; i < nResults; ++i)
 		{
             pCluster = &Clust[i];
-			if(pCluster) fprintf(outfile_ptr, "Cluster %d: Center:%d (CF:%g) Best:%d (CF:%g) TCF=%f Frequency=%d\n",
-				pCluster->ID, 
+			if(pCluster && pCluster->BestCF && pCluster->Center) fprintf(outfile_ptr, "Cluster %d: Center:%d (CF:%g) Best:%d (CF:%g) TCF=%f Frequency=%d\n",
+				pCluster->ID,
 				pCluster->Center->index, 
 				pCluster->Center->CF,
 				pCluster->BestCF->index,
@@ -428,10 +434,10 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 		if(nClusters > 1)
 		{
 			fprintf(outfile_ptr,"RMSD between clusters\n");
-			for(i=0, iClust = NULL; i < nClusters; ++i)
+			for(i=0, iClust = NULL; i < nResults; ++i)
 			{
 				iClust = &Clust[i];
-				for(j=i+1; j < nClusters; ++j)
+				for(j=i+1; j < nResults; ++j)
 				{
 					jClust = &Clust[j];
 					if(OUTPUT_CLUSTER_CENTER==true) fprintf(outfile_ptr,"rmsd(%d,%d)=%f\n",i+1,j+1,RMSD[K(iClust->Center->index, jClust->Center->index, num_chrom)]);
@@ -444,78 +450,81 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 
 	// (13) Output Clusters
 	// output clusters informations (looping through each cluster)
-	for(i=0, pCluster=NULL, iChrom=NULL, jChrom=NULL, pChrom=NULL; i<nClusters; i++)
+	for(i=0, pCluster=NULL, pChrom=NULL; i < nResults; i++)
 	{
 		pCluster = &Clust[i];
-		if(pCluster != NULL)
+		// setting pChrom to either BestCF or ClusterCenter
+		if(OUTPUT_CLUSTER_CENTER) 	pChrom = pCluster->Center;
+		else 						pChrom = pCluster->BestCF;
+
+		if(!pChrom)
 		{
-			// setting pChrom to either BestCF or ClusterCenter
-			if(OUTPUT_CLUSTER_CENTER) 	pChrom = pCluster->Center;
-			else 						pChrom = pCluster->BestCF;
-			// outputting cluster center
-			for(k=0; k<GB->num_genes ; ++k) FA->opt_par[k] = pChrom->Chromosome->genes[k].to_ic;
-			
-			CF = ic2cf(FA, VC, atoms, residue, cleftgrid, GB->num_genes, FA->opt_par);
-			
-			strcpy(remark,"REMARK optimized structure\n");
-			sprintf(tmpremark,"REMARK Density Peak clustering algorithm used to output %s as cluster representatives\n", (OUTPUT_CLUSTER_CENTER == true ? "the lowest CF" : "the center of highest density"));
-			strcat(remark,tmpremark);
-			
-			sprintf(tmpremark,"REMARK CF=%8.5f\n",get_cf_evalue(&CF));
-			strcat(remark,tmpremark);
-			sprintf(tmpremark,"REMARK CF.app=%8.5f\n",get_apparent_cf_evalue(&CF));
-			strcat(remark,tmpremark);
-			for(j = 0; j < FA->num_optres; ++j)
-			{
-				pRes = &residue[FA->optres[j].rnum];
-				pCF  = &FA->optres[i].cf;
-
-				sprintf(tmpremark,"REMARK optimizable residue %s %c %d\n", pRes->name, pRes->chn, pRes->number);
-				strcat(remark,tmpremark);
-		  
-				sprintf(tmpremark ,"REMARK CF.com=%8.5f\n", pCF->com);
-				strcat(remark, tmpremark);
-				sprintf(tmpremark ,"REMARK CF.sas=%8.5f\n", pCF->sas);
-				strcat(remark, tmpremark);
-				sprintf(tmpremark ,"REMARK CF.wal=%8.5f\n", pCF->wal);
-				strcat(remark, tmpremark);
-				sprintf(tmpremark ,"REMARK CF.con=%8.5f\n", pCF->con);
-				strcat(remark, tmpremark);
-				sprintf(tmpremark, "REMARK Residue has an overall SAS of %.3f\n", pCF->totsas);
-				strcat(remark, tmpremark);
-			}
-			
-			sprintf(tmpremark,"REMARK Cluster:%d Best CF in Cluster:%8.5f Cluster Center (CF):%8.5f Cluster Total CF:%8.5f Cluster Frequency:%d\n", 
-					pCluster->ID, pCluster->BestCF->CF, pCluster->Center->CF, pCluster->totCF, pCluster->Frequency);
-			strcat(remark,tmpremark);
-			
-			for(i=0; i < FA->npar; ++i)
-			{
-				sprintf(tmpremark, "REMARK [%8.3f]\n",FA->opt_par[i]);
-				strcat(remark,tmpremark);
-			}
-
-			// Calculate RMSD value to REFERENCE pose IF REFERENCE is defined in input 
-			if(FA->refstructure == 1)
-			{
-				sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure (no symmetry correction)\n",
-				calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian));
-				strcat(remark,tmpremark);
-				Hungarian = true;
-				sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure     (symmetry corrected)\n",
-				calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian));
-				strcat(remark,tmpremark);
-			}
-
-			sprintf(tmpremark,"REMARK inputs: %s & %s\n",dockinp,gainp);
-			strcat(remark,tmpremark);
-			sprintf(sufix,"_%d.pdb",i);
-			strcpy(tmp_end_strfile,end_strfile);
-			strcat(tmp_end_strfile,sufix);
-
-			// (*) write pdb file
-			write_pdb(FA,atoms,residue,tmp_end_strfile,remark);
+			fprintf(stderr,"ERROR: pChrom is undefined in results output point (13)\n");
+			Terminate(2);
 		}
+		// outputting cluster center
+		for(k=0; k<GB->num_genes ; ++k) FA->opt_par[k] = pChrom->Chromosome->genes[k].to_ic;
+		
+		CF = ic2cf(FA, VC, atoms, residue, cleftgrid, GB->num_genes, FA->opt_par);
+		
+		strcpy(remark,"REMARK optimized structure\n");
+		sprintf(tmpremark,"REMARK Density Peak clustering algorithm used to output %s as cluster representatives\n", (OUTPUT_CLUSTER_CENTER == true ? "the lowest CF" : "the center of highest density"));
+		strcat(remark,tmpremark);
+		
+		sprintf(tmpremark,"REMARK CF=%8.5f\n",get_cf_evalue(&CF));
+		strcat(remark,tmpremark);
+		sprintf(tmpremark,"REMARK CF.app=%8.5f\n",get_apparent_cf_evalue(&CF));
+		strcat(remark,tmpremark);
+		for(j = 0; j < FA->num_optres; ++j)
+		{
+			pRes = &residue[FA->optres[j].rnum];
+			pCF  = &FA->optres[i].cf;
+
+			sprintf(tmpremark,"REMARK optimizable residue %s %c %d\n", pRes->name, pRes->chn, pRes->number);
+			strcat(remark,tmpremark);
+	  
+			sprintf(tmpremark ,"REMARK CF.com=%8.5f\n", pCF->com);
+			strcat(remark, tmpremark);
+			sprintf(tmpremark ,"REMARK CF.sas=%8.5f\n", pCF->sas);
+			strcat(remark, tmpremark);
+			sprintf(tmpremark ,"REMARK CF.wal=%8.5f\n", pCF->wal);
+			strcat(remark, tmpremark);
+			sprintf(tmpremark ,"REMARK CF.con=%8.5f\n", pCF->con);
+			strcat(remark, tmpremark);
+			sprintf(tmpremark, "REMARK Residue has an overall SAS of %.3f\n", pCF->totsas);
+			strcat(remark, tmpremark);
+		}
+		
+		sprintf(tmpremark,"REMARK Cluster:%d Best CF in Cluster:%8.5f Cluster Center (CF):%8.5f Cluster Total CF:%8.5f Cluster Frequency:%d\n", 
+				pCluster->ID, pCluster->BestCF->CF, pCluster->Center->CF, pCluster->totCF, pCluster->Frequency);
+		strcat(remark,tmpremark);
+		
+		for(i=0; i < FA->npar; ++i)
+		{
+			sprintf(tmpremark, "REMARK [%8.3f]\n",FA->opt_par[i]);
+			strcat(remark,tmpremark);
+		}
+
+		// Calculate RMSD value to REFERENCE pose IF REFERENCE is defined in input 
+		if(FA->refstructure == 1)
+		{
+			sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure (no symmetry correction)\n",
+			calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian));
+			strcat(remark,tmpremark);
+			Hungarian = true;
+			sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure     (symmetry corrected)\n",
+			calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian));
+			strcat(remark,tmpremark);
+		}
+
+		sprintf(tmpremark,"REMARK inputs: %s & %s\n",dockinp,gainp);
+		strcat(remark,tmpremark);
+		sprintf(sufix,"_%d.pdb",i);
+		strcpy(tmp_end_strfile,end_strfile);
+		strcat(tmp_end_strfile,sufix);
+
+		// (*) write pdb file
+		write_pdb(FA,atoms,residue,tmp_end_strfile,remark);
 	}
 
 	// Need to modify write_rrd.c OR  
