@@ -42,7 +42,7 @@ struct Cluster_struct
 typedef struct Cluster_struct Cluster;
 
 
-void QuickSort_Cluster_by_CF(Cluster* Clust, int beg, int end);
+void QuickSort_Cluster_by_CF(Cluster* Clust, bool Entropic, int beg, int end);
 void swap_clusters(Cluster* xClust, Cluster* yClust);
 float getDistanceCutoff(float* RMSD, float neighborRateLow, float neighborRateHigh, int num_chrom);
 void QuickSort_ChromCluster_by_CF(ClusterChrom* Chrom, int num_chrom, int beg, int end);
@@ -117,13 +117,13 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 			pChrom->DP = NULL;
 			pChrom->DPdist = 0.0;
 			memset(pChrom->Coord, 0.0, 3*MAX_ATM_HET);
-			if(FA->temperature) partition_function += pow( E, ((-1.0) * FA->beta * pChrom->Chromosome->app_evalue) );
+			if(Entropic) partition_function += pow( E, ((-1.0) * FA->beta * pChrom->Chromosome->app_evalue) );
 		}
 	}
 
 	// (0) VERIFICATIONS 
 	// Verify that partition_function != NULL
-	if(FA->temperature && partition_function == 0.0) 
+	if( Entropic && partition_function == 0.0 ) 
 	{
 		fprintf(stderr,"ERROR: The Partition Function is NULL during the clustering step.\n");
 		Terminate(2);
@@ -141,7 +141,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	for(i = 0, Pi = 0.0, iChrom=NULL; i < num_chrom; ++i)
 	{
 		iChrom = &Chrom[i];
-		if(FA->temperature)
+		if(Entropic)
 		{
 			Pi = pow( E, ((-1.0) * FA->beta * iChrom->Chromosome->app_evalue) ) / partition_function;
 			iChrom->CF = (double) ( Pi * iChrom->Chromosome->app_evalue) - (FA->temperature * Pi * log(Pi));
@@ -406,7 +406,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	}
 
 	// (11) Sort Clusters by ascending CF (lowest first) && Chromosomes by DESCENDING Density
-    QuickSort_Cluster_by_CF( Clust, 0, nResults-1 );
+    QuickSort_Cluster_by_CF( Clust, Entropic, 0, nResults-1 );
 
 	// (12) Output Cluster information
 	sprintf(sufix,".cad");
@@ -563,24 +563,32 @@ float getDistanceCutoff(float* RMSD, float neighborRateLow, float neighborRateHi
 				if(neighbors > nHigh) goto DCPLUS;
 			}
 		}
-		DCPLUS: dc += 0.1;
+		DCPLUS: dc += 0.01;
 	}
 	return dc;
 }
-void QuickSort_Cluster_by_CF(Cluster* Clust, int beg, int end)
+void QuickSort_Cluster_by_CF(Cluster* Clust, bool Entropic, int beg, int end)
 {
 	int l, r, p;
 	double pivot;
 	while(beg < end)
 	{
 		l = beg; p = beg + (end-beg)/2; r = end;
-		pivot = (&Clust[p])->totCF;
+		if(Entropic) pivot = (&Clust[p])->totCF;
+        else 		 pivot = (&Clust[p])->BestCF->CF;
 
 		while(1)
 		{
-			while( (l<=r) && QS_ASC( (&Clust[l])->totCF, pivot ) <= 0.0 ) ++l;
-			while( (l<=r) && QS_ASC( (&Clust[r])->totCF, pivot )  > 0.0 ) --r;
-			
+			if(Entropic)
+			{
+				while( (l<=r) && QS_ASC( (&Clust[l])->totCF, pivot ) <= 0.0 ) ++l;
+				while( (l<=r) && QS_ASC( (&Clust[r])->totCF, pivot )  > 0.0 ) --r;
+			}
+			else
+			{
+				while( (l<=r) && QS_ASC( (&Clust[l])->BestCF->CF, pivot ) <= 0.0 ) ++l;
+				while( (l<=r) && QS_ASC( (&Clust[r])->BestCF->CF, pivot )  > 0.0 ) --r;
+			}
 			if (l > r) break;
 
 			swap_clusters(&Clust[l],&Clust[r]);
@@ -593,12 +601,12 @@ void QuickSort_Cluster_by_CF(Cluster* Clust, int beg, int end)
 
 		if( (r-beg) < (end-l) )
 		{
-			QuickSort_Cluster_by_CF(Clust, beg, r);
+			QuickSort_Cluster_by_CF(Clust, Entropic, beg, r);
 			beg = l;
 		}
 		else
 		{
-			QuickSort_Cluster_by_CF(Clust, l, end);
+			QuickSort_Cluster_by_CF(Clust, Entropic, l, end);
 			end = r;
 		}
 	}
