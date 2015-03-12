@@ -57,6 +57,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	// Density Peak Clustering variables declaration
 	int i,j,k;
 	bool Hungarian = false;
+	bool Entropic = ( FA->temperature > 0 ? true : false );
 	float dc = 0.0f;
 	const int nAtoms = residue[atoms[FA->map_par[0].atm].ofres].latm[0] - residue[atoms[FA->map_par[0].atm].ofres].fatm[0] + 1;
 	uint maxDensity;
@@ -378,9 +379,9 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
             {
                 pCluster->totCF += pChrom->CF;
                 pCluster->Frequency += 1;
-                if( pChrom->isCenter ) pCluster->Center = pChrom;
-                
-                if( pCluster->BestCF == NULL || pChrom->CF < pCluster->BestCF->CF) pCluster->BestCF = pChrom;
+                if( pChrom->isCenter  ) pCluster->Center = pChrom;
+                if( !pCluster->BestCF ) pCluster->BestCF = pChrom;
+                else if(pChrom->CF < pCluster->BestCF->CF) pCluster->BestCF = pChrom;
                 pChrom->isClustered = true;
             }
 		}
@@ -478,7 +479,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 		for(j = 0; j < FA->num_optres; ++j)
 		{
 			pRes = &residue[FA->optres[j].rnum];
-			pCF  = &FA->optres[i].cf;
+			pCF  = &FA->optres[j].cf;
 
 			sprintf(tmpremark,"REMARK optimizable residue %s %c %d\n", pRes->name, pRes->chn, pRes->number);
 			strcat(remark,tmpremark);
@@ -499,9 +500,9 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 				pCluster->ID, pCluster->BestCF->CF, pCluster->Center->CF, pCluster->totCF, pCluster->Frequency);
 		strcat(remark,tmpremark);
 		
-		for(i=0; i < FA->npar; ++i)
+		for(j=0; j < FA->npar; ++j)
 		{
-			sprintf(tmpremark, "REMARK [%8.3f]\n",FA->opt_par[i]);
+			sprintf(tmpremark, "REMARK [%8.3f]\n",FA->opt_par[j]);
 			strcat(remark,tmpremark);
 		}
 
@@ -720,33 +721,13 @@ void swap_elements(ClusterChrom* Chrom, ClusterChrom* ChromX, ClusterChrom* Chro
 	ClusterChrom* pChrom;
 	ClusterChrom ChromT = *ChromX;*ChromX = *ChromY; *ChromY = ChromT;
 	
-	// ChromT->index = ChromX->index; ChromX->index = ChromY->index; ChromY->index = ChromT->index;
-	// ChromT->isHalo = ChromX->isHalo; ChromX->isHalo = ChromY->isHalo; ChromY->isHalo = ChromT->isHalo;
-	// ChromT->isCenter = ChromX->isCenter; ChromX->isCenter = ChromY->isCenter; ChromY->isCenter = ChromT->isCenter;
-	// ChromT->isBorder = ChromX->isBorder; ChromX->isBorder = ChromY->isBorder; ChromY->isBorder = ChromT->isBorder;
-	// ChromT->isClustered = ChromX->isClustered; ChromX->isClustered = ChromY->isClustered; ChromY->isClustered = ChromT->isClustered;
-	// ChromT->Chromosome = ChromX->Chromosome; ChromX->Chromosome = ChromY->Chromosome; ChromY->Chromosome = ChromT->Chromosome;
-	// ChromT->Cluster = ChromX->Cluster; ChromX->Cluster = ChromY->Cluster; ChromY->Cluster = ChromT->Cluster;
-	// ChromT->CF = ChromX->CF; ChromX->CF = ChromY->CF; ChromY->CF = ChromT->CF;
-	// ChromT->Density = ChromX->Density; ChromX->Density = ChromY->Density; ChromY->Density = ChromT->Density;
-	// ChromT->PiDi = ChromX->PiDi; ChromX->PiDi = ChromY->PiDi; ChromY->PiDi = ChromT->PiDi;
-	// ChromT->DPdist = ChromX->DPdist; ChromX->DPdist = ChromY->DPdist; ChromY->DPdist = ChromT->DPdist;
-	
 	for(i=0, pChrom=NULL;i<num_chrom;++i)
 	{
 		pChrom = &Chrom[i];
-		// Check these conditions
-		if(/*pChrom != ChromX && pChrom != ChromY && */pChrom->DP == ChromX) pChrom->DP = ChromY;
-		else if(/*pChrom != ChromX && pChrom != ChromY && */pChrom->DP == ChromY) pChrom->DP = ChromX;
+		if(pChrom->DP == ChromX) pChrom->DP = ChromY;
+		else if(pChrom->DP == ChromY) pChrom->DP = ChromX;
 	}
-	
-	// ChromT.DP = ChromX->DP; ChromX->DP = ChromY->DP; ChromY->DP = ChromT.DP;
-	
-	// for(i=0;i<3*MAX_ATM_HET;++i)
-	// {
-	// 	ChromT->Coord[i] = ChromX->Coord[i]; ChromX->Coord[i] = ChromY->Coord[i]; ChromY->Coord[i] = ChromT->Coord[i];
-	// }
-	
+		
 }
 float calculate_stddev(ClusterChrom* Chrom, int num_chrom)
 {
