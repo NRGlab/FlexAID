@@ -4,7 +4,6 @@
 // Chi(x) function as defined in :
 //   Science 344(6191):1492-1496, 2014, Eq. (1)
 #define Chi(a,d) 	( ((a-d) < 0.0) ? 1 : 0 )
-#define K(i,j,n) ( (i < j) ? (i*n+j) : (j*n+i) )
 
 // #DEFINE neighborRateLow and neighborRateHigh 
 #define NEIGHBORRATELOW 0.01
@@ -12,47 +11,7 @@
 #define EXCLUDE_HALO true
 #define OUTPUT_CLUSTER_CENTER true
 
-struct ClusterChrom
-{
-	uint index;						// original index in chrommose* chrom (at the input of density_cluster function)
-	bool isHalo;					// is part of cluster core?
-	bool isCenter;					// is cluster center?
-	bool isBorder;					// is part of the border region
-	bool isClustered;
-	chromosome* Chromosome;			// Chromosomes list
-	int Cluster;					// Assigned Cluster
-	int Density;					// Density of points in distance cut-off
-	double CF;						// Complementarity Function value
-	float PiDi;						// Density x DPdist
-	float DPdist;					// Nearest highest density peak distance
-	float Coord[3*MAX_ATM_HET];		// Cartesian Coordinates
-	struct ClusterChrom* DP;		// Nearest Density Peak (point of higher density)
-}; typedef struct ClusterChrom ClusterChrom;
-
-struct Cluster_struct
-{
-       int ID;									// assigned cluster number (ID)
-       int Frequency;							// observation frequency of this cluster (number of representatives in cluster)
-       double totCF;				
-       // Pointer to best CF value in cluster
-       ClusterChrom* BestCF;					// Pointer to the ClusterChrom individual with the lowest CF in cluster
-       // Pointer to Cluster Center
-       ClusterChrom* Center;					// Queue of ClusterChrom (first element is the cluster center)
-};
-typedef struct Cluster_struct Cluster;
-
-
-void QuickSort_Cluster_by_CF(Cluster* Clust, bool Entropic, int beg, int end);
-void swap_clusters(Cluster* xClust, Cluster* yClust);
-float getDistanceCutoff(float* RMSD, float neighborRateLow, float neighborRateHigh, int num_chrom);
-void QuickSort_ChromCluster_by_CF(ClusterChrom* Chrom, int num_chrom, int beg, int end);
-void QuickSort_ChromCluster_by_Density(ClusterChrom* Chrom, int num_chrom, int beg, int end);
-void QuickSort_ChromCluster_by_PiDi(ClusterChrom* Chrom, int num_chrom, int beg, int end);
-void swap_elements(ClusterChrom* Chrom, ClusterChrom* ChromX, ClusterChrom* ChromY, int num_chrom);
-float calculate_stddev(ClusterChrom* Chrom, int num_chrom);
-float calculate_mean(ClusterChrom* Chrom, int num_chrom);
-
-void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int num_chrom, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
+void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int num_chrom, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
 {
 	// Density Peak Clustering variables declaration
 	int i,j,k;
@@ -133,8 +92,8 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	for(i = 0; i < num_chrom; ++i)
 	{
 		pChrom = &Chrom[i];
-		if(i+1 == num_chrom) calc_rmsd_chrom(FA,GB,chrom,gen_lim,atoms,residue,cleftgrid,GB->num_genes,i,i, pChrom->Coord, NULL, false);
-        else calc_rmsd_chrom(FA,GB,chrom,gen_lim,atoms,residue,cleftgrid,GB->num_genes,i,i+1, pChrom->Coord, (pChrom++)->Coord, false);
+		if(i+1 == num_chrom) calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes,i,i, pChrom->Coord, NULL, false);
+        else calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes,i,i+1, pChrom->Coord, (pChrom++)->Coord, false);
 	}
 
 	// (2) Build RMSD Matrix
@@ -364,6 +323,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 		pCluster->ID = 0;
 		pCluster->Frequency = 0;
 		pCluster->totCF = 0.0;
+		pCluster->lowestCF = 0.0;
 		pCluster->BestCF = NULL;
 		pCluster->Center = NULL;
 	}
@@ -380,8 +340,8 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
                 pCluster->totCF += pChrom->CF;
                 pCluster->Frequency += 1;
                 if( pChrom->isCenter  ) pCluster->Center = pChrom;
-                if( !pCluster->BestCF ) pCluster->BestCF = pChrom;
-                else if(pChrom->CF < pCluster->BestCF->CF) pCluster->BestCF = pChrom;
+                if( !pCluster->BestCF ) { pCluster->BestCF = pChrom; pCluster->lowestCF = pChrom->CF; }
+                else if(pChrom->CF < pCluster->BestCF->CF) { pCluster->BestCF = pChrom; pCluster->lowestCF = pChrom->CF; }
                 pChrom->isClustered = true;
             }
 		}
@@ -399,6 +359,9 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 			pCluster->Frequency = 1;
 			pCluster->Center = pChrom;
 			pCluster->BestCF = pChrom;
+			pCluster->lowestCF = pChrom->CF;
+
+			pChrom->Cluster = k;
 			pChrom->isCenter = true;
             pChrom->isClustered = true;
 			++k;
@@ -441,6 +404,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 				for(j=i+1; j < nResults; ++j)
 				{
 					jClust = &Clust[j];
+                    if(!Clust[j].BestCF || (OUTPUT_CLUSTER_CENTER && !Clust[j].Center) ) continue;
 					if(OUTPUT_CLUSTER_CENTER==true) fprintf(outfile_ptr,"rmsd(%d,%d)=%f\n",i+1,j+1,RMSD[K(iClust->Center->index, jClust->Center->index, num_chrom)]);
 					else fprintf(outfile_ptr,"rmsd(%d,%d)=%f\n",i+1,j+1,RMSD[K(iClust->BestCF->index, jClust->BestCF->index, num_chrom)]);
 				}
@@ -529,7 +493,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	}
 
 	// Need to modify write_rrd.c OR  
-//	if(FA->refstructure == 1){write_rrd(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,Clus_GAPOP,Clus_RMSDT,end_strfile); }
+	if(FA->refstructure == 1) { write_DensityPeak_rrd(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,Chrom,Clust,RMSD,end_strfile); }
 
 	// (*) Printing ChromCluster informations
     for(i=0,j=0;i<num_chrom;++i)
@@ -575,7 +539,7 @@ void QuickSort_Cluster_by_CF(Cluster* Clust, bool Entropic, int beg, int end)
 	{
 		l = beg; p = beg + (end-beg)/2; r = end;
 		if(Entropic) pivot = (&Clust[p])->totCF;
-        else 		 pivot = (&Clust[p])->BestCF->CF;
+        else 		 pivot = (&Clust[p])->lowestCF;
 
 		while(1)
 		{
@@ -586,8 +550,8 @@ void QuickSort_Cluster_by_CF(Cluster* Clust, bool Entropic, int beg, int end)
 			}
 			else
 			{
-				while( (l<=r) && QS_ASC( (&Clust[l])->BestCF->CF, pivot ) <= 0.0 ) ++l;
-				while( (l<=r) && QS_ASC( (&Clust[r])->BestCF->CF, pivot )  > 0.0 ) --r;
+				while( (l<=r) && QS_ASC( (&Clust[l])->lowestCF, pivot ) <= 0.0 ) ++l;
+				while( (l<=r) && QS_ASC( (&Clust[r])->lowestCF, pivot )  > 0.0 ) --r;
 			}
 			if (l > r) break;
 
