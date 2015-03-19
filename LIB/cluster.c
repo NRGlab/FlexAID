@@ -125,7 +125,7 @@ char tmpremark[MAX_REMARK];
 					n_unclus--;
 					if(FA->temperature){
 						double Pi = pow( E, ((-1.0) * FA->beta * chrom[i].app_evalue) ) / partition_function;
-						Clus_ACF[num_of_clusters] += (double)( (Pi * chrom[i].app_evalue) - (FA->temperature * Pi * log(Pi)) );
+						Clus_ACF[num_of_clusters] += (double)( (Pi * chrom[i].app_evalue) + (FA->temperature * Pi * log(Pi)) );
 					}else{
 						Clus_ACF[num_of_clusters] += chrom[i].app_evalue;
 					}

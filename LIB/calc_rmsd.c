@@ -251,7 +251,7 @@ float calc_Hungarian_RMSD(FA_Global* FA, atom* atoms, resid* residue, gridpoint*
                     for(int ii = 0; ii < nTypes; ii++)
                     {
                         assignment += matrix_original[ii][matrix_match[ii]];
-                        printf("(%d:%d)=%f (total=%f)\n",ii, matrix_match[ii], matrix_original[ii][matrix_match[ii]], assignment);
+                        // printf("(%d:%d)=%f (total=%f)\n",ii, matrix_match[ii], matrix_original[ii][matrix_match[ii]], assignment);
                     }
                     total_assignment += assignment;
                     

@@ -10,7 +10,7 @@
 #include "boost/random.hpp"
 #include "boost/generator_iterator.hpp"
 #include "boost/cstdint.hpp"
-
+#include "boost/math/special_functions/fpclassify.hpp"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
