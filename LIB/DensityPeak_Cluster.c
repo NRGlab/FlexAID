@@ -8,8 +8,8 @@
 // DEFINED parameters used for Density Peak clustering. Theses parameters will eventually be placed in read_input.c later in the developmnet process. 
 #define NEIGHBORRATELOW 0.011
 #define NEIGHBORRATEHIGH 0.022
-#define EXCLUDE_HALO false
-#define OUTPUT_CLUSTER_CENTER false
+#define EXCLUDE_HALO true
+#define OUTPUT_CLUSTER_CENTER true
 
 void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int num_chrom, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
 {
