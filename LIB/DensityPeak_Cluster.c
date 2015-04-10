@@ -116,7 +116,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	}
 
 	// (*) Determine Distance Cut-Off
-	dc = getDistanceCutoff(RMSD, NEIGHBORRATELOW, NEIGHBORRATEHIGH, num_chrom);
+	dc = getDistanceCutoff(RMSD, num_chrom);
 	// dc = FA->cluster_rmsd;
 	printf("DC:%g\n",dc);
 
@@ -220,9 +220,9 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 			for(j=0, jChrom=NULL; j < num_chrom; ++j)
 			{
 				jChrom = &Chrom[j];
-				if(jChrom != pChrom && jChrom->Density > pChrom->Density && RMSD[K(pChrom->index,iChrom->index,num_chrom)] <= minDist && RMSD[K(pChrom->index,iChrom->index,num_chrom)] > 0.0)
+				if(jChrom != pChrom && jChrom->Density > pChrom->Density && RMSD[K(pChrom->index,jChrom->index,num_chrom)] <= minDist && RMSD[K(pChrom->index,jChrom->index,num_chrom)] > 0.0)
 				{
-					minDist = RMSD[K(pChrom->index,iChrom->index,num_chrom)];
+					minDist = RMSD[K(pChrom->index,jChrom->index,num_chrom)];
 					pChrom->DP = jChrom;
 					pChrom->DPdist = minDist;
 				}
@@ -237,7 +237,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	QuickSort_ChromCluster_by_PiDi(Chrom,num_chrom,0,num_chrom-1);
 
 	// (6) Identify Cluster Centers
-	for(pChrom=NULL, i=0, nClusters=0, stddev=calculate_mean(Chrom, num_chrom), mean=calculate_mean(Chrom, num_chrom); Chrom[i].PiDi > (mean + 2*stddev) && i < num_chrom; ++i)
+	for(pChrom=NULL, i=0, nClusters=0, stddev=calculate_stddev(Chrom, num_chrom), mean=calculate_mean(Chrom, num_chrom); Chrom[i].PiDi > (mean + 2*stddev) && i < num_chrom; ++i)
 	{
 		pChrom = &Chrom[i];
 		
@@ -256,7 +256,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 				}
 				if(pChrom->Cluster < 1)
 				{
-					pChrom->Cluster = (++nClusters);		// cluster assigned
+					pChrom->Cluster = ++nClusters;			// cluster assigned
 					pChrom->isCenter = true; 				// cluster center assigned
 					// pChrom->isClustered = true;
 				}
@@ -511,13 +511,13 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	if(RMSD  != NULL) { free(RMSD);  RMSD=NULL;  }
     if(Clust != NULL) { free(Clust); Clust=NULL; }
 }
-float getDistanceCutoff(float* RMSD, float neighborRateLow, float neighborRateHigh, int num_chrom)
+float getDistanceCutoff(float* RMSD, int num_chrom)
 {
 	int i,j;
 	float dc = 0.0f;
 	int neighbors = 0;
-	int nLow = neighborRateLow * num_chrom * num_chrom;
-	int nHigh = neighborRateHigh * num_chrom * num_chrom;
+	int nLow = NEIGHBORRATELOW * num_chrom * num_chrom;
+	int nHigh = NEIGHBORRATEHIGH * num_chrom * num_chrom;
 	while(neighbors < nLow || neighbors > nHigh)
 	{
 		neighbors = 0;

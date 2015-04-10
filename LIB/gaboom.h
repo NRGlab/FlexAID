@@ -215,7 +215,7 @@ void   	slice_grid(FA_Global* FA,genlim* gene_lim,atom* atoms,resid* residue,gri
 // Density Peaks Clustering algorithm function declarations
 void 	QuickSort_Cluster_by_CF(Cluster* Clust, bool Entropic, int beg, int end);
 void 	swap_clusters(Cluster* xClust, Cluster* yClust);
-float 	getDistanceCutoff(float* RMSD, float neighborRateLow, float neighborRateHigh, int num_chrom);
+float 	getDistanceCutoff(float* RMSD, int num_chrom);
 void 	QuickSort_ChromCluster_by_CF(ClusterChrom* Chrom, int num_chrom, int beg, int end);
 void 	QuickSort_ChromCluster_by_Density(ClusterChrom* Chrom, int num_chrom, int beg, int end);
 void 	QuickSort_ChromCluster_by_PiDi(ClusterChrom* Chrom, int num_chrom, int beg, int end);
