@@ -327,6 +327,7 @@ struct FA_Global_struct{
 	float ori[3];                        // coordinates of center of geometry of protein (PCG)
 	float maxdst;                        // max distance from a protein atom to PCG 
 	float cluster_rmsd;                  // rmsd between poses when clustering
+	char  clustering_algorithm[3];
 	uint temperature;					 // temperature parameter 
 	double beta;						 // Metropolis ß parament == 1/T *may be worth trying 1/kT*
 	float permeability;                  // allow permeability or not between atoms
@@ -433,7 +434,6 @@ struct FA_Global_struct{
 
 	float sphere[MAX_SPHERE_POINTS][3];  // coordinates of the unit sphere
 
-	char  clustering_algorithm[3];
 	char  metopt[3];                     // string for defining optimization method GA or other.
 	char  bpkenm[3];                     // string for defining binding pocket enumeration (XS or PB).
 	char  complf[4];                     // string for defining complementarity function (SPH or VCT)

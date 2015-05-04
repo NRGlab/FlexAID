@@ -158,7 +158,7 @@ int main(int argc, char **argv){
 	
 	FA->mov[0] = NULL;
 	FA->mov[1] = NULL;
-	strncpy(FA->clustering_algorithm,"CF", 2*sizeof(char));
+	strcpy(FA->clustering_algorithm,"CF");
     strcpy(FA->vcontacts_self_consistency,"MAX");
 	FA->vcontacts_planedef = 'X';
 	
