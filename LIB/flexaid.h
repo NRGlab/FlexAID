@@ -20,7 +20,7 @@
 #include <math.h>
 #include <time.h>
 #include <vector>
-#include <string>
+// #include <string>
 #include <sstream>
 #include <iostream>
 #include <iterator>
@@ -33,6 +33,7 @@
 
 #define MAX_ENERGY_POINTS 5000      // probability function distribution
 #define MAX_CONTRIBUTIONS 10
+#define MAX_FLAG__ 3
 #define MAX_SHORTEST_PATH 25        // max number of atom to reach any atom of the same molecule
 #define MAX_PATH__ 250              // max size of path length
 #define MAX_REMARK 5000             // max size of comment length
@@ -432,6 +433,7 @@ struct FA_Global_struct{
 
 	float sphere[MAX_SPHERE_POINTS][3];  // coordinates of the unit sphere
 
+	char  clustering_algorithm[3];
 	char  metopt[3];                     // string for defining optimization method GA or other.
 	char  bpkenm[3];                     // string for defining binding pocket enumeration (XS or PB).
 	char  complf[4];                     // string for defining complementarity function (SPH or VCT)

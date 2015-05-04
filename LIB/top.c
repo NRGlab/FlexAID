@@ -96,7 +96,6 @@ int main(int argc, char **argv){
 	FA->dee_clash = 0.5;
 	FA->intrafraction = 1.0;
 	FA->cluster_rmsd = 2.0f;
-
 	FA->rotamer_permeability = 0.8;
 	FA->temperature = 0;
 	FA->beta = 0.0;
@@ -159,13 +158,14 @@ int main(int argc, char **argv){
 	
 	FA->mov[0] = NULL;
 	FA->mov[1] = NULL;
-    
+	strncpy(FA->clustering_algorithm,"CF", 2*sizeof(char));
     strcpy(FA->vcontacts_self_consistency,"MAX");
 	FA->vcontacts_planedef = 'X';
 	
 	// Linux path
 	pch=strrchr(argv[0],'\\');
-	if(pch==NULL) {
+	if(pch==NULL) 
+	{
 		// Windows path
 		pch=strrchr(argv[0],'/');
 	}
@@ -190,6 +190,7 @@ int main(int argc, char **argv){
 	strcpy(gainp,argv[2]);
 	strcpy(end_strfile,argv[3]);
 	strcpy(FA->rrgfile,end_strfile);
+
 	//printf("END FILE:<%s>\n",end_strfile);
 	//PAUSE;
 
@@ -219,7 +220,8 @@ int main(int argc, char **argv){
 
 	if(!FA->map_par || !FA->opt_par ||
 	   !FA->del_opt_par || !FA->min_opt_par || 
-	   !FA->max_opt_par || !FA->map_opt_par){
+	   !FA->max_opt_par || !FA->map_opt_par)
+	{
 		fprintf(stderr,"ERROR: memory allocation error for opt_par\n");
 		Terminate(2);
 	}
@@ -467,12 +469,19 @@ int main(int argc, char **argv){
       
 			/******************************************************************/
       
-			printf("clustering all individuals in GA...\n");
+			printf("clustering all individuals in GA...");
 			fflush(stdout);
             
 			printf("n_chrom_snapshot=%d\n", n_chrom_snapshot);
-			// cluster(FA,GB,VC,chrom_snapshot,gene_lim,atoms,residue,cleftgrid,n_chrom_snapshot,end_strfile,tmp_end_strfile,dockinp,gainp);
-			DensityPeak_cluster(FA,GB,VC,chrom_snapshot,gene_lim,atoms,residue,cleftgrid,n_chrom_snapshot,end_strfile,tmp_end_strfile,dockinp,gainp);
+			if( strcmp(FA->clustering_algorithm,"DP") == 0 )
+			{
+				printf("using the Density Peak (DP) based clustering algorithm.\n");
+				DensityPeak_cluster(FA,GB,VC,chrom_snapshot,gene_lim,atoms,residue,cleftgrid,n_chrom_snapshot,end_strfile,tmp_end_strfile,dockinp,gainp);
+			}else
+			{
+				printf("using the Complementarity Function (CF) based clustering algorithm.\n");
+				cluster(FA,GB,VC,chrom_snapshot,gene_lim,atoms,residue,cleftgrid,n_chrom_snapshot,end_strfile,tmp_end_strfile,dockinp,gainp);
+			}
 		}
 	}
     

@@ -234,7 +234,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	
 
 	// (5.3) Sort Chrom by decreasing PiDi value
-	QuickSort_ChromCluster_by_PiDi(Chrom,num_chrom,0,num_chrom-1);
+	QuickSort_ChromCluster_by_lower_Density(Chrom,num_chrom,0,num_chrom-1);
 
 	// (6) Identify Cluster Centers
 	for(pChrom=NULL, i=0, nClusters=0, stddev=calculate_stddev(Chrom, num_chrom), mean=calculate_mean(Chrom, num_chrom); Chrom[i].PiDi > (mean + 2*stddev) && i < num_chrom; ++i)
@@ -263,10 +263,10 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 			}
 		}
 	}
-	printf("nClusters:%d\n",nClusters);
+	// printf("nClusters:%d\n",nClusters);
 	
 	// (6.1) QuickSort by decreasing Density value
-	QuickSort_ChromCluster_by_Density(Chrom, num_chrom, 0, num_chrom-1);
+	QuickSort_ChromCluster_by_higher_Density(Chrom, num_chrom, 0, num_chrom-1);
 
 	// (7) Clustering Step
 	for(i=0, pChrom=NULL; i<num_chrom; ++i)
@@ -316,7 +316,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 			if( iChrom->isHalo && iChrom->Chromosome->app_evalue > 1000) nOutliers++;
 			if( iChrom->isHalo ) j++;
 		}
-		printf("nOutliers:%d\tnHalo:%d\n",nOutliers, j);
+		// printf("nOutliers:%d\tnHalo:%d\n",nOutliers, j);
 	}
 
 	// // (9) Cluster Creation
@@ -418,17 +418,17 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	CloseFile_B(&outfile_ptr,"w");
 
 	// (*) Printing ChromCluster informations
-    for(i=0,j=0;i<num_chrom;++i)
-    {
-        printf("i:%d\tAdd:%p\tDensity:%d\tDistance:%g\tCluster:%d\tDP:%p\tPiDi:%g\tCFent:%g\tCFapp:%g\tisCore:%s\tisCenter:%s\n",(&Chrom[i])->index, &Chrom[i], (&Chrom[i])->Density, (&Chrom[i])->DPdist, (&Chrom[i])->Cluster, (&Chrom[i])->DP, (&Chrom[i])->PiDi, (&Chrom[i])->CF,(&Chrom[i])->Chromosome->app_evalue, ((&Chrom[i])->isHalo ? "false" : "true"), ((&Chrom[i])->isCenter ? "true" : "false"));
-    }
+    // for(i=0,j=0;i<num_chrom;++i)
+    // {
+    //     printf("i:%d\tAdd:%p\tDensity:%d\tDistance:%g\tCluster:%d\tDP:%p\tPiDi:%g\tCFent:%g\tCFapp:%g\tisCore:%s\tisCenter:%s\n",(&Chrom[i])->index, &Chrom[i], (&Chrom[i])->Density, (&Chrom[i])->DPdist, (&Chrom[i])->Cluster, (&Chrom[i])->DP, (&Chrom[i])->PiDi, (&Chrom[i])->CF,(&Chrom[i])->Chromosome->app_evalue, ((&Chrom[i])->isHalo ? "false" : "true"), ((&Chrom[i])->isCenter ? "true" : "false"));
+    // }
 
 	// (13) Output Clusters
 	// output clusters informations (looping through each cluster)
 	for(i=0, pCluster=NULL, pChrom=NULL; i < nResults && i < FA->max_results; ++i)
 	{
 		pCluster = &Clust[i];
-		printf("i:%d\tCluster:%d\tFreq:%d\ttotCF:%g\n",i,pCluster->ID, pCluster->Frequency, pCluster->totCF);
+		// printf("i:%d\tCluster:%d\tFreq:%d\ttotCF:%g\n",i,pCluster->ID, pCluster->Frequency, pCluster->totCF);
 		// setting pChrom to either BestCF or ClusterCenter
         if(OUTPUT_CLUSTER_CENTER) 	{ pChrom = pCluster->Center;}// if(!pChrom) pChrom = pCluster->BestCF; }
         else 						{ pChrom = pCluster->BestCF;}// if(!pChrom) pChrom = pCluster->Center; }
@@ -436,7 +436,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 		if(!pChrom) continue;
 		// if(!pChrom) {Terminate(11);fprintf(stderr,"No representative for Cluster %d of Clust[%d]\n",pCluster->ID,i);}
 
-        printf("i:%d\tCluster:%d\tFreq:%d\ttotCF:%g\tIndex:%d\n\n",i,pCluster->ID, pCluster->Frequency, pCluster->totCF, pChrom->index);
+        // printf("i:%d\tCluster:%d\tFreq:%d\ttotCF:%g\tIndex:%d\n\n",i,pCluster->ID, pCluster->Frequency, pCluster->totCF, pChrom->index);
 		// outputting cluster center
 		for(k=0; k<GB->num_genes ; ++k) FA->opt_par[k] = pChrom->Chromosome->genes[k].to_ic;
 		
@@ -617,7 +617,7 @@ void QuickSort_ChromCluster_by_CF(ClusterChrom* Chrom, int num_chrom, int beg, i
 		}
 	}
 }
-void QuickSort_ChromCluster_by_Density(ClusterChrom* Chrom, int num_chrom, int beg, int end)
+void QuickSort_ChromCluster_by_higher_Density(ClusterChrom* Chrom, int num_chrom, int beg, int end)
 {
 	int l, r, p;
 	int pivot;
@@ -643,17 +643,17 @@ void QuickSort_ChromCluster_by_Density(ClusterChrom* Chrom, int num_chrom, int b
 
 		if( (r-beg) < (end-l) )
 		{
-			QuickSort_ChromCluster_by_Density(Chrom, num_chrom, beg, r);
+			QuickSort_ChromCluster_by_higher_Density(Chrom, num_chrom, beg, r);
 			beg = l;
 		}
 		else
 		{
-			QuickSort_ChromCluster_by_Density(Chrom, num_chrom, l, end);
+			QuickSort_ChromCluster_by_higher_Density(Chrom, num_chrom, l, end);
 			end = r;
 		}
 	}
 }
-void QuickSort_ChromCluster_by_PiDi(ClusterChrom* Chrom, int num_chrom, int beg, int end)
+void QuickSort_ChromCluster_by_lower_Density(ClusterChrom* Chrom, int num_chrom, int beg, int end)
 {
 	int l, r, p;
 	float pivot;
@@ -664,8 +664,8 @@ void QuickSort_ChromCluster_by_PiDi(ClusterChrom* Chrom, int num_chrom, int beg,
 
 		while(1)
 		{
-			while( (l<=r) && QS_DSC((&Chrom[l])->PiDi,pivot) <= 0 ) ++l;
-			while( (l<=r) && QS_DSC((&Chrom[r])->PiDi,pivot)  > 0 ) --r;
+			while( (l<=r) && QS_ASC((&Chrom[l])->PiDi,pivot) <= 0 ) ++l;
+			while( (l<=r) && QS_ASC((&Chrom[r])->PiDi,pivot)  > 0 ) --r;
 			
 			if (l > r) break;
 
@@ -679,12 +679,12 @@ void QuickSort_ChromCluster_by_PiDi(ClusterChrom* Chrom, int num_chrom, int beg,
 
 		if( (r-beg) < (end-l) )
 		{
-			QuickSort_ChromCluster_by_PiDi(Chrom, num_chrom, beg, r);
+			QuickSort_ChromCluster_by_lower_Density(Chrom, num_chrom, beg, r);
 			beg = l;
 		}
 		else
 		{
-			QuickSort_ChromCluster_by_PiDi(Chrom, num_chrom, l, end);
+			QuickSort_ChromCluster_by_lower_Density(Chrom, num_chrom, l, end);
 			end = r;
 		}
 	}
