@@ -177,7 +177,7 @@ struct atom_struct{  // atom structure
 	int    number;  // atom number according to PDB file
 	float  radius;  // atomic radius
 	int    type;    // atom type
-	int    bond[5]; // atom number (not according to PDB) of covalently bonded atoms, bond[0] gives the total
+	int    bond[7]; // atom number (not according to PDB) of covalently bonded atoms, bond[0] gives the total
 	int    ofres;   // residue number to which an atom belongs.
 	char   recs;    // flag which labels an atom as flexible or rigid
 	float  dis;     // distance from rec[0] atom
