@@ -425,7 +425,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 
 	// (13) Output Clusters
 	// output clusters informations (looping through each cluster)
-	for(i=0, pCluster=NULL, pChrom=NULL; i < nResults && i < FA->max_results; ++i)
+	for(i=0, pCluster=NULL, pChrom=NULL; i < nResults /*&& i < FA->max_results*/; ++i)
 	{
 		pCluster = &Clust[i];
 		// printf("i:%d\tCluster:%d\tFreq:%d\ttotCF:%g\n",i,pCluster->ID, pCluster->Frequency, pCluster->totCF);
@@ -664,8 +664,8 @@ void QuickSort_ChromCluster_by_lower_Density(ClusterChrom* Chrom, int num_chrom,
 
 		while(1)
 		{
-			while( (l<=r) && QS_ASC((&Chrom[l])->PiDi,pivot) <= 0 ) ++l;
-			while( (l<=r) && QS_ASC((&Chrom[r])->PiDi,pivot)  > 0 ) --r;
+			while( (l<=r) && QS_ASC((&Chrom[l])->Density,pivot) <= 0 ) ++l;
+			while( (l<=r) && QS_ASC((&Chrom[r])->Density,pivot)  > 0 ) --r;
 			
 			if (l > r) break;
 
