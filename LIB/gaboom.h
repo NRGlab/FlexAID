@@ -125,22 +125,22 @@ struct ClusterChrom
 	int Cluster;					// Assigned Cluster
 	int Density;					// Density of points in distance cut-off
 	double CF;						// Complementarity Function value
-	float PiDi;						// Density x DPdist
-	float DPdist;					// Nearest highest density peak distance
+	float PiDi;						// Density x Distance
+	float Distance;					// Nearest highest density peak distance
 	float Coord[3*MAX_ATM_HET];		// Cartesian Coordinates
 	struct ClusterChrom* DP;		// Nearest Density Peak (point of higher density)
 }; typedef struct ClusterChrom ClusterChrom;
 
 struct Cluster_struct
 {
-       int ID;									// assigned cluster number (ID)
-       int Frequency;							// observation frequency of this cluster (number of representatives in cluster)
+       int ID;						 // assigned cluster number (ID)
+       int Frequency;				 // observation frequency of this cluster (number of representatives in cluster)
        double totCF;
        double lowestCF;				
        // Pointer to best CF value in cluster
-       ClusterChrom* BestCF;					// Pointer to the ClusterChrom individual with the lowest CF in cluster
+       ClusterChrom* Representative; // Pointer to the ClusterChrom individual with the lowest CF in cluster
        // Pointer to Cluster Center
-       ClusterChrom* Center;					// Queue of ClusterChrom (first element is the cluster center)
+       ClusterChrom* Center;		 // Queue of ClusterChrom (first element is the cluster center)
 };
 typedef struct Cluster_struct Cluster;
 /***********************************************************************/
