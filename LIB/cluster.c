@@ -4,13 +4,12 @@
 void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int num_chrom, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
 {
 	bool Hungarian = false;
-
 	int i,j;
-cfstr cf;                                /* complementarity function value */
-resid *res_ptr = NULL;
-cfstr* cf_ptr = NULL;
+	cfstr cf;                                /* complementarity function value */
+	resid *res_ptr = NULL;
+	cfstr* cf_ptr = NULL;
 
-FILE* outfile_ptr = NULL;
+	FILE* outfile_ptr = NULL;
 
 	// will 
 	double partition_function = 0.0;
@@ -20,9 +19,9 @@ FILE* outfile_ptr = NULL;
 	int num_of_clusters = 0;
 	int n_unclus = 0;
 
-char sufix[10];
-char remark[MAX_REMARK];
-char tmpremark[MAX_REMARK];
+	char sufix[10];
+	char remark[MAX_REMARK];
+	char tmpremark[MAX_REMARK];
 
 	// Clustering Variable Definitions
 	int* Clus_GAPOP = NULL;
@@ -106,7 +105,7 @@ char tmpremark[MAX_REMARK];
 			Clus_ACF[num_of_clusters] = chrom[j].app_evalue;
 		}
 		Clus_TOP[num_of_clusters]=j;
-		Clus_FRE[num_of_clusters++];
+		Clus_FRE[num_of_clusters]++;
 
 		//printf("n_unclus=%d j=%d\n",n_unclus,j);
 		//PAUSE;
@@ -129,7 +128,7 @@ char tmpremark[MAX_REMARK];
 					}else{
 						Clus_ACF[num_of_clusters] += chrom[i].app_evalue;
 					}
-					Clus_FRE[num_of_clusters++];
+					Clus_FRE[num_of_clusters]++;
 				}
 			}
 		}
