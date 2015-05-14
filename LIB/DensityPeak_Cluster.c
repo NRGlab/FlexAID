@@ -246,7 +246,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	{
 		iChrom = &Chrom[i];
 		iiChrom = &Chrom[i-1];
-		if( (( fabs(iChrom->Distance - iiChrom->Distance) > stddev) || (iChrom->Distance > mean+2*stddev)) && iChrom->Density > 0 )
+		if( (( fabs(iChrom->Distance - iiChrom->Distance) > 1.5*stddev) || (iChrom->Distance > mean+2*stddev)) && iChrom->Density > 0 )
 		{
 			pChrom = iChrom->DP;
 
@@ -384,11 +384,13 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 		{
 			// incrementing results
 			nResults++;
-
+            
+            // current Chromosome marked as clustered
 			iChrom->isClustered = true;
 
-			// memory reallocation
+			// memory reallocation (could be done in a block-wise manner, i.e. multiple Clusters added by call to realloc())
 			Clust = (Cluster*) realloc(Clust, sizeof(*Clust)+sizeof(Cluster));
+            // Cluster attributes assignation
 			Clust[nResults].Center = iChrom;
 			Clust[nResults].Representative = iChrom;
             Clust[nResults].lowestCF = iChrom->Chromosome->app_evalue;
@@ -453,7 +455,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 
 	// (13) Output Clusters
 	// output clusters informations (looping through each cluster)
-	for(i=0, pCluster=NULL, pChrom=NULL; i < nResults /*&& i < FA->max_results*/; ++i)
+	for(i=0, pCluster=NULL, pChrom=NULL; i < nResults && i < FA->max_results; ++i)
 	{
 		pCluster = &Clust[i];
 		// printf("i:%d\tCluster:%d\tFreq:%d\ttotCF:%g\n",i,pCluster->ID, pCluster->Frequency, pCluster->totCF);
