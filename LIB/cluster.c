@@ -91,7 +91,8 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 	{
 		for(j=0;j<num_chrom;++j){if(Clus_GAPOP[j]==-1){break;}}
 		//printf("at chromosome j=%d with app_evalue=%.3f\n", j, chrom[j].app_evalue);
-		Clus_GAPOP[j]=j;
+        if(j < 0 || j >= num_chrom) {break;} // this break intends to break the while() loop if j is invalid (which should not occur but still does)
+        Clus_GAPOP[j]=j;
 		Clus_RMSDT[j]=0.0;
 		n_unclus--;
 		// Clus_TCF[num_of_clusters]=chrom[j].app_evalue;
@@ -107,7 +108,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		Clus_TOP[num_of_clusters]=j;
 		Clus_FRE[num_of_clusters]++;
 
-		//printf("n_unclus=%d j=%d\n",n_unclus,j);
+		// printf("n_unclus=%d j=%d\n",n_unclus,j);
 		//PAUSE;
 		for(i=j+1;i<num_chrom;++i)
 		{
