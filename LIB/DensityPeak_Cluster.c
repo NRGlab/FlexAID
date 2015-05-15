@@ -547,22 +547,34 @@ float getDistanceCutoff(float* RMSD, int num_chrom)
 	int i,j;
 	float DC = 0.0f;
 	int neighbors = 0;
+	float *RMSDsorted;
 	int nLow = NEIGHBORRATELOW * num_chrom * num_chrom;
 	int nHigh = NEIGHBORRATEHIGH * num_chrom * num_chrom;
-	while(neighbors < nLow || neighbors > nHigh)
+	RMSDsorted = (float*) malloc(num_chrom * num_chrom * sizeof(float));
+	
+	if(RMSDsorted == NULL)
 	{
-		neighbors = 0;
-		for(i=0; i<num_chrom-1; ++i)
-		{
-			for(j=0; j<num_chrom; ++j)
-			{
-				if(i==j) continue;
-				if(RMSD[K(i,j,num_chrom)] <= DC) ++neighbors;
-				if(neighbors > nHigh) goto DCPLUS;
-			}
-		}
-		DCPLUS: DC += 0.05;
+		fprintf(stderr,"ERROR: memory allocation error for RMSD matrix copy in DensityPeak_Cluster::getDistanceCutoff().\n");
+		Terminate(2);
 	}
+	memcpy(RMSDsorted, RMSD, num_chrom*num_chrom*sizeof(float));
+	qsort(RMSDsorted, sizeof(RMSDsorted)/sizeof(*RMSDsorted), sizeof(*RMSDsorted), DistanceComparator);
+	DC = (RMSDsorted[nLow] + RMSDsorted[nHigh]) * 0.5;
+	// while(neighbors < nLow || neighbors > nHigh)
+	// {
+	// 	neighbors = 0;
+	// 	for(i=0; i<num_chrom-1; ++i)
+	// 	{
+	// 		for(j=0; j<num_chrom; ++j)
+	// 		{
+	// 			if(i==j) continue;
+	// 			if(RMSD[K(i,j,num_chrom)] <= DC) ++neighbors;
+	// 			if(neighbors > nHigh) goto DCPLUS;
+	// 		}
+	// 	}
+	// 	DCPLUS: DC += 0.05;
+	// }
+	if(RMSDsorted) free(RMSD);
 	return DC;
 }
 
@@ -612,7 +624,14 @@ void QuickSort_Cluster_by_CF(Cluster* Clust, bool Entropic, int beg, int end)
 }
 
 void swap_clusters(Cluster* xCluster, Cluster* yCluster) { Cluster tCluster = *xCluster; *xCluster = *yCluster; *yCluster = tCluster; }
-
+int DistanceComparator(const void *a, const void *b)
+{
+	float *x = (float*) a;
+	float *y = (float*) b;
+    if(*x - *y > 0.0) return 1;
+    else if(*x - *y < 0.0) return -1;
+    else return 0;
+}
 void QuickSort_ChromCluster_by_CF(ClusterChrom* Chrom, int num_chrom, int beg, int end)
 {
 	int l, r, p;

@@ -139,7 +139,8 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		if(num_of_clusters == num_of_results){break;}
 	}
 
-	if(FA->temperature){
+	if(FA->temperature)
+	{
 		// Reordering the clusters properly by lowest ACF values first (after considering cluster's entropy !)
 		QuickSort_Clusters(Clus_TOP, Clus_FRE, Clus_TCF, Clus_ACF, Clus_GAPOP, 0, num_of_results-1);
 	}

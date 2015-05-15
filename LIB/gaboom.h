@@ -222,5 +222,6 @@ void 	QuickSort_ChromCluster_by_lower_Density(ClusterChrom* Chrom, int num_chrom
 void 	swap_elements(ClusterChrom* Chrom, ClusterChrom* ChromX, ClusterChrom* ChromY, int num_chrom);
 float 	calculate_stddev(ClusterChrom* Chrom, int num_chrom);
 float 	calculate_mean(ClusterChrom* Chrom, int num_chrom);
+int 	DistanceComparator(const void*, const void*);
 
 #endif // include guard

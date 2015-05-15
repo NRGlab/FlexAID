@@ -24,7 +24,7 @@ ifeq ($(DEBUG),1)
 endif
 
 # BOOST Installation path
-BOOST_INCLUDES = /home/francis/boost_1_53_0
+BOOST_INCLUDES = /home/francis/boost_1_53_0:/usr/local/Cellar/boost/1.58.0/
 
 # BOINC Installation path
 BOINC_BUILD = /home/boincadm/boinc
