@@ -6,8 +6,8 @@
 #define Chi(a,d) 	( ((a-d) < 0.0) ? 1 : 0 )
 
 // DEFINED parameters used for Density Peak clustering. Theses parameters will eventually be placed in read_input.c later in the developmnet process. 
-#define NEIGHBORRATELOW 0.022
-#define NEIGHBORRATEHIGH 0.044
+#define NEIGHBORRATELOW 0.01
+#define NEIGHBORRATEHIGH 0.02
 #define EXCLUDE_HALO false
 #define OUTPUT_CLUSTER_CENTER false
 
@@ -124,8 +124,8 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	for(i = 0; i < num_chrom; ++i)
 	{
 		iChrom = &Chrom[i];
-		// for(j = i+1; j < num_chrom; ++j)
-		for(j = 0; j < num_chrom; ++j)
+        for(j = i+1; j < num_chrom; ++j)
+//		for(j = 0; j < num_chrom; ++j)
 		{
 			jChrom	= &Chrom[j];
 			if(jChrom != iChrom) iChrom->Density += Chi(RMSD[K(i,j,num_chrom)], DC);
@@ -246,7 +246,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	{
 		iChrom = &Chrom[i];
 		iiChrom = &Chrom[i-1];
-		if( (( fabs(iChrom->Distance - iiChrom->Distance) > 1.5*stddev) || (iChrom->Distance > mean+2*stddev)) && iChrom->Density > 0 )
+		if( (( fabs(iChrom->Distance - iiChrom->Distance) > 2*stddev) || (iChrom->Distance > mean+2*stddev)) && iChrom->Density > 0 )
 		{
 			pChrom = iChrom->DP;
 
@@ -377,27 +377,27 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	}
 
 	// (11) DockPoses in Clusters' halos are not clustered in (9+10), here, a cluster is created for each one. If Halos are excluded, unclustered individuals will be clustered (although unclustered individuals who are not in halos should not be observed.)
-	for(i = 0; i < num_chrom; ++i)
-	{
-		iChrom = &Chrom[i];
-		if(!iChrom->isClustered)
-		{
-			// incrementing results
-			nResults++;
-            
-            // current Chromosome marked as clustered
-			iChrom->isClustered = true;
-
-			// memory reallocation (could be done in a block-wise manner, i.e. multiple Clusters added by call to realloc())
-			Clust = (Cluster*) realloc(Clust, sizeof(*Clust)+sizeof(Cluster));
-            // Cluster attributes assignation
-			Clust[nResults].Center = iChrom;
-			Clust[nResults].Representative = iChrom;
-            Clust[nResults].lowestCF = iChrom->Chromosome->app_evalue;
-            Clust[nResults].Frequency = 1;
-			Clust[nResults].totCF = iChrom->CF;
-		}
-	}
+//	for(i = 0; i < num_chrom; ++i)
+//	{
+//		iChrom = &Chrom[i];
+//		if(!iChrom->isClustered)
+//		{
+//			// incrementing results
+//			nResults++;
+//            
+//            // current Chromosome marked as clustered
+//			iChrom->isClustered = true;
+//
+//			// memory reallocation (could be done in a block-wise manner, i.e. multiple Clusters added by call to realloc())
+//			Clust = (Cluster*) realloc(Clust, sizeof(*Clust)+sizeof(Cluster));
+//            // Cluster attributes assignation
+//			Clust[nResults].Center = iChrom;
+//			Clust[nResults].Representative = iChrom;
+//            Clust[nResults].lowestCF = iChrom->Chromosome->app_evalue;
+//            Clust[nResults].Frequency = 1;
+//			Clust[nResults].totCF = iChrom->CF;
+//		}
+//	}
 	
 
 	// (*) Sort Clusters by ascending CF (cluster with lowestCF first if !Entropic) || Sort Clusters by ascending totCF (cluster with lowest totCF first if Entropic)
@@ -544,21 +544,29 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 
 float getDistanceCutoff(float* RMSD, int num_chrom)
 {
-	int i,j;
+	int i,j,k;
 	float DC = 0.0f;
 	int neighbors = 0;
-	float *RMSDsorted;
-	int nLow = NEIGHBORRATELOW * num_chrom * num_chrom;
-	int nHigh = NEIGHBORRATEHIGH * num_chrom * num_chrom;
-	RMSDsorted = (float*) malloc(num_chrom * num_chrom * sizeof(float));
+	float* RMSDsorted;
+	int nLow = NEIGHBORRATELOW * ((num_chrom * num_chrom)-num_chrom)*0.5;
+	int nHigh = NEIGHBORRATEHIGH * ((num_chrom * num_chrom)-num_chrom)*0.5;
+	RMSDsorted = (float*) malloc( ((num_chrom * num_chrom)-num_chrom)*0.5 * sizeof(float) );
 	
 	if(RMSDsorted == NULL)
 	{
 		fprintf(stderr,"ERROR: memory allocation error for RMSD matrix copy in DensityPeak_Cluster::getDistanceCutoff().\n");
 		Terminate(2);
 	}
-	memcpy(RMSDsorted, RMSD, num_chrom*num_chrom*sizeof(float));
-	qsort(RMSDsorted, sizeof(RMSDsorted)/sizeof(*RMSDsorted), sizeof(*RMSDsorted), DistanceComparator);
+    for(i = 0, k = 0; i< num_chrom; ++i)
+    {
+        for(j = i+1; j < num_chrom; ++j)
+        {
+            RMSDsorted[k] = RMSD[K(i,j,num_chrom)];
+            ++k;
+        }
+    }
+//	memcpy(RMSDsorted, RMSD, num_chrom*num_chrom*sizeof(float));
+	qsort(RMSDsorted, ((num_chrom * num_chrom)-num_chrom)*0.5, sizeof(float), DistanceComparator);
 	DC = (RMSDsorted[nLow] + RMSDsorted[nHigh]) * 0.5;
 	// while(neighbors < nLow || neighbors > nHigh)
 	// {
@@ -574,7 +582,13 @@ float getDistanceCutoff(float* RMSD, int num_chrom)
 	// 	}
 	// 	DCPLUS: DC += 0.05;
 	// }
-	if(RMSDsorted) free(RMSD);
+    while( DC < 1.0 && nHigh < ((num_chrom * num_chrom)-num_chrom)*0.5 )
+    {
+        nLow = 1.5 * nLow;
+        nHigh = 1.5 * nHigh;
+        DC = (RMSDsorted[nLow] + RMSDsorted[nHigh]) * 0.5;
+    }
+    if(RMSDsorted) {free(RMSDsorted); RMSDsorted = NULL;}
 	return DC;
 }
 
@@ -624,14 +638,16 @@ void QuickSort_Cluster_by_CF(Cluster* Clust, bool Entropic, int beg, int end)
 }
 
 void swap_clusters(Cluster* xCluster, Cluster* yCluster) { Cluster tCluster = *xCluster; *xCluster = *yCluster; *yCluster = tCluster; }
+
 int DistanceComparator(const void *a, const void *b)
 {
 	float *x = (float*) a;
 	float *y = (float*) b;
-    if(*x - *y > 0.0) return 1;
-    else if(*x - *y < 0.0) return -1;
+    if((*x - *y) > 0.0) return 1;
+    else if((*x - *y) < 0.0) return -1;
     else return 0;
 }
+
 void QuickSort_ChromCluster_by_CF(ClusterChrom* Chrom, int num_chrom, int beg, int end)
 {
 	int l, r, p;
