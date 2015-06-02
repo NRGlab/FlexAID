@@ -81,7 +81,7 @@ int write_DensityPeak_rrd(FA_Global* FA, GB_Global* GB, const chromosome* chrom,
 			// Calculating symmetry-corrected RMSD (with the help of the Hungarian) saved into 'rmsd_corrected'
 			Hungarian = true;
 			rmsd_corrected = calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian);
-			for(k=0;k<GB->num_chrom;++k)
+			for(k=j+1;k<GB->num_chrom;++k)
 			{
 				if(Chrom[k].Cluster == Chrom[j].Cluster && Chrom[k].isCenter == true)
 				{

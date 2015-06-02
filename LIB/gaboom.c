@@ -153,7 +153,8 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 		Terminate(2);
 	}
 	
-	for(i=0;i<(*memchrom);++i){
+	for(i=0;i<(*memchrom);++i)
+	{
 		(*chrom)[i].genes = (gene*)malloc(GB->num_genes*sizeof(gene));
 
 		if(!(*chrom)[i].genes){
@@ -169,12 +170,14 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 
 	// *** chrom_snapshot
 	(*chrom_snapshot) = (chromosome*)malloc((GB->num_chrom*GB->max_generations)*sizeof(chromosome));
-	if(!(*chrom_snapshot)){
+	if(!(*chrom_snapshot))
+	{
 		fprintf(stderr,"ERROR: memory allocation error for chrom_snapshot.\n");
 		Terminate(2);
 	}
 	
-	for(i=0;i<(GB->num_chrom*GB->max_generations);++i){
+	for(i=0;i<(GB->num_chrom*GB->max_generations);++i)
+	{
 		(*chrom_snapshot)[i].genes = (gene*)malloc(GB->num_genes*sizeof(gene));
 
 		if(!(*chrom_snapshot)[i].genes){
@@ -192,7 +195,8 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	printf("alpha %lf peaks %lf scale %lf\n",GB->alpha,GB->peaks,GB->scale);
 	GB->sig_share=0.0;
   
-	for(i=0;i<GB->num_genes;i++){
+	for(i=0;i<GB->num_genes;i++)
+	{
 		//printf("max=%6.3f min=%6.3f del=%6.3f\n",(*gene_lim)[i].max,(*gene_lim)[i].min,(*gene_lim)[i].del);
 		//PAUSE;
 		GB->sig_share += ((*gene_lim)[i].max-(*gene_lim)[i].min)*((*gene_lim)[i].max-(*gene_lim)[i].min);
@@ -226,8 +230,8 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	int nrejected = 0;
 	
 	
-	for(i=0;i<GB->max_generations;i++){
-
+	for(i=0;i<GB->max_generations;i++)
+	{
 		///////////////////////////////////////////////////
 
 		state=check_state(PAUSEFILE,ABORTFILE,STOPFILE,INTERVAL);
@@ -248,9 +252,10 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 		////////////////////////////////
 		
 		//printf("chrom_snapshot[%d] at address %p\n", i*GB->num_chrom, chrom_snapshot[i*GB->num_chrom]);
-		if (FA->opt_grid                    &&     // if a OPTGRD line was specified
-		    ((i+1) % geninterval) == 0      &&     // is factor of
-		    (i+1) != GB->max_generations) {        // discard the last generation
+		if (	FA->opt_grid                    &&     // if a OPTGRD line was specified
+		    	((i+1) % geninterval) == 0      &&     // is factor of
+		    	(i+1) != GB->max_generations 	)      // discard the last generation
+		{
       
 			//need to sort in decreasing order of energy
 			QuickSort((*chrom),0,GB->num_chrom-1,true);
@@ -1098,8 +1103,8 @@ void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* 
                 
 		i=0;
 		j=0;
-		while(i<GB->num_chrom && fread(&chrom[i].genes[j].to_int32, 1, sizeof(boost::int32_t), infile_ptr)){
-			
+		while(i<GB->num_chrom && fread(&chrom[i].genes[j].to_int32, 1, sizeof(boost::int32_t), infile_ptr))
+		{
 			chrom[i].genes[j].to_ic = genetoic(&gene_lim[j],chrom[i].genes[j].to_int32);
 			
 			j++;
@@ -1203,7 +1208,7 @@ int cmp_chrom2pop_int(const chromosome* chrom,const gene* genes, int num_genes,i
 		flag=0;
 		for(j=0;j<num_genes;j++){
 			//printf("comparing %u to %u\n",c->genes[j],chrom[i].genes[j]);
-			flag += genes[j].to_int32 == chrom[i].genes[j].to_int32;
+			flag += ( genes[j].to_int32 == chrom[i].genes[j].to_int32 );
 		}
     
 		//printf("flag=%d\n",flag);
@@ -1702,8 +1707,10 @@ void write_par(const chromosome* chrom,const genlim* gene_lim,int ger,char* outf
 		char chrom_tag[5] = { 'c' , 'h' , 'r' , 'o' , 'm' };
 
 		fwrite(&chrom_tag[0], 1, sizeof(chrom_tag), outfile_ptr);
-		for(i=0;i<num_chrom;i++){
-			for(j=0;j<num_genes;j++){
+		for(i=0;i<num_chrom;i++)
+		{
+			for(j=0;j<num_genes;j++)
+			{
 				fwrite(&chrom[i].genes[j].to_int32, 1, sizeof(boost::int32_t), outfile_ptr);
 			}
 		}
@@ -1802,7 +1809,8 @@ double genetoic(const genlim* gene_lim, boost::int32_t gene){
 	int i=0;
 	double tot=gene_lim->bin;
 	
-	while(tot < RandomDouble(gene)){
+	while(tot < RandomDouble(gene))
+	{
 		tot += gene_lim->bin;
 		i++;
 	}

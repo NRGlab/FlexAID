@@ -66,7 +66,7 @@
 #define Rw 1.4f
 
 #define NEW(p,type)     if ((p=(type *) malloc (sizeof(type))) == NULL) { \
-		printf ("Out of Memory!\n");				\
+		printf("Out of Memory!\n");				\
 		exit(0);						\
 	}
 

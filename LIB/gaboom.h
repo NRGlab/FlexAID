@@ -34,8 +34,8 @@
 #define QS_TYPE double
 #define QS_ASC(a,b) ((a)-(b))
 #define QS_DSC(a,b) ((b)-(a))
-
-#define K(i,j,n) ( (i < j) ? (i*n+j) : (j*n+i) )
+#define K(i,j,n) (n*(n-1)/2) - (n-i)*((n-i)-1)/2 + j - i - 1
+//#define K(i,j,n) ( (i < j) ? (i*n+j) : (j*n+i) )
 
 using namespace std;
 
@@ -102,7 +102,7 @@ struct GB_Global_struct{
 	int          rrg_skip;
 
 	int          num_print;
-	int	     print_int;
+	int	     	print_int;
 
 	char         pop_init_method[9];
 	char         pop_init_file[MAX_PATH__];

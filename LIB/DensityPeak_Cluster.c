@@ -16,6 +16,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	// Density Peak Clustering variables declaration
 	int i,j,k;
 	bool Hungarian = false;
+	int sizeChrom =  ((num_chrom * num_chrom)-num_chrom)*0.5; // sizeChrom is defined to be the size of the upper-triangular matrix without the main diagonale
 	bool Entropic = ( FA->temperature > 0 ? true : false );
 	float DC = 0.0f;
 	const int nAtoms = residue[atoms[FA->map_par[0].atm].ofres].latm[0] - residue[atoms[FA->map_par[0].atm].ofres].fatm[0] + 1;
@@ -49,16 +50,8 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 		fprintf(stderr,"ERROR: memory allocation error for ChromClusters data structures.\n");
 		Terminate(2);
 	}
-
-	RMSD = (float*) malloc(num_chrom * num_chrom * sizeof(float));
-	if(RMSD == NULL)
-	{
-		fprintf(stderr,"ERROR: memory allocation error for RMSD matrix.\n");
-		Terminate(2);
-	}
-
+	
 	// variables initialization
-	memset(RMSD, 0.0, num_chrom * num_chrom);
 	for(i = 0, partition_function = 0.0; i < num_chrom; ++i)
 	{
 		pChrom = &Chrom[i];
@@ -88,6 +81,14 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 		Terminate(2);
 	}
 
+	// RMSD matrix memory allocation && initialization with memset()
+	RMSD = (float*) malloc(sizeChrom * sizeof(float));
+	if(RMSD == NULL)
+	{
+		fprintf(stderr,"ERROR: memory allocation error for RMSD matrix.\n");
+		Terminate(2);
+	}
+	memset(RMSD, 0.0, sizeChrom);
 	// (1) Build Chromosome Cartesian Coordinates
 	for(i = 0; i < num_chrom; ++i)
 	{
@@ -114,9 +115,9 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 			RMSD[K(i,j,num_chrom)] = sqrtf(minDist/(float)nAtoms);
 		}
 	}
-
-	// (*) Determine Distance Cut-Off
-	DC = getDistanceCutoff(RMSD, num_chrom);
+    
+	// (*) Determine Distance
+	DC = getDistanceCutoff(RMSD, sizeChrom);
 	// DC = FA->cluster_rmsd;
 	printf("DC:%g\n",DC);
 
@@ -124,8 +125,8 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	for(i = 0; i < num_chrom; ++i)
 	{
 		iChrom = &Chrom[i];
-        for(j = i+1; j < num_chrom; ++j)
-//		for(j = 0; j < num_chrom; ++j)
+//        for(j = i+1; j < num_chrom; ++j)
+		for(j = i+1; j < num_chrom; ++j)
 		{
 			jChrom	= &Chrom[j];
 			if(jChrom != iChrom) iChrom->Density += Chi(RMSD[K(i,j,num_chrom)], DC);
@@ -136,7 +137,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	for(i = 0; i < num_chrom; ++i)
 	{
 		iChrom = &Chrom[i];
-		for(j = 0, minDist=FLT_MAX; j < num_chrom; ++j)
+		for(j = i+1, minDist=FLT_MAX; j < num_chrom; ++j)
 		{
 			if(j != i)
 			{
@@ -149,18 +150,15 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 				}
 			}
 		}
-		for(j = num_chrom-1, minDist=FLT_MAX; j > 0; --j)
+		for(j = num_chrom-1, minDist=FLT_MAX; j > i; --j)
 		{
-			if(j != i)
-			{
-				jChrom = &Chrom[j];
-				if(jChrom->Density > iChrom->Density && RMSD[K(i,j,num_chrom)] < minDist && RMSD[K(i,j,num_chrom)] > 0.0)
-				{
-					minDist = RMSD[K(i,j,num_chrom)];
-					iChrom->DP = jChrom;
-					iChrom->Distance = minDist;
-				}
-			}
+            jChrom = &Chrom[j];
+            if(jChrom->Density > iChrom->Density && RMSD[K(i,j,num_chrom)] < minDist && RMSD[K(i,j,num_chrom)] > 0.0)
+            {
+                minDist = RMSD[K(i,j,num_chrom)];
+                iChrom->DP = jChrom;
+                iChrom->Distance = minDist;
+            }
 		}
 	}
 
@@ -246,14 +244,14 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	{
 		iChrom = &Chrom[i];
 		iiChrom = &Chrom[i-1];
-		if( (( fabs(iChrom->Distance - iiChrom->Distance) > 2*stddev) || (iChrom->Distance > mean+2*stddev)) && iChrom->Density > 0 )
+		if( (fabs(iChrom->Distance - iiChrom->Distance) > 2*stddev) && iChrom->Density > 0 )
 		{
 			pChrom = iChrom->DP;
 
 			if(pChrom != NULL && pChrom->Cluster >= 1) iChrom->Cluster = pChrom->Cluster;
 			else
 			{
-				for(j = 0; j < num_chrom; ++j)
+				for(j = i+1; j < num_chrom; ++j)
 				{
 					jChrom = &Chrom[j];
 					if(RMSD[K(iChrom->index,jChrom->index,num_chrom)] <= DC && jChrom->Cluster > 0)
@@ -531,7 +529,13 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 		// (*) write pdb file
 		write_pdb(FA,atoms,residue,tmp_end_strfile,remark);
 	}
+    
+    for(i = 0, k = 0; i < num_chrom; ++i)
+        for(j = i+1; j < num_chrom; ++j)
+            if(RMSD[K(i,j,num_chrom)] == 0.0 || !RMSD[K(i,j,num_chrom)] || RMSD[K(i,j,num_chrom)] < 0.0001) k++;
 
+    printf("there is %d pairwise-chromosomes with similar (x < 0.0001) RMSD values.\n", k);
+    
 	// Need to modify write_rrd.c OR  
 	if(FA->refstructure == 1) { write_DensityPeak_rrd(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,Chrom,Clust,RMSD,end_strfile); }
 
@@ -542,31 +546,31 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
     if(Clust != NULL) { free(Clust); Clust=NULL; }
 }
 
-float getDistanceCutoff(float* RMSD, int num_chrom)
+float getDistanceCutoff(float* RMSD, int sizeChrom)
 {
-	int i,j,k;
+//	int i,j,k;
 	float DC = 0.0f;
-	int neighbors = 0;
+//	int neighbors = 0;
 	float* RMSDsorted;
-	int nLow = NEIGHBORRATELOW * ((num_chrom * num_chrom)-num_chrom)*0.5;
-	int nHigh = NEIGHBORRATEHIGH * ((num_chrom * num_chrom)-num_chrom)*0.5;
-	RMSDsorted = (float*) malloc( ((num_chrom * num_chrom)-num_chrom)*0.5 * sizeof(float) );
+	int nLow = NEIGHBORRATELOW * sizeChrom;
+	int nHigh = NEIGHBORRATEHIGH * sizeChrom;
+	RMSDsorted = (float*) malloc( sizeChrom * sizeof(float) );
 	
 	if(RMSDsorted == NULL)
 	{
 		fprintf(stderr,"ERROR: memory allocation error for RMSD matrix copy in DensityPeak_Cluster::getDistanceCutoff().\n");
 		Terminate(2);
 	}
-    for(i = 0, k = 0; i< num_chrom; ++i)
-    {
-        for(j = i+1; j < num_chrom; ++j)
-        {
-            RMSDsorted[k] = RMSD[K(i,j,num_chrom)];
-            ++k;
-        }
-    }
-//	memcpy(RMSDsorted, RMSD, num_chrom*num_chrom*sizeof(float));
-	qsort(RMSDsorted, ((num_chrom * num_chrom)-num_chrom)*0.5, sizeof(float), DistanceComparator);
+//    for(i = 0, k = 0; i< num_chrom; ++i)
+//    {
+//        for(j = i+1; j < num_chrom; ++j)
+//        {
+//            RMSDsorted[k] = RMSD[K(i,j,num_chrom)];
+//            ++k;
+//        }
+//    }
+	memcpy(RMSDsorted, RMSD, sizeChrom * sizeof(float));
+	qsort(RMSDsorted, sizeChrom, sizeof(float), DistanceComparator);
 	DC = (RMSDsorted[nLow] + RMSDsorted[nHigh]) * 0.5;
 	// while(neighbors < nLow || neighbors > nHigh)
 	// {
@@ -582,13 +586,13 @@ float getDistanceCutoff(float* RMSD, int num_chrom)
 	// 	}
 	// 	DCPLUS: DC += 0.05;
 	// }
-    while( DC < 1.0 && nHigh < ((num_chrom * num_chrom)-num_chrom)*0.5 )
+    while( DC < 1.0 && nHigh < sizeChrom )
     {
         nLow = 1.5 * nLow;
         nHigh = 1.5 * nHigh;
         DC = (RMSDsorted[nLow] + RMSDsorted[nHigh]) * 0.5;
     }
-    if(RMSDsorted) {free(RMSDsorted); RMSDsorted = NULL;}
+    if(RMSDsorted) { free(RMSDsorted); RMSDsorted = NULL; }
 	return DC;
 }
 
