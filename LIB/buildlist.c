@@ -27,9 +27,10 @@ void buildlist(FA_Global* FA,atom* atoms,resid* residue,int rnum, int bnum, int 
 		list[i]=0;
 		lista[i]=0;
 	}
+	
+	//////////////////////////////////////////////////////////////////////////////
 	/* residue.type=0 -> amino acid 
 	   residue.type=1 -> ligand     */
-  
 	if(residue[rnum].type==1){
 		if(bnum != 0){
 			a=atoms[residue[rnum].bond[bnum]].rec[0];

@@ -229,7 +229,9 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	int save_num_chrom = (int)(GB->num_chrom*SAVE_CHROM_FRACTION);
 	int nrejected = 0;
 	
-	
+	////////////////////////////////
+	////// Genetic Algorithm ///////
+	////////////////////////////////
 	for(i=0;i<GB->max_generations;i++)
 	{
 		///////////////////////////////////////////////////

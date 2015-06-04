@@ -204,7 +204,7 @@ int main(int argc, char **argv){
 	// use boinc_init();
 	Initialize();
   
-	wif083(FA);  
+	wif083(FA); // initialization of FA->sphere[]
 	
 	///////////////////////////////////////////////////////////////////////////////
 	// memory allocations for param structures
@@ -245,8 +245,9 @@ int main(int argc, char **argv){
 	printf("Reading input (%s)...\n",dockinp);
 	read_input(FA,&atoms,&residue,&rotamer,&cleftgrid,dockinp);
 	
-	if (strcmp(FA->complf,"VCT")==0){
-
+	// memory allocation and initialization of VC struct
+	if (strcmp(FA->complf,"VCT")==0)
+	{
 		VC->planedef = FA->vcontacts_planedef;
 		
 		// Vcontacts memory allocations...
