@@ -421,8 +421,8 @@ int main(int argc, char **argv){
 	   }
 	*/
   
-	if(strcmp(FA->metopt,"GA") == 0){
-
+	if(strcmp(FA->metopt,"GA") == 0)
+	{
 		////////////////////////////////
 		////// Genetic Algorithm ///////
 		////////////////////////////////
@@ -485,14 +485,42 @@ int main(int argc, char **argv){
 				printf("using the Complementarity Function (CF) based clustering algorithm.\n");
 				cluster(FA,GB,VC,chrom_snapshot,gene_lim,atoms,residue,cleftgrid,n_chrom_snapshot,end_strfile,tmp_end_strfile,dockinp,gainp);
 			}
+			//////////////////////////////////////////
+			// Looking at cleftgrid chrom's density //
+			//////////////////////////////////////////
+			int* gridcount;
+			gridcount = (int*) malloc(FA->MIN_CLEFTGRID_POINTS * sizeof(int));
+			if(!gridcount)
+			{
+				fprintf(stderr, "ERROR: memory allocation error for gridcount\n");
+				Terminate(2);
+			}
+            for(i = 0; i < FA->MIN_CLEFTGRID_POINTS; ++i)
+            {
+                gridcount[i] = 0;
+                cleftgrid[i].number = 0;
+            }
+			for(i = 0; i < n_chrom_snapshot; ++i)
+			{
+				gridcount[(unsigned int)chrom_snapshot[i].genes[0].to_ic]++;
+                cleftgrid[(unsigned int)chrom_snapshot[i].genes[0].to_ic].number++;
+			}
+            std::sort(&gridcount[0],&gridcount[FA->MIN_CLEFTGRID_POINTS-1]);
+		    for(i = 0, j = 0; j < FA->MIN_CLEFTGRID_POINTS; ++j)
+		    {
+                 if(gridcount[j] > 0) {printf("%d: %d\n",j,gridcount[j]); ++i;}
+//                if(cleftgrid[j].number > 0) { printf("%d: %d\n",j,cleftgrid[j].number); ++i;}
+		    }
+            printf("there is a total of :\n\t%d occupied grid points\n\t%d empty grid points\n\t%d total grid points\n",i, FA->MIN_CLEFTGRID_POINTS-i, FA->MIN_CLEFTGRID_POINTS);
+            // Grid Density Count (free-ing) 
+            if(gridcount != NULL) free(gridcount);
 		}
 	}
     
-	printf("free-ing up memory\n");
-
 	//////////////////////////////////////////
 	// free up memory allocated using malloc//
 	//////////////////////////////////////////
+	printf("free-ing up memory\n");
 	
 	// Genes properties
 	if(gene_lim != NULL) free(gene_lim);
