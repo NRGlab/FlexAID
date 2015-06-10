@@ -46,7 +46,7 @@ int write_rrd(FA_Global* FA,GB_Global* GB,const chromosome* chrom, const genlim*
 	return(0);
 }
 
-int write_DensityPeak_rrd(FA_Global* FA, GB_Global* GB, const chromosome* chrom, const genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, ClusterChrom* Chrom, Cluster* Clust, float* RMSD, char outfile[])
+int write_DensityPeak_rrd(FA_Global* FA, GB_Global* GB, const chromosome* chrom, const genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, ClusterChrom* Chrom, DPcluster* Clust, float* RMSD, char outfile[])
 {
 	FILE *outfile_ptr;
 	int i,j,k,l;

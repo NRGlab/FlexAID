@@ -30,8 +30,8 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	double partition_function;
 	ClusterChrom* Chrom;
 	ClusterChrom *pChrom, *iChrom, *iiChrom, *jChrom;
-	Cluster* Clust;
-	Cluster *pCluster, *iClust, *jClust;
+	DPcluster* Clust;
+	DPcluster *pCluster, *iClust, *jClust;
 
 	// File and Output variables declarations
 	cfstr CF;                                /* complementarity function value */
@@ -321,7 +321,7 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	// if(nClusters < FA->max_results) nResults = nClusters;
 	// else nResults = FA->max_results;
 	nResults = nClusters;
-	Clust = (Cluster*) malloc( nResults * sizeof(Cluster) );
+	Clust = (DPcluster*) malloc( nResults * sizeof(DPcluster) );
 	// //  dynamically allocated memory check-up
 	if(Clust == NULL) 
 	{
@@ -387,8 +387,8 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 //			iChrom->isClustered = true;
 //
 //			// memory reallocation (could be done in a block-wise manner, i.e. multiple Clusters added by call to realloc())
-//			Clust = (Cluster*) realloc(Clust, sizeof(*Clust)+sizeof(Cluster));
-//            // Cluster attributes assignation
+//			Clust = (DPcluster*) realloc(Clust, sizeof(*Clust)+sizeof(DPcluster));
+//            // DPcluster attributes assignation
 //			Clust[nResults].Center = iChrom;
 //			Clust[nResults].Representative = iChrom;
 //            Clust[nResults].lowestCF = iChrom->Chromosome->app_evalue;
@@ -596,7 +596,7 @@ float getDistanceCutoff(float* RMSD, int sizeChrom)
 	return DC;
 }
 
-void QuickSort_Cluster_by_CF(Cluster* Clust, bool Entropic, int beg, int end)
+void QuickSort_Cluster_by_CF(DPcluster* Clust, bool Entropic, int beg, int end)
 {
 	int l, r, p;
 	double pivot;
@@ -641,7 +641,7 @@ void QuickSort_Cluster_by_CF(Cluster* Clust, bool Entropic, int beg, int end)
 	}
 }
 
-void swap_clusters(Cluster* xCluster, Cluster* yCluster) { Cluster tCluster = *xCluster; *xCluster = *yCluster; *yCluster = tCluster; }
+void swap_clusters(DPcluster* xDPcluster, DPcluster* yDPcluster) { DPcluster tDPcluster = *xDPcluster; *xDPcluster = *yDPcluster; *yDPcluster = tDPcluster; }
 
 int DistanceComparator(const void *a, const void *b)
 {

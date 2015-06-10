@@ -142,7 +142,7 @@ struct Cluster_struct
        // Pointer to Cluster Center
        ClusterChrom* Center;		 // Queue of ClusterChrom (first element is the cluster center)
 };
-typedef struct Cluster_struct Cluster;
+typedef struct Cluster_struct DPcluster;
 /***********************************************************************/
 /*        1         2         3         4         5         6          */
 /*234567890123456789012345678901234567890123456789012345678901234567890*/
@@ -208,13 +208,13 @@ void 	fitness_stats(GB_Global* GB, const chromosome* chrom,int nchrom);
 float  	calc_rmsd_chrom(FA_Global* FA,GB_Global* GB, const chromosome* chrom, const genlim* gene_lim,atom* atoms,resid* residue,gridpoint* cleftgrid,int npar, int chrom_a, int chrom_b, float*, float*, bool calc_rmsd); // calculates RMSD between chromossomes
 int    	write_rrg(FA_Global* FA,GB_Global* GB, const chromosome* chrom, const genlim* gene_lim,atom* atoms,resid* residue, gridpoint* cleftgrid, char* outfile);        // writes GA output during simulation
 int    	write_rrd(FA_Global* FA,GB_Global* GB, const chromosome* chrom, const genlim* gene_lim,atom* atoms,resid* residue,gridpoint* cleftgrid,int* Clus_GAPOP,float* Clus_RMSDT,char outfile[]);   
-int 	write_DensityPeak_rrd(FA_Global* FA, GB_Global* GB, const chromosome* chrom, const genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, ClusterChrom* Chrom, Cluster* Clust, float* RMSD, char outfile[]);
+int 	write_DensityPeak_rrd(FA_Global* FA, GB_Global* GB, const chromosome* chrom, const genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, ClusterChrom* Chrom, DPcluster* Clust, float* RMSD, char outfile[]);
 void   	partition_grid(FA_Global* FA,chromosome* chrom,genlim* gene_lim,atom* atoms,resid* residue,gridpoint** cleftgrid,int pop_size, int expansion);        // partition grid size where favorable conformations are found
 void   	slice_grid(FA_Global* FA,genlim* gene_lim,atom* atoms,resid* residue,gridpoint** cleftgrid);                      // slice grid symmetrically in half
 
 // Density Peaks Clustering algorithm function declarations
-void 	QuickSort_Cluster_by_CF(Cluster* Clust, bool Entropic, int beg, int end);
-void 	swap_clusters(Cluster* xClust, Cluster* yClust);
+void 	QuickSort_Cluster_by_CF(DPcluster* Clust, bool Entropic, int beg, int end);
+void 	swap_clusters(DPcluster* xClust, DPcluster* yClust);
 float 	getDistanceCutoff(float* RMSD, int num_chrom);
 void 	QuickSort_ChromCluster_by_CF(ClusterChrom* Chrom, int num_chrom, int beg, int end);
 void 	QuickSort_ChromCluster_by_higher_Density(ClusterChrom* Chrom, int num_chrom, int beg, int end);
