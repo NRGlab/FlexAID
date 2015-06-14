@@ -122,7 +122,7 @@ float sqrdist(float a[], float b[])
 
 /******************************************************************************
  * SUBROUTINE distance calculates the cartesian distance between two point in 
- * n dimensions.
+ * 3 dimensions.
  ******************************************************************************/
 float dist(float a[], float b[]){
   float d;

@@ -1005,10 +1005,11 @@ void generate_random_individual(FA_Global* FA, GB_Global* GB, atom* atoms, gene*
 				boost::variate_generator< RNGType, boost::uniform_int<> > & dice,
 				int from_gene, int to_gene)
 {
-	for(int j=from_gene;j<to_gene;j++){
-		
+	for(int j=from_gene;j<to_gene;j++)
+	{
 		// side-chain optimization
-		if(FA->map_par[j].typ == 4){
+		if(FA->map_par[j].typ == 4)
+		{
 			int l=0;
 			while(FA->flex_res[l].inum != atoms[FA->map_par[j].atm].ofres){
 				l++;
@@ -1016,7 +1017,8 @@ void generate_random_individual(FA_Global* FA, GB_Global* GB, atom* atoms, gene*
 			
 			//printf("probability of atom[%d].ofres[%d]\t flex_res[%d](%s).inum[%d]= %.3f\n", FA->map_par[j].atm, atoms[FA->map_par[j].atm].ofres, l, FA->flex_res[l].name, FA->flex_res[l].inum, FA->flex_res[l].prob);
 			
-			if(RandomDouble() < FA->flex_res[l].prob){
+			if(RandomDouble() < FA->flex_res[l].prob)
+			{
 				genes[j].to_int32 = dice();
 			}else{
 				genes[j].to_int32 = 0;
