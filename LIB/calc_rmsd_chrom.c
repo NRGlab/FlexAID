@@ -62,7 +62,6 @@ float calc_rmsd_chrom(FA_Global* FA, GB_Global* GB, const chromosome* chrom, con
 			else if(FA->map_par[i].typ==0) 
 			{
 				atoms[FA->map_par[i].atm].dis = (float)FA->opt_par[i];
-	
 			}
 			else if(FA->map_par[i].typ==1) 
 			{
@@ -90,7 +89,7 @@ float calc_rmsd_chrom(FA_Global* FA, GB_Global* GB, const chromosome* chrom, con
 				// serves as flag , but also as grid index
 				normalmode=grd_idx;
 	
-			}else if(FA->map_par[i].typ==4)\
+			}else if(FA->map_par[i].typ==4)
 			{
 				rot_idx = (int)(FA->opt_par[i]+0.5);
 	

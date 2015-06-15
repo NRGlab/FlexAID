@@ -5,7 +5,7 @@
 #include "boinc.h"
 
 #define UNDEFINED_DIST -0.1f // Defined in FOPTICS as > than +INF
-
+#define minPts 5
 /*****************************************\
 			RandomProjections
 \*****************************************/
@@ -13,13 +13,14 @@ class RandomProjectedNeighborsAndDensities
 {
 	public:
 		RandomProjectedNeighborsAndDensities(); // Constructor (publicly called from FlexAID *_cluster.cxx)
-
+		void computeSetBounds();
+	
 	private:
 		int N;
 		int nDimensions;
 		static const int RandomSeed;
 		static const int logOProjectionConstant = 20;
-		const static  double sizeTolerance = (double) 2.0/3.0;
+		static const double sizeTolerance = (double) 2.0/3.0;
 		std::vector< chromosome* > chroms;
 		int minSplitSize;
 
@@ -27,7 +28,6 @@ class RandomProjectedNeighborsAndDensities
 		int nProject1D;
 		std::vector< std::vector< int > > splitsets;
 		std::vector< std::vector< double > > projectedPoints;
-
 };
 
 /*****************************************\
@@ -36,12 +36,13 @@ class RandomProjectedNeighborsAndDensities
 class FastOPTICS
 {
 	friend class RandomProjectedNeighborsAndDensities;
+	
 	public:
-		FastOPTICS(); // Constructor (publicly called from FlexAID's *_cluster.cxx)
-		Initialize(); // Initialize FastOPTICS private attributes from FlexAID structs
+		FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom); // Constructor (publicly called from FlexAID's *_cluster.cxx)
+	
 	private:
 		// FlexAID specific attributes
-		int N;					// N : number of chromosomes to cluster
+		int N;	// N : number of chromosomes to cluster
 		FA_Global* FA;			// pointer to FA_Global struct
 		GB_Gblobal* GB;			// pointer to GB_Global struct
 		VC_Global* VC;			// pointer to VC_Global struct
@@ -52,13 +53,16 @@ class FastOPTICS
 		gridpoint* cleftgrid;	// pointer to gridpoints' array (defining the total search space of the simulation)
 		
 		// FOPTICS algorithm attributes
-		int iOrder;
+		static int iOrder;
 		std::vector< int > order;
 		std::vector< double > reachDist;
 		std::vector< bool > processed;
 		std::vector< double > inverseDensities;
-		std::vector< chromosome* > chroms;
+		std::vector< chromosome* > points;
 		std::vector< std::vector< chromosome* > > neighs;
+		
+		// private methods
+		void Initialize(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom); // Initialize FastOPTICS private attributes from FlexAID structs
 };
 
 #endif

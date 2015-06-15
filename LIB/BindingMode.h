@@ -35,7 +35,7 @@ class BindingMode // aggregation of poses (Cluster)
 		double entropy;
 		double energy;
 };
-
+// * add to -> BindingMode.cpp
 // public 
 void BindingMode::add_pose(chromosome* pose)
 {
