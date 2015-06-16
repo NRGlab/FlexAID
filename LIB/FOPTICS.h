@@ -12,7 +12,7 @@
 \*****************************************/
 class FastOPTICS
 {
-	// friend class RandomProjectedNeighborsAndDensities;
+	friend class RandomProjectedNeighborsAndDensities;
 	public:
 		FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom); // Constructor (publicly called from FlexAID's *_cluster.cxx)
 	
@@ -44,7 +44,7 @@ class FastOPTICS
 		static atom* atoms;				// pointer to atoms' array
 		static resid* residue;			// pointer to residues' array
 		static gridpoint* cleftgrid;	// pointer to gridpoints' array (defining the total search space of the simulation)
-		std::vector<float> vectorize_chromosome(chromosome* chrom);
+		std::vector<float> Vectorized_Chromosome(chromosome* chrom);
 };
 
 /*****************************************\
@@ -55,15 +55,20 @@ class RandomProjectedNeighborsAndDensities
 	friend class FastOPTICS;
 	
 	public:
-		RandomProjectedNeighborsAndDensities(std::vector< std::pair< chromosome*,std::vector<float> > >&, int); // Constructor (publicly called from FlexAID *_cluster.cxx)
+		RandomProjectedNeighborsAndDensities(std::vector< std::pair< chromosome*,std::vector<float> > >&, int, FastOPTICS*); // Constructor (publicly called from FlexAID *_cluster.cxx)
 	
 	private:
+		// provate attributes
+		FastOPTICS* top;
 		int N;
 		int nDimensions;
 		int minSplitSize;
 		static const int logOProjectionConstant = 20;
 		static const float sizeTolerance = (float) 2.0f/3.0f;
 		std::vector< std::pair<chromosome*,std::vector<float> > > points;
+
+		// private methods
+		void SplitUpNoSort(std::vector<int>&, int);
 
 	protected:
 		// protected attributes (accessible via FastOPTICS class)
@@ -73,6 +78,8 @@ class RandomProjectedNeighborsAndDensities
 		std::vector< std::vector< float > > projectedPoints;
 		// protected methods (accessible via FastOPTICS class)
 		void computeSetBounds(std::vector< int >&);
+		std::vector<float> Randomized_Normalized_Vector();
+		int Dice();
 };
 
 #endif

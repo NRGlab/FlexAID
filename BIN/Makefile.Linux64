@@ -121,7 +121,7 @@ OBJ =	top.o			\
 	read_spheres.o		\
 	generate_grid.o		\
 	cluster.o		\
-	DensityPeak_cluster.o \
+	DensityPeak_Cluster.o   \
 	rna_structure.o		\
 	maps.o			\
 	shortest_path.o		\
@@ -332,8 +332,8 @@ generate_grid.o: $I/generate_grid.cpp $I/flexaid.h $I/boinc.h $I/maps.hpp
 cluster.o: $I/cluster.c $I/gaboom.h $I/boinc.h
 	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/cluster.c $(INCLUDES)
 
-DensityPeak_cluster.o: $I/DensityPeak_cluster.c $I/gaboom.h $I/boinc.h
-	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/DensityPeak_cluster.c $(INCLUDES)
+DensityPeak_Cluster.o: $I/DensityPeak_Cluster.c $I/gaboom.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/DensityPeak_Cluster.c $(INCLUDES)
 
 rna_structure.o: $I/rna_structure.c $I/boinc.h
 	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/rna_structure.c $(INCLUDES)
