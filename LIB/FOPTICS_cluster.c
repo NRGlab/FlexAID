@@ -7,3 +7,7 @@ void FOPTICS_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	// calling FastOPTICS constructor
 	FastOPTICS::FastOPTICS(FA,GB,VC,chrom,gene_lim,atoms,residue,cleftgrid,nChrom);
 }
+int main(int argc, char** argv)
+{
+	return 0;
+}

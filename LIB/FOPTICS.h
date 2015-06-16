@@ -18,17 +18,17 @@ class FastOPTICS
 	
 	private:
 		// FlexAID specific attributes
-		int N;					// N : number of chromosomes to cluster
-		static int nDimensions;
+		int N;			// N : number of chromosomes to cluster
+		int minPoints;	// minPts : minimal number of neighbors (only parameter in FOPTICS)
+		int nDimensions;
 		
 		// FOPTICS algorithm attributes
 		static int iOrder;
-		static int minPoint;	// minPts : minimal number of neighbors (only parameter in FOPTICS)
 		std::vector< int > order;
 		std::vector< float > reachDist;
 		std::vector< bool > processed;
 		std::vector< float > inverseDensities;
-		std::vector< std::pair<chromosome*,std::vector<float>> > points;
+		std::vector< std::pair<chromosome*,std::vector<float> > > points;
 		std::vector< std::vector< chromosome* > > neighs;
 		
 		// private methods
@@ -37,14 +37,14 @@ class FastOPTICS
 	protected:
 		// protected methods to be used by RandomProjectedNeighborsAndDensities::methods()
 		static FA_Global* FA;			// pointer to FA_Global struct
-		static GB_Gblobal* GB;			// pointer to GB_Global struct
+		static GB_Global* GB;			// pointer to GB_Global struct
 		static VC_Global* VC;			// pointer to VC_Global struct
 		static chromosome* chroms;		// pointer to chromosomes' array
 		static genlim* gene_lim;		// pointer to gene_lim genlim array (useful for bondaries defined for each gene)
 		static atom* atoms;				// pointer to atoms' array
 		static resid* residue;			// pointer to residues' array
 		static gridpoint* cleftgrid;	// pointer to gridpoints' array (defining the total search space of the simulation)
-		std::vector<float> vectorize_chromosome(chromsome* chrom);
+		std::vector<float> vectorize_chromosome(chromosome* chrom);
 };
 
 /*****************************************\
@@ -63,7 +63,7 @@ class RandomProjectedNeighborsAndDensities
 		int minSplitSize;
 		static const int logOProjectionConstant = 20;
 		static const float sizeTolerance = (float) 2.0f/3.0f;
-		std::vector< std::pair<chromosome*,std::vector<float>> > points;
+		std::vector< std::pair<chromosome*,std::vector<float> > > points;
 
 	protected:
 		// protected attributes (accessible via FastOPTICS class)
