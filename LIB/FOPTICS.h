@@ -29,7 +29,7 @@ class FastOPTICS
 		std::vector< bool > processed;
 		std::vector< float > inverseDensities;
 		std::vector< std::pair<chromosome*,std::vector<float> > > points;
-		std::vector< std::vector< chromosome* > > neighs;
+		std::vector< std::vector< chromosome* > > neighbors;
 		
 		// private methods
 		void Initialize(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom); // Initialize FastOPTICS private attributes from FlexAID structs
@@ -64,12 +64,14 @@ class RandomProjectedNeighborsAndDensities
 		int nDimensions;
 		int minSplitSize;
 		static const int logOProjectionConstant = 20;
-		static const float sizeTolerance = (float) 2.0f/3.0f;
+		static float sizeTolerance;
 		std::vector< std::pair<chromosome*,std::vector<float> > > points;
 
 		// private methods
 		void SplitUpNoSort(std::vector<int>&, int);
-
+		void quicksort_concurrent_Vectors(std::vector<float>& data, std::vector<int>& index, int begin, int end);
+		void swap_element_in_vectors(std::vector<float>::iterator, std::vector<float>::iterator, std::vector<int>::iterator , std::vector<int>::iterator);
+	
 	protected:
 		// protected attributes (accessible via FastOPTICS class)
 		int nProject1D;				// CONSTANT c0
@@ -78,6 +80,7 @@ class RandomProjectedNeighborsAndDensities
 		std::vector< std::vector< float > > projectedPoints;
 		// protected methods (accessible via FastOPTICS class)
 		void computeSetBounds(std::vector< int >&);
+		void getNeighbors();
 		std::vector<float> Randomized_Normalized_Vector();
 		int Dice();
 };

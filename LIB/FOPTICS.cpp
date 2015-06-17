@@ -13,7 +13,8 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 	for(int k = 0; k < this->N; ++k) ptInd.push_back(k);
 	
 	RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities MultiPartition(this->points, this->minPoints, this);
-	MultiPartition.computeSetBounds(ptInd);
+	MultiPartition.RandomProjectedNeighborsAndDensities::computeSetBounds(ptInd);
+	MultiPartition.RandomProjectedNeighborsAndDensities::getNeighbors();
 
 }
 
@@ -46,8 +47,8 @@ void FastOPTICS::Initialize(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromos
 
 	// std::vector< std::pair< chromosome*,std::vector<float> > > this->FastOPTICS::points;
 	this->points.reserve(this->N);
-	// std::vector< std::vector< chromosome* > > this->FastOPTICS::neighs(this->N);
-	this->neighs.reserve(this->N);
+	// std::vector< std::vector< chromosome* > > this->FastOPTICS::neighbors(this->N);
+	this->neighbors.reserve(this->N);
 	
 	for(int i = 0; i < this->N; ++i)
 	{
@@ -87,6 +88,7 @@ RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities(std::
 {
 	this->top = top;
 	this->minSplitSize = minSplitSize;
+	RandomProjectedNeighborsAndDensities::sizeTolerance = (float) 2.0f/3.0f;
 
 	if( points.empty() )
 	{
@@ -146,6 +148,7 @@ void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > &
 		while(it != projInd.end())
 		{
 			int cind = (*it)++;
+			// look this line to be sure that the vector is pushed in this->projectedPoints
 			this->projectedPoints[cind] = tempProj[i];
 			i++;
 		}
@@ -164,9 +167,59 @@ void RandomProjectedNeighborsAndDensities::SplitUpNoSort(std::vector< int >& ind
 {
 	int nElements = ind.size();
 	dim = dim % this->nProject1D;
-	std::vector<float>::iterator tProj = this->projectedPoints[dim].begin();
+	std::vector<float>::iterator tProj = (this->projectedPoints[dim]).begin();
 	int splitPos;
 
+	// save set such that used for density or neighborhood computation
+	if(nElements > this->minSplitSize*(1 - this->sizeTolerance) && nElements < this->minSplitSize*(1 + this->sizeTolerance))
+	{
+		std::vector<float> cpro;
+		for(int i = 0; i < nElements; ++i)
+			cpro.push_back(tProj[ind[i]]);
+		// sprting cpro[] && ind[] concurrently
+		this->quicksort_concurrent_Vectors(cpro, ind, 0, nElements-1);
+		this->splitsets.push_back(ind);
+	}
+
+	// compute splitting element
+	if(nElements > this->minSplitSize)
+	{
+		//pick random splitting element based on position
+		int randInt = (int) std::floor( (RandomDouble()*(double)(nElements)) );
+		float rs = tProj[ind[randInt]];
+		int minInd = 0;
+		int maxInd = nElements - 1;
+		while(minInd < maxInd)
+		{
+			float currEle = tProj[ind[minInd]];
+			if(currEle > rs)
+			{
+				while(minInd < maxInd && tProj[ind[maxInd]] > rs) maxInd--;
+				if(minInd == maxInd) break;
+				
+				int currInd = ind[minInd];
+				ind[minInd]=ind[maxInd];
+				ind[maxInd]=currInd;
+				maxInd--;
+			}
+			minInd++;
+		}
+		if( minInd == nElements-1 ) minInd = nElements/2;
+
+		// split set recursively
+		splitPos = minInd + 1;
+		std::vector<int> ind2(nElements - splitPos);
+		for(int l = 0; l < splitPos; ++l)
+			ind2[l] = ind[l];
+		this->SplitUpNoSort(ind2,dim+1);
+		for(int l = 0; l < nElements-splitPos; ++l)
+			ind2[l] = ind[l+splitPos];
+		this->SplitUpNoSort(ind2,dim+1);
+	}
+}
+
+void RandomProjectedNeighborsAndDensities::getNeighbors()
+{
 
 }
 
@@ -192,12 +245,61 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_Normalized_V
 			sum += vChrom[j+2]*vChrom[j+2];
 		}
 	}
-	sum = sqrt(sum);
+	sum = sqrtf(sum);
 	for(int k = 0; k < this->nDimensions; ++k) vChrom[k]/=sum;
 
 	return vChrom;
 }
 
+void RandomProjectedNeighborsAndDensities::quicksort_concurrent_Vectors(std::vector<float>& data, std::vector<int>& index, int beg, int end)
+{
+	int l, r, p;
+	float pivot;
+	std::vector<float>::iterator xData, yData;
+	std::vector<int>::iterator xIndex, yIndex;
+	while(beg < end)
+	{
+		l = beg; p = beg + (end-beg)/2; r = end;
+		pivot = data[p];
+		
+		while(1)
+		{
+			while( (l<=r) && QS_ASC(data[l],pivot) <= 0) ++l;
+			while( (l<=r) && QS_ASC(data[r],pivot)  > 0) --r;
+	
+			if (l > r) break;
+			xData = data.begin()+l; yData = data.begin()+r;
+			xIndex = index.begin()+l; yIndex = index.begin()+r;
+			this->swap_element_in_vectors(xData, yData, xIndex, yIndex);
+			if (p == r) p = l;
+			++l; --r;
+		}
+		xData = data.begin()+p; yData = data.begin()+r;
+		xIndex = index.begin()+p; yIndex = index.begin()+r;
+		this->swap_element_in_vectors(xData, yData, xIndex, yIndex);
+
+		--r;
+
+		if( (r-beg) < (end-l) )
+		{
+			this->quicksort_concurrent_Vectors(data, index, beg, r);
+			beg = l;
+		}
+		else
+		{
+			this->quicksort_concurrent_Vectors(data, index, l, end);
+			end = r;
+		}
+	}
+}
+
+void RandomProjectedNeighborsAndDensities::swap_element_in_vectors(std::vector<float>::iterator xData, std::vector<float>::iterator yData, std::vector<int>::iterator xIndex, std::vector<int>::iterator yIndex)
+{
+	float tData = *xData; *xData = *yData; *yData = tData;
+	int tIndex = *xIndex; *xIndex = *yIndex; *yIndex = tIndex;
+}
+
+// This function generates a RandomInt32 who can be used as *genes->to_int32 value
 int RandomProjectedNeighborsAndDensities::Dice()
 {
 	unsigned int tt = static_cast<unsigned int>(time(0));
