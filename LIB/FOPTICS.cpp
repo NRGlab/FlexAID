@@ -1,5 +1,4 @@
 #include "FOPTICS.h"
-
 /*****************************************\
 				FastOPTICS
 \*****************************************/
@@ -14,7 +13,8 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 	
 	RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities MultiPartition(this->points, this->minPoints, this);
 	MultiPartition.RandomProjectedNeighborsAndDensities::computeSetBounds(ptInd);
-	MultiPartition.RandomProjectedNeighborsAndDensities::getNeighbors();
+	this->inverseDensities = MultiPartition.RandomProjectedNeighborsAndDensities::getInverseDensities();
+	this->neighbors = MultiPartition.RandomProjectedNeighborsAndDensities::getNeighbors();
 
 }
 
@@ -74,7 +74,8 @@ std::vector<float> FastOPTICS::Vectorized_Chromosome(chromosome* chrom)
 		else
 		{
 			// j+2 is used from {j = 1 to N} to build further comp. of genes[j]
-			vChrom[j+2] = (float) genetoic(&gene_lim[j], (*chrom).genes[j].to_int32);
+			// vChrom[j+2] = (float) genetoic(&gene_lim[j], (*chrom).genes[j].to_int32);
+			vChrom[j+2] = (float) RandomDouble( (*chrom).genes[j].to_int32 );
 		}
 	}
 	return vChrom;
@@ -208,19 +209,85 @@ void RandomProjectedNeighborsAndDensities::SplitUpNoSort(std::vector< int >& ind
 
 		// split set recursively
 		splitPos = minInd + 1;
-		std::vector<int> ind2(nElements - splitPos);
+		
+		// std::vector<int> ind2(splitPos);
+		std::vector<int> ind2;
 		for(int l = 0; l < splitPos; ++l)
-			ind2[l] = ind[l];
+			// ind2[l] = ind[l];
+			ind2.push_back(ind[l]);
 		this->SplitUpNoSort(ind2,dim+1);
+		
+		// std::vector<int> ind3(nElements - splitPos);
+		std::vector<int> ind3;
 		for(int l = 0; l < nElements-splitPos; ++l)
-			ind2[l] = ind[l+splitPos];
-		this->SplitUpNoSort(ind2,dim+1);
+			// ind3[l] = ind[l+splitPos];
+			ind3.push_back(ind[l+splitPos]);
+		this->SplitUpNoSort(ind3,dim+1);
 	}
 }
 
-void RandomProjectedNeighborsAndDensities::getNeighbors()
+std::vector<float> RandomProjectedNeighborsAndDensities::getInverseDensities()
 {
+	
+}
 
+std::vector< std::vector< int > > RandomProjectedNeighborsAndDensities::getNeighbors()
+{
+	std::vector< std::vector< int > > neighs;
+	neighs.reserve(this->N);
+	for(int l = 0; l < this->N; l++)
+	{
+		std::vector<int> list(this->N,0);
+		list.reserve(this->N);
+		neighs.push_back(list);
+	}
+
+	// go through all sets
+	for(std::vector< std::vector< int > >::iterator it1 = this->splitsets.begin(); it1 != this->splitsets.end(); ++it1)
+	{
+		// for each set (each projected line)
+		std::vector<int>::iterator pinSet = it1->begin();
+		int len = it1->size();
+		int ind = pinSet[0];
+		int indoff = (int) round(len/2);
+		int oldind = pinSet[indoff];
+
+		// add all points as neighbors to middle point
+		//  +
+		// add the middle point to all other points in set
+		for(int i = 0; i < len; ++i)
+		{
+			ind = pinSet[i];
+
+			// The following block of code uses an iterator to check 
+			std::vector<int> cneighs = neighs.at(ind);
+			// std::vector<int>::iterator itPos = std::find(cneighs.begin(),cneighs.end(),oldind);
+			// if(itPos == cneighs.end()) //element not found in cneigh
+			if( !std::binary_search(cneighs.begin(), cneighs.end(), oldind) )
+			{
+				// if(*itPos > cneighs.size())
+				// 	cneighs.push_back(oldind);
+				// else
+				// 	cneighs.insert(itPos, oldind);
+				cneighs.push_back(oldind);
+				std::sort(cneighs.begin(),cneighs.end());
+			}
+
+			std::vector<int> cneighs2 = neighs.at(oldind);
+			// itPos = std::find(cneighs2.begin(), cneighs2.end(), ind);
+			// if(itPos == cneighs2.end()) // element not found in cneighs2
+			if( !std::binary_search(cneighs2.begin(), cneighs2.end(), ind) )
+			{
+				// if(*itPos > cneighs2.size())
+				// 	cneighs2.push_back(ind);
+				// else
+				// 	cneighs2.insert(itPos, ind);
+				cneighs2.push_back(oldind);
+				std::sort(cneighs2.begin(),cneighs2.end());
+			}
+		}
+
+	}
 }
 
 std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_Normalized_Vector()
@@ -230,12 +297,13 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_Normalized_V
 	float sum = 0.0f;
 	for(int j = 0; j < this->nDimensions; ++j)
 	{
-		double intGene = this->Dice();
-		double doubleGene = genetoic(&this->top->gene_lim[j],intGene);
+		int intGene = this->Dice();
+		double doubleGeneIC = genetoic(&this->top->gene_lim[j],intGene);
+		double doubleGene = RandomDouble(intGene);
 		if(j == 0) //  building the first 3 comp. from genes[0] which are CartCoord x,y,z
 			for(int i = 0; i < 3; ++i)
 			{
-				vChrom[i] = (float) this->top->cleftgrid[(unsigned int)doubleGene].coor[i] - this->top->FA->ori[i];
+				vChrom[i] = (float) this->top->cleftgrid[(unsigned int)doubleGeneIC].coor[i] - this->top->FA->ori[i];
 				sum += vChrom[i]*vChrom[i];
 			}
 		else
@@ -264,8 +332,8 @@ void RandomProjectedNeighborsAndDensities::quicksort_concurrent_Vectors(std::vec
 		
 		while(1)
 		{
-			while( (l<=r) && QS_ASC(data[l],pivot) <= 0) ++l;
-			while( (l<=r) && QS_ASC(data[r],pivot)  > 0) --r;
+			while( (l<=r) && QS_ASC(data[l],pivot) <= 0 ) ++l;
+			while( (l<=r) && QS_ASC(data[r],pivot)  > 0 ) --r;
 	
 			if (l > r) break;
 			xData = data.begin()+l; yData = data.begin()+r;

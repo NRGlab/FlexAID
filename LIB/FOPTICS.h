@@ -29,7 +29,7 @@ class FastOPTICS
 		std::vector< bool > processed;
 		std::vector< float > inverseDensities;
 		std::vector< std::pair<chromosome*,std::vector<float> > > points;
-		std::vector< std::vector< chromosome* > > neighbors;
+		std::vector< std::vector< int > > neighbors;
 		
 		// private methods
 		void Initialize(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom); // Initialize FastOPTICS private attributes from FlexAID structs
@@ -44,7 +44,7 @@ class FastOPTICS
 		static atom* atoms;				// pointer to atoms' array
 		static resid* residue;			// pointer to residues' array
 		static gridpoint* cleftgrid;	// pointer to gridpoints' array (defining the total search space of the simulation)
-		std::vector<float> Vectorized_Chromosome(chromosome* chrom);
+		std::vector<float> 				Vectorized_Chromosome(chromosome* chrom);
 };
 
 /*****************************************\
@@ -68,9 +68,9 @@ class RandomProjectedNeighborsAndDensities
 		std::vector< std::pair<chromosome*,std::vector<float> > > points;
 
 		// private methods
-		void SplitUpNoSort(std::vector<int>&, int);
-		void quicksort_concurrent_Vectors(std::vector<float>& data, std::vector<int>& index, int begin, int end);
-		void swap_element_in_vectors(std::vector<float>::iterator, std::vector<float>::iterator, std::vector<int>::iterator , std::vector<int>::iterator);
+		void 								SplitUpNoSort(std::vector<int>&, int);
+		void 								quicksort_concurrent_Vectors(std::vector<float>& data, std::vector<int>& index, int begin, int end);
+		void 								swap_element_in_vectors(std::vector<float>::iterator, std::vector<float>::iterator, std::vector<int>::iterator , std::vector<int>::iterator);
 	
 	protected:
 		// protected attributes (accessible via FastOPTICS class)
@@ -79,10 +79,10 @@ class RandomProjectedNeighborsAndDensities
 		std::vector< std::vector< int > > splitsets;
 		std::vector< std::vector< float > > projectedPoints;
 		// protected methods (accessible via FastOPTICS class)
-		void computeSetBounds(std::vector< int >&);
-		void getNeighbors();
-		std::vector<float> Randomized_Normalized_Vector();
-		int Dice();
+		void 								computeSetBounds(std::vector< int >&);
+		std::vector<float> 					getInverseDensities();
+		std::vector< std::vector< int > > 	getNeighbors();
+		std::vector<float> 					Randomized_Normalized_Vector();
+		int 								Dice();
 };
-
 #endif
