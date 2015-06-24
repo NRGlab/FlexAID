@@ -29,7 +29,7 @@ void FastOPTICS::Initialize(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromos
 {
 	// FlexAID
 	this->N = num_chrom;
-	this->minPoints = (int)(0.01*this->N - 0.5);
+	this->minPoints = static_cast<int>(0.01*this->N - 0.5);
 	FastOPTICS::FA = FA;
 	FastOPTICS::GB = GB;
 	FastOPTICS::VC = VC;
@@ -77,12 +77,12 @@ std::vector<float> FastOPTICS::Vectorized_Chromosome(chromosome* chrom)
 	{
 		if(j == 0) //  building the first 3 comp. from genes[0] which are CartCoord x,y,z
 			for(int i = 0; i < 3; ++i)
-				vChrom[i] = (float) this->cleftgrid[(unsigned int)(*chrom).genes[j].to_ic].coor[i] - this->FA->ori[i];
+				vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
 		else
 		{
 			// j+2 is used from {j = 1 to N} to build further comp. of genes[j]
-			// vChrom[j+2] = (float) genetoic(&gene_lim[j], (*chrom).genes[j].to_int32);
-			vChrom[j+2] = (float) RandomDouble( (*chrom).genes[j].to_int32 );
+			// vChrom[j+2] = static_cast<float>(genetoic(&gene_lim[j], (*chrom).genes[j].to_int32));
+			vChrom[j+2] = static_cast<float>(RandomDouble( (*chrom).genes[j].to_int32 ));
 		}
 	}
 	return vChrom;
@@ -96,7 +96,7 @@ RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities(std::
 {
 	this->top = top;
 	this->minSplitSize = minSplitSize;
-	RandomProjectedNeighborsAndDensities::sizeTolerance = (float) 2.0f/3.0f;
+	RandomProjectedNeighborsAndDensities::sizeTolerance = static_cast<float>(2.0f/3.0f);
 
 	if( points.empty() )
 	{
@@ -109,8 +109,8 @@ RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities(std::
 	{
 		this->N = this->points.size();
 		this->nDimensions = (this->points[0].second).size();
-		this->nPointsSetSplits = (int) this->logOProjectionConstant * log(this->N * this->nDimensions + 1)/log(2);
-		this->nProject1D = (int) this->logOProjectionConstant * log(this->N * this->nDimensions + 1)/log(2);
+		this->nPointsSetSplits = static_cast<int>(this->logOProjectionConstant * log(this->N * this->nDimensions + 1)/log(2));
+		this->nProject1D = static_cast<int>(this->logOProjectionConstant * log(this->N * this->nDimensions + 1)/log(2));
 		// line below calls copy-constructor
 		this->points = points;
 	}
@@ -193,7 +193,7 @@ void RandomProjectedNeighborsAndDensities::SplitUpNoSort(std::vector< int >& ind
 	if(nElements > this->minSplitSize)
 	{
 		//pick random splitting element based on position
-		int randInt = (int) std::floor( (RandomDouble()*(double)(nElements)) );
+		int randInt = static_cast<int>(std::floor( (RandomDouble()*static_cast<double>(nElements)) ));
 		float rs = tProj[ind[randInt]];
 		int minInd = 0;
 		int maxInd = nElements - 1;
@@ -244,13 +244,15 @@ std::vector<float> RandomProjectedNeighborsAndDensities::getInverseDensities()
 		std::vector<int>::iterator pinSet = it1->begin();
 		// std::vector<int> & pinSet = 
 		int len = it1->size();
-		int indoff = (int) round(len/2);
+		int indoff = static_cast<int>(round(len/2));
 		int oldind = pinSet[indoff];
 		for(int i = 0; i < len; ++i)
 		{
 			int ind = pinSet[i];
 			if(ind == indoff) continue;
+			// CHOOSE BETWEEN OF THE 2 CALLS BELOW FOR compute_distance() IMPLEMENTATION
 			float dist = this->compute_distance(this->points[ind],this->points[oldind]);
+			float dist = this->compute_distance(this->points[ind].second,this->points[oldind].second);
 			distAvg[oldind] += dist;
 			nDists[oldind]++;
 			distAvg[ind] += dist;
@@ -283,7 +285,7 @@ std::vector< std::vector< int > > RandomProjectedNeighborsAndDensities::getNeigh
 		std::vector<int>::iterator pinSet = it1->begin();
 		int len = it1->size();
 		int ind = pinSet[0];
-		int indoff = (int) round(len/2);
+		int indoff = static_cast<int>(round(len/2));
 		int oldind = pinSet[indoff];
 
 		// add all points as neighbors to middle point
@@ -337,13 +339,13 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_Normalized_V
 		if(j == 0) //  building the first 3 comp. from genes[0] which are CartCoord x,y,z
 			for(int i = 0; i < 3; ++i)
 			{
-				vChrom[i] = (float) this->top->cleftgrid[(unsigned int)doubleGeneIC].coor[i] - this->top->FA->ori[i];
+				vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].coor[i] - this->top->FA->ori[i]);
 				sum += vChrom[i]*vChrom[i];
 			}
 		else
 		{
 			// j+2 is used from {j = 1 to N} to build further comp. of genes[j]
-			vChrom[j+2] = (float) doubleGene;
+			vChrom[j+2] = static_cast<float>(doubleGene);
 			sum += vChrom[j+2]*vChrom[j+2];
 		}
 	}

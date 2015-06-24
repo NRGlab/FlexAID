@@ -2,16 +2,12 @@
 #define BINDINGMODE_H
 #include "gaboom.h"
 
-class Pose
+struct Pose
 {
-	public:
-
-
-	private:
-		chromosome* chrom;
-		double partition_sum;
-		double boltzmann_prob;
-		double boltzmann_weight;
+	chromosome* chrom;
+	double partition_sum;
+	double boltzmann_prob;
+	double boltzmann_weight;
 };
 
 // class Cluster
@@ -30,7 +26,7 @@ class BindingMode // aggregation of poses (Cluster)
 		void update_energy(uint temperature);
 
 		chromosome* representative;
-		std::vector<chromosome> poses;
+		std::vector<Pose> poses;
 		double enthalpy;
 		double entropy;
 		double energy;
