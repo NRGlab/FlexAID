@@ -13,6 +13,7 @@
 class FastOPTICS
 {
 	friend class RandomProjectedNeighborsAndDensities;
+	
 	public:
 		FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom); // Constructor (publicly called from FlexAID's *_cluster.cxx)
 	
@@ -76,7 +77,7 @@ class RandomProjectedNeighborsAndDensities
 		// protected attributes (accessible via FastOPTICS class)
 		int nProject1D;				// CONSTANT c0
 		int nPointsSetSplits;		// CONSTANT c1
-		std::vector< std::vector< int > > splitsets;
+		std::vector< std::vector< int > > 	splitsets;
 		std::vector< std::vector< float > > projectedPoints;
 		// protected methods (accessible via FastOPTICS class)
 		void 								computeSetBounds(std::vector< int >&);

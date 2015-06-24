@@ -11,10 +11,17 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 	std::vector< int > ptInd;
 	for(int k = 0; k < this->N; ++k) ptInd.push_back(k);
 	
+	// Build object, compute projections, density estimates and density neighborhoods (in serial order of function calls below)
 	RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities MultiPartition(this->points, this->minPoints, this);
 	MultiPartition.RandomProjectedNeighborsAndDensities::computeSetBounds(ptInd);
 	this->inverseDensities = MultiPartition.RandomProjectedNeighborsAndDensities::getInverseDensities();
 	this->neighbors = MultiPartition.RandomProjectedNeighborsAndDensities::getNeighbors();
+
+	// compute OPTICS ordetrin
+	for(int ipt = 0; ipt < this->N; ipt++)
+	{
+		if(!this->processed[ipt]) this->expandClusterOrder(ipt);
+	}	
 
 }
 
@@ -228,7 +235,34 @@ void RandomProjectedNeighborsAndDensities::SplitUpNoSort(std::vector< int >& ind
 
 std::vector<float> RandomProjectedNeighborsAndDensities::getInverseDensities()
 {
-	
+	std::vector<float> distAvg;
+	distAvg.reserve(this->N);
+	std::vector<int> nDists;
+	nDists.reserve(this->N);
+	for(std::vector< std::vector< int> >::iterator it1 = this->splitsets.begin(); it1 != this->splitsets.end(); ++it1)
+	{
+		std::vector<int>::iterator pinSet = it1->begin();
+		// std::vector<int> & pinSet = 
+		int len = it1->size();
+		int indoff = (int) round(len/2);
+		int oldind = pinSet[indoff];
+		for(int i = 0; i < len; ++i)
+		{
+			int ind = pinSet[i];
+			if(ind == indoff) continue;
+			float dist = this->compute_distance(this->points[ind],this->points[oldind]);
+			distAvg[oldind] += dist;
+			nDists[oldind]++;
+			distAvg[ind] += dist;
+			nDists[ind]++;
+		}
+	}
+	for(int l = 0; l < this->N; ++l)
+	{
+		if(nDists[l] == 0) distAvg[l] = UNDEFINED_DIST;
+		else distAvg[l] /= nDists[l];
+	}
+	return distAvg;
 }
 
 std::vector< std::vector< int > > RandomProjectedNeighborsAndDensities::getNeighbors()
@@ -260,7 +294,7 @@ std::vector< std::vector< int > > RandomProjectedNeighborsAndDensities::getNeigh
 			ind = pinSet[i];
 
 			// The following block of code uses an iterator to check 
-			std::vector<int> cneighs = neighs.at(ind);
+			std::vector<int> & cneighs = neighs.at(ind);
 			// std::vector<int>::iterator itPos = std::find(cneighs.begin(),cneighs.end(),oldind);
 			// if(itPos == cneighs.end()) //element not found in cneigh
 			if( !std::binary_search(cneighs.begin(), cneighs.end(), oldind) )
@@ -273,7 +307,7 @@ std::vector< std::vector< int > > RandomProjectedNeighborsAndDensities::getNeigh
 				std::sort(cneighs.begin(),cneighs.end());
 			}
 
-			std::vector<int> cneighs2 = neighs.at(oldind);
+			std::vector<int> & cneighs2 = neighs.at(oldind);
 			// itPos = std::find(cneighs2.begin(), cneighs2.end(), ind);
 			// if(itPos == cneighs2.end()) // element not found in cneighs2
 			if( !std::binary_search(cneighs2.begin(), cneighs2.end(), ind) )
