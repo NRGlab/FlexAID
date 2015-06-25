@@ -1,4 +1,11 @@
 #include "FOPTICS.h"
+
+ClusterOrdering::ClusterOrdering(int id, int predID, float reach) : objectID(id), predecessorID(predID), reachability(reach)
+{
+	// this->objectID = id;
+	// this->predecessorID = predID;
+	// this->reachability = reach;
+}
 /*****************************************\
 				FastOPTICS
 \*****************************************/
@@ -20,7 +27,7 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 	// compute OPTICS ordetrin
 	for(int ipt = 0; ipt < this->N; ipt++)
 	{
-		if(!this->processed[ipt]) this->expandClusterOrder(ipt);
+		if(!this->processed[ipt]) this->ExpandClusterOrder(ipt);
 	}	
 
 }
@@ -86,6 +93,59 @@ std::vector<float> FastOPTICS::Vectorized_Chromosome(chromosome* chrom)
 		}
 	}
 	return vChrom;
+}
+
+void FastOPTICS::ExpandClusterOrder(int ipt)
+{
+	std::priority_queue< ClusterOrdering, std::vector<ClusterOrdering>, ClusterOrderingComparator::ClusterOrderingComparator > queue;
+	ClusterOrdering tmp(ipt,0,1e6f);
+	queue.push(tmp);
+
+	while(!queue.empty())
+	{
+		ClusterOrdering current = queue.top();
+		queue.pop();
+		int currPt = current.objectID;
+		this->order[FastOPTICS::iOrder] = currPt;
+		FastOPTICS::iOrder++;
+		this->processed[currPt] = true;
+		float coredist = this->inverseDensities[currPt];
+		for( std::vector<int>::iterator it = this->neighbors[currPt].begin(); it != this->neighbors[currPt].end(); ++it)
+		{
+			int iNeigh = *it;
+			if(this->processed[iNeigh]) continue;
+
+			float nrdist = this->compute_distance(points[iNeigh], points[currPt]);
+
+			if(coredist > nrdist)
+				nrdist = coredist;
+			if(isUndefined(this->reachDist[iNeigh]))
+				this->reachDist[iNeigh] = nrdist;
+			else if(nrdist < this->reachDist[iNeigh])
+				this->reachDist[iNeigh] = nrdist;
+			tmp = ClusterOrdering::ClusterOrdering(iNeigh, currPt, nrdist);
+			queue.push(tmp);
+		}
+	}
+
+}
+
+float FastOPTICS::compute_distance(std::pair< chromosome*,std::vector<float> > & a, std::pair< chromosome*,std::vector<float> > & b)
+{
+	float distance = 0.0f;
+	// chromosome* aChrom = a.first;
+	// chromosome* branch = b.first;
+	// std::vector<float> aVec(a.second);
+	// std::vector<float> bVec(b.second);
+
+	// insert distance calculation below
+	for(int i = 0; i < this->nDimensions; ++i)
+	{
+		// distance += (aVec[i]-bVec[i])*(bVec[i]-aVec[i]);
+		// x.second gives the vector reference of this->nDimensions size
+		distance += (a.second[i]-b.second[i])*(b.second[i]-a.second[i]);
+	}
+	return sqrtf(distance);
 }
 
 /*****************************************\
@@ -251,8 +311,7 @@ std::vector<float> RandomProjectedNeighborsAndDensities::getInverseDensities()
 			int ind = pinSet[i];
 			if(ind == indoff) continue;
 			// CHOOSE BETWEEN OF THE 2 CALLS BELOW FOR compute_distance() IMPLEMENTATION
-			float dist = this->compute_distance(this->points[ind],this->points[oldind]);
-			float dist = this->compute_distance(this->points[ind].second,this->points[oldind].second);
+			float dist = this->top->compute_distance(this->points[ind],this->points[oldind]);
 			distAvg[oldind] += dist;
 			nDists[oldind]++;
 			distAvg[ind] += dist;
@@ -337,11 +396,13 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_Normalized_V
 		double doubleGeneIC = genetoic(&this->top->gene_lim[j],intGene);
 		double doubleGene = RandomDouble(intGene);
 		if(j == 0) //  building the first 3 comp. from genes[0] which are CartCoord x,y,z
+		{
 			for(int i = 0; i < 3; ++i)
 			{
 				vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].coor[i] - this->top->FA->ori[i]);
 				sum += vChrom[i]*vChrom[i];
 			}
+		}
 		else
 		{
 			// j+2 is used from {j = 1 to N} to build further comp. of genes[j]
