@@ -6,6 +6,30 @@ ClusterOrdering::ClusterOrdering(int id, int predID, float reach) : objectID(id)
 	// this->predecessorID = predID;
 	// this->reachability = reach;
 }
+
+inline bool const ClusterOrdering::operator==(const ClusterOrdering& rhs)
+{
+	if(*this == rhs)
+		return true;
+	if(typeid(rhs) != typeid(ClusterOrdering))
+		return false;
+
+	return this->objectID == rhs.objectID;
+}
+
+inline bool const ClusterOrdering::operator< (const ClusterOrdering& rhs)
+{
+	if(this->reachability > rhs.reachability)
+			return 1;
+		else if(this->reachability < rhs.reachability)
+			return 1;
+		if(this->objectID > rhs.objectID)
+			return -1;
+		else if(this->objectID < rhs.objectID)
+			return 1;
+		// if nothing else is true, return 0
+		return 0;
+}
 /*****************************************\
 				FastOPTICS
 \*****************************************/
@@ -97,7 +121,7 @@ std::vector<float> FastOPTICS::Vectorized_Chromosome(chromosome* chrom)
 
 void FastOPTICS::ExpandClusterOrder(int ipt)
 {
-	std::priority_queue< ClusterOrdering, std::vector<ClusterOrdering>, ClusterOrderingComparator::ClusterOrderingComparator > queue;
+	std::priority_queue< ClusterOrdering, std::vector<ClusterOrdering>, ClusterOrderingComparator > queue;
 	ClusterOrdering tmp(ipt,0,1e6f);
 	queue.push(tmp);
 

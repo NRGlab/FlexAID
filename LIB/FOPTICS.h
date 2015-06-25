@@ -17,6 +17,9 @@ struct ClusterOrdering
 
 	ClusterOrdering(int, int, float);
 
+	inline bool const operator==(const ClusterOrdering& rhs);
+	inline bool const operator< (const ClusterOrdering& rhs);
+
 };
 
 struct ClusterOrderingComparator
