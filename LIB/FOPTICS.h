@@ -1,13 +1,11 @@
 #ifndef FOPTICS_H
 #define FOPTICS_H
 
-#include "gaboom.h"
-#include "boinc.h"
-#include <utility>
-#include <queue>
+#include "BindingMode.h"
+
 
 #define UNDEFINED_DIST -0.1f // Defined in FOPTICS as > than +INF
-#define isUndefined(a) ((a - UNDEFINED_DIST) <= FLT_EPSILON)
+#define isUndefinedDist(a) ((a - UNDEFINED_DIST) <= FLT_EPSILON)
 
 struct ClusterOrdering
 {
@@ -48,7 +46,7 @@ class FastOPTICS
 	friend class RandomProjectedNeighborsAndDensities;
 	
 	public:
-		FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom); // Constructor (publicly called from FlexAID's *_cluster.cxx)
+		FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, BindingPopulation&); // Constructor (publicly called from FlexAID's *_cluster.cxx)
 	
 	private:
 		// FlexAID specific attributes
@@ -64,10 +62,14 @@ class FastOPTICS
 		std::vector< float > inverseDensities;
 		std::vector< std::pair<chromosome*,std::vector<float> > > points;
 		std::vector< std::vector< int > > neighbors;
+
+		// BindingPopulation is used for clustering purposed
+		BindingPopulation* Population;
 		
 		// private methods
 		void Initialize(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom); // Initialize FastOPTICS private attributes from FlexAID structs
 		void ExpandClusterOrder(int);
+		// void Clusterize();
 	
 
 	protected:
