@@ -23,21 +23,19 @@ class BindingPopulation; // forward-declaration in order to access BindingPopula
 class BindingMode // aggregation of poses (Cluster)
 {
 	friend class BindingPopulation;
+	
 	public:
-		BindingMode();
+		BindingMode(BindingPopulation*);
 
 		void 	add_Pose(chromosome*);
-		double 	compute_energy();
-		double 	compute_entropy();
-		double 	compute_enthalpy();
+		double 	compute_energy() const;
+		double 	compute_entropy() const;
+		double 	compute_enthalpy() const;
 		chromosome* elect_representative();
 
- 	
  	protected:
 		std::vector<Pose> Poses;
 		BindingPopulation* Population; // used to access the BindingPopulation
-		// void update_representative(); 	// force-update the BindingMode representative
-		// chromosome* representative;
 };
 
 /*****************************************\
@@ -51,8 +49,21 @@ class BindingPopulation
 		double PartitionFunction;
 		// public constructor to be called once
 		BindingPopulation(unsigned int); 
-		void add_BindingMode(BindingMode&);
+		void add_BindingMode(BindingMode);
+	
 	private:
 		std::vector< BindingMode > BindingModes;
+		
+		void Entropize(); // Sort BindinModes according to their observation frequency
+		
+		struct EnergyComparator
+		{
+			inline bool operator() ( const BindingMode& BindingMode1, const BindingMode& BindingMode2 )
+			{
+				double energy1 = BindingMode1.compute_energy();
+				double energy2 = BindingMode2.compute_energy();
+				return (energy1 < energy2);
+			}
+		};
 };
 #endif
