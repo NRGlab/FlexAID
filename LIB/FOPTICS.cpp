@@ -59,7 +59,7 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 	for(int i = 0; i < this->N; ++i)
 	{
 		// place vector<>::iterator it @ the order emplacement in OPTICS
-		std::vector< std::pair< std::pair< chromosome*, int > float> >::iterator it = OPTICS.begin()+(this->order[i]);
+		std::vector< std::pair< std::pair< chromosome*, int >, float> >::iterator it = OPTICS.begin()+(this->order[i]);
 
 		OPTICS.insert( it, std::make_pair( std::make_pair(this->points[i].first, i), this->reachDist[i]) );
 		// OPTICS pairs contain :
@@ -71,8 +71,8 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 	
 	for(std::vector< std::pair< std::pair<chromosome*,int> ,float> >::iterator it = OPTICS.begin(); it != OPTICS.end(); )
 	{
-		BindingMode::BindingMode current;
-		while(it->second < 0.3) current.add_Pose( it->first->first, it->first->second );
+		BindingMode::BindingMode current(this->Population);
+		while(it->second < 0.3) current.add_Pose( it->first.first, it->first.second );
 		while(it->second >= 0.3) ++it;
 		this->Population->add_BindingMode(current);
 	}
