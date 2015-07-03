@@ -54,25 +54,25 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 		if(!this->processed[ipt]) this->ExpandClusterOrder(ipt);
 
 	// Order chromosome and their reachDist in OPTICS
-	std::vector< std::pair< chromosome*, float > > OPTICS;
+	std::vector< std::pair< std::pair< chromosome*, int> , float > > OPTICS;
 	OPTICS.reserve(this->N); 
 	for(int i = 0; i < this->N; ++i)
 	{
 		// place vector<>::iterator it @ the order emplacement in OPTICS
-		std::vector< std::pair< chromosome*, float> >::iterator it = OPTICS.begin()+(this->order[i]);
+		std::vector< std::pair< std::pair< chromosome*, int > float> >::iterator it = OPTICS.begin()+(this->order[i]);
 
-		OPTICS.insert( it, std::make_pair(this->points[i].first, this->reachDist[i]) );
+		OPTICS.insert( it, std::make_pair( std::make_pair(this->points[i].first, i), this->reachDist[i]) );
 		// OPTICS pairs contain :
-		//   first  -> chromosome*
+		//   first  -> pair<chromosome*, index>
 		//   second -> float reachDist
 	}
 
 	// Build BindingModes
 	
-	for(std::vector< std::pair<chromosome*,float> >::iterator it = OPTICS.begin(); it != OPTICS.end(); )
+	for(std::vector< std::pair< std::pair<chromosome*,int> ,float> >::iterator it = OPTICS.begin(); it != OPTICS.end(); )
 	{
 		BindingMode::BindingMode current;
-		while(it->second < 0.3) current.add_Pose( it->first );
+		while(it->second < 0.3) current.add_Pose( it->first->first, it->first->second );
 		while(it->second >= 0.3) ++it;
 		this->Population->add_BindingMode(current);
 	}

@@ -10,8 +10,9 @@
 struct Pose
 {
 	// public constructor :
-	Pose(chromosome* chrom, uint temperature);
+	Pose(chromosome* chrom, int chrom_index, uint temperature);
 	// public (default behavior when struct is used instead of class)
+	int chrom_index;
 	chromosome* chrom;
 	double CF;
 	double boltzmann_weight;
@@ -27,7 +28,7 @@ class BindingMode // aggregation of poses (Cluster)
 	public:
 		BindingMode(BindingPopulation*);
 
-		void 	add_Pose(chromosome*);
+		void 	add_Pose(chromosome*, int);
 		double 	compute_energy() const;
 		double 	compute_entropy() const;
 		double 	compute_enthalpy() const;
@@ -47,10 +48,10 @@ class BindingPopulation
 		// Temperature is used for energy calculations of BindingModes
 		unsigned int Temperature;
 		double PartitionFunction;
-		// public constructor to be called once
-		BindingPopulation(unsigned int); 
-		void add_BindingMode(BindingMode);
-	
+		
+		BindingPopulation(unsigned int);	// public constructor
+		void add_BindingMode(BindingMode); 	// add new binding mode to population
+		int get_BindingModes_size();
 	private:
 		std::vector< BindingMode > BindingModes;
 		
@@ -60,9 +61,7 @@ class BindingPopulation
 		{
 			inline bool operator() ( const BindingMode& BindingMode1, const BindingMode& BindingMode2 )
 			{
-				double energy1 = BindingMode1.compute_energy();
-				double energy2 = BindingMode2.compute_energy();
-				return (energy1 < energy2);
+				return (BindingMode1.compute_energy() < BindingMode2.compute_energy());
 			}
 		};
 };

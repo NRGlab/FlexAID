@@ -1,8 +1,10 @@
 #include "BindingMode.h"
+
 /*****************************************\
 			BindingPopulation  
 \*****************************************/
-BindingPopulation::BindingPopulation(unsigned int temp) : Temperature(temp) 
+
+BindingPopulation::BindingPopulation(unsigned int temp) : Temperature(temp)
 {
 	this->PartitionFunction = 0.0;
 }
@@ -18,6 +20,7 @@ void BindingPopulation::add_BindingMode(BindingMode mode)
 
 void BindingPopulation::Entropize() { std::sort(this->BindingModes.begin(), this->BindingModes.end(), BindingPopulation::EnergyComparator::EnergyComparator()); }
 
+
 /*****************************************\
 			  BindingMode
 \*****************************************/
@@ -26,11 +29,12 @@ BindingMode::BindingMode(BindingPopulation* pop) : Population(pop)
 {}
 
 // public method for pose addition
-void BindingMode::add_Pose(chromosome* chrom)
+void BindingMode::add_Pose(chromosome* chrom, int chrom_index)
 {
-	Pose::Pose pose(chrom, this->Population->Temperature);
+	Pose::Pose pose(chrom, chrom_index, this->Population->Temperature);
 	this->Poses.push_back(pose);
 }
+
 double BindingMode::compute_enthalpy() const
 {
 	double enthalpy = 0.0;
@@ -41,7 +45,8 @@ double BindingMode::compute_enthalpy() const
 		enthalpy += boltzmann_prob * pose->CF;
 	}
 	return enthalpy;
-} 
+}
+
 double BindingMode::compute_entropy() const
 { 
 	double entropy = 0.0;
@@ -53,15 +58,18 @@ double BindingMode::compute_entropy() const
 	}
 	return entropy;
 }
+
 double BindingMode::compute_energy() const
 { 
 	return ( this->compute_enthalpy() + ( this->Population->Temperature * this->compute_entropy() ) );
 }
-//private 
+
+
 /*****************************************\
 				  Pose
 \*****************************************/
-Pose::Pose(chromosome* chrom, uint temperature) : chrom(chrom), CF(chrom->app_evalue)
+
+Pose::Pose(chromosome* chrom, int index, uint temperature) : chrom(chrom), chrom_index(index), CF(chrom->app_evalue)
 {
 	this->boltzmann_weight = pow( E, ((-1.0) * (1/static_cast<double>(temperature)) * chrom->app_evalue) );
 }
