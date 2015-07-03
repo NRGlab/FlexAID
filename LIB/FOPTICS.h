@@ -2,6 +2,7 @@
 #define FOPTICS_H
 
 #include "BindingMode.h"
+#include "gaboom.h"
 #include <utility>
 #include <queue>
 
@@ -75,14 +76,14 @@ class FastOPTICS
 
 	protected:
 		// protected methods to be used by RandomProjectedNeighborsAndDensities::methods()
-		static FA_Global* FA;			// pointer to FA_Global struct
-		static GB_Global* GB;			// pointer to GB_Global struct
-		static VC_Global* VC;			// pointer to VC_Global struct
-		static chromosome* chroms;		// pointer to chromosomes' array
-		static genlim* gene_lim;		// pointer to gene_lim genlim array (useful for bondaries defined for each gene)
-		static atom* atoms;				// pointer to atoms' array
-		static resid* residue;			// pointer to residues' array
-		static gridpoint* cleftgrid;	// pointer to gridpoints' array (defining the total search space of the simulation)
+		const FA_Global* FA;			// pointer to FA_Global struct
+		const GB_Global* GB;			// pointer to GB_Global struct
+		const VC_Global* VC;			// pointer to VC_Global struct
+		const chromosome* chroms;		// pointer to chromosomes' array
+		const genlim* gene_lim;		// pointer to gene_lim genlim array (useful for bondaries defined for each gene)
+		const atom* atoms;				// pointer to atoms' array
+		const resid* residue;			// pointer to residues' array
+		const gridpoint* cleftgrid;	// pointer to gridpoints' array (defining the total search space of the simulation)
 		std::vector<float> 				Vectorized_Chromosome(chromosome* chrom);
 		float							compute_distance(std::pair< chromosome*,std::vector<float> > &, std::pair< chromosome*,std::vector<float> > &);
 };

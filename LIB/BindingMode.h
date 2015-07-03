@@ -52,6 +52,7 @@ class BindingPopulation
 		BindingPopulation(unsigned int);	// public constructor
 		void add_BindingMode(BindingMode); 	// add new binding mode to population
 		int get_BindingModes_size();
+	
 	private:
 		std::vector< BindingMode > BindingModes;
 		

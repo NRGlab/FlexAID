@@ -34,6 +34,7 @@ inline bool const ClusterOrdering::operator< (const ClusterOrdering& rhs)
 				FastOPTICS
 \*****************************************/
 // Constructor and Algorithm main+only call
+int FastOPTICS::iOrder;
 FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int num_chrom, BindingPopulation& Population)
 {
 	this->Population = &Population;
@@ -85,15 +86,15 @@ void FastOPTICS::Initialize(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromos
 	// FlexAID
 	this->N = num_chrom;
 	this->minPoints = static_cast<int>(0.01*this->N - 0.5);
-	FastOPTICS::FA = FA;
-	FastOPTICS::GB = GB;
-	FastOPTICS::VC = VC;
+	this->FA = FA;
+	this->GB = GB;
+	this->VC = VC;
 	this->nDimensions = this->FA->npar + 2; // 3 Dim for first gene (translational) + 1 Dim per gene = nGenes + 2
-	FastOPTICS::chroms = chroms;
-	FastOPTICS::gene_lim = gene_lim;
-	FastOPTICS::atoms = atoms;
-	FastOPTICS::residue = residue;
-	FastOPTICS::cleftgrid = cleftgrid;
+	this->chroms = chroms;
+	this->gene_lim = gene_lim;
+	this->atoms = atoms;
+	this->residue = residue;
+	this->cleftgrid = cleftgrid;
 
 	// FastOPTICS
 	FastOPTICS::iOrder = 0;
@@ -191,6 +192,8 @@ float FastOPTICS::compute_distance(std::pair< chromosome*,std::vector<float> > &
 			RandomProjections
 \*****************************************/
 // Constructor
+int const RandomProjectedNeighborsAndDensities::logOProjectionConstant;
+float RandomProjectedNeighborsAndDensities::sizeTolerance;
 RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities(std::vector< std::pair< chromosome*,std::vector<float> > >& points, int minSplitSize, FastOPTICS* top)
 {
 	this->top = top;
