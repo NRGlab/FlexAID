@@ -1,6 +1,6 @@
 #include "FOPTICS.h"
 
-void FOPTICS_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom)
+void FastOPTICS_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom)
 {
 	// create Cluster or BindingMode vetor to send to FastOPTICS constructor
 	BindingPopulation::BindingPopulation Population(FA->temperature);
@@ -10,6 +10,7 @@ void FOPTICS_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 	// 	3. Calculate reachability distance
 	// 	4. Compute the Ordering of Points To Identify Cluster Structure (OPTICS)
 	// 	5. Populate BindingPopulation::Population after analyzing OPTICS
-	FastOPTICS::FastOPTICS(FA, GB, VC, chrom, gene_lim, atoms, residue, cleftgrid, nChrom, Population);
-
+	FastOPTICS::FastOPTICS Algo(FA, GB, VC, chrom, gene_lim, cleftgrid, nChrom, Population);
+	Algo.Execute_FastOPTICS();
+    std::cout << "Size of Population is " << Population.get_BindingModes_size() << " Binding Modes." << std::endl;
 }

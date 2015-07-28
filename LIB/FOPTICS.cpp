@@ -35,66 +35,21 @@ inline bool const ClusterOrdering::operator< (const ClusterOrdering& rhs)
 \*****************************************/
 // Constructor and Algorithm main+only call
 int FastOPTICS::iOrder;
-FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int num_chrom, BindingPopulation& Population)
-{
+FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, gridpoint* cleftgrid, int num_chrom, BindingPopulation& Population)
+{	
+// Declarations
+	///////////////////////////////////////////////////////
+	// Entropy
 	this->Population = &Population;
-	this->FastOPTICS::Initialize(FA,GB,VC,chrom,gene_lim,atoms,residue,cleftgrid,num_chrom);
-	
-	// vector of point indexes 
-	std::vector< int > ptInd;
-	for(int k = 0; k < this->N; ++k) ptInd.push_back(k);
-	
-	// Build object, compute projections, density estimates and density neighborhoods (in serial order of function calls below)
-	RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities MultiPartition(this->points, this->minPoints, this);
-	MultiPartition.RandomProjectedNeighborsAndDensities::computeSetBounds(ptInd);
-	this->inverseDensities = MultiPartition.RandomProjectedNeighborsAndDensities::getInverseDensities();
-	this->neighbors = MultiPartition.RandomProjectedNeighborsAndDensities::getNeighbors();
-
-	// Compute OPTICS ordering
-	for(int ipt = 0; ipt < this->N; ipt++)
-		if(!this->processed[ipt]) this->ExpandClusterOrder(ipt);
-
-	// Order chromosome and their reachDist in OPTICS
-	std::vector< std::pair< std::pair< chromosome*, int> , float > > OPTICS;
-	OPTICS.reserve(this->N); 
-	for(int i = 0; i < this->N; ++i)
-	{
-		// place vector<>::iterator it @ the order emplacement in OPTICS
-		std::vector< std::pair< std::pair< chromosome*, int >, float> >::iterator it = OPTICS.begin()+(this->order[i]);
-
-		OPTICS.insert( it, std::make_pair( std::make_pair(this->points[i].first, i), this->reachDist[i]) );
-		// OPTICS pairs contain :
-		//   first  -> pair<chromosome*, index>
-		//   second -> float reachDist
-	}
-
-	// Build BindingModes
-	
-	for(std::vector< std::pair< std::pair<chromosome*,int> ,float> >::iterator it = OPTICS.begin(); it != OPTICS.end(); )
-	{
-		BindingMode::BindingMode current(this->Population);
-		while(it->second < 0.3) current.add_Pose( it->first.first, it->first.second );
-		while(it->second >= 0.3) ++it;
-		this->Population->add_BindingMode(current);
-	}
-	// explicit call to FastOPTICS destructor
-	// this->FastOPTICS::~FastOPTICS();
-}
-
-void FastOPTICS::Initialize(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chroms, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int num_chrom)
-{
 	// FlexAID
 	this->N = num_chrom;
-	this->minPoints = static_cast<int>(0.01*this->N - 0.5);
+	this->minPoints = 20; 
 	this->FA = FA;
 	this->GB = GB;
 	this->VC = VC;
 	this->nDimensions = this->FA->npar + 2; // 3 Dim for first gene (translational) + 1 Dim per gene = nGenes + 2
-	this->chroms = chroms;
+	this->chroms = chrom;
 	this->gene_lim = gene_lim;
-	this->atoms = atoms;
-	this->residue = residue;
-	this->cleftgrid = cleftgrid;
 
 	// FastOPTICS
 	FastOPTICS::iOrder = 0;
@@ -108,15 +63,67 @@ void FastOPTICS::Initialize(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromos
 	for(int i = 0; i < this->N; ++i)
 	{
 		// need to transform the chromosomes into vector f
-		std::vector<float> vChrom(this->FastOPTICS::Vectorized_Chromosome(&chroms[i])); // Copy constructor
+		std::vector<float> vChrom(this->FastOPTICS::Vectorized_Chromosome(&chrom[i])); // Copy constructor
 		if(vChrom.size() == this->nDimensions)
+		{
 			// std::pair<first, second> is pushed to this->points[]
 			// 	first  -> chromosome* pChrom (pointer to chromosome)
 			// 	second -> vChrom[FA->npar+n] (vectorized chromosome)
-			this->points.push_back( std::make_pair( (chromosome*)&chroms[i], vChrom) ) ;
+			this->order.push_back(-1);
+			this->reachDist.push_back(FLT_MAX);
+			this->processed.push_back(false);
+			this->inverseDensities.push_back(0.0f);
+			this->points.push_back( std::make_pair( (chromosome*)&chrom[i], vChrom) ) ;
+		}
 	}
+
 }
 
+void FastOPTICS::Execute_FastOPTICS()
+{
+	// vector of point indexes 
+	std::vector< int > ptInd;
+    ptInd.reserve(this->N);
+    for(int k = 0; k < this->N; ++k)
+    {
+        ptInd.push_back(k);
+    }
+	
+	// Build object, compute projections, density estimates and density neighborhoods (in serial order of function calls below)
+	RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities MultiPartition(this->points, this->minPoints, this);
+	MultiPartition.RandomProjectedNeighborsAndDensities::computeSetBounds(ptInd);
+	MultiPartition.RandomProjectedNeighborsAndDensities::getInverseDensities(this->inverseDensities);
+	MultiPartition.RandomProjectedNeighborsAndDensities::getNeighbors(this->neighbors);
+
+	// Compute OPTICS ordering
+	for(int ipt = 0; ipt < this->N; ipt++)
+    {
+		if(!this->processed[ipt]) this->ExpandClusterOrder(ipt);
+    }
+	// Order chromosome and their reachDist in OPTICS
+	std::vector< std::pair< std::pair< chromosome*, int> , float > > OPTICS;
+	OPTICS.reserve(this->N); 
+	for(int i = 0; i < this->N; ++i)
+	{
+		// place vector<>::iterator it @ the order emplacement in OPTICS
+		std::vector< std::pair< std::pair< chromosome*, int >, float> >::iterator it = (OPTICS.begin()+this->order[i]);
+
+		OPTICS.insert( it, std::make_pair( std::make_pair((this->points[i]).first, i), this->reachDist[i]) );
+		// OPTICS pairs contain :
+		//   first  -> pair<chromosome*, index>
+		//   second -> float reachDist
+	}
+
+	// Build BindingModes
+	
+	for(std::vector< std::pair< std::pair<chromosome*,int> ,float> >::iterator it = OPTICS.begin(); it != OPTICS.end(); )
+	{
+		BindingMode::BindingMode current(this->Population);
+		while(it->second < 0.3) current.add_Pose( (it->first).first, (it->first).second );
+		while(it->second >= 0.3) ++it;
+		this->Population->add_BindingMode(current);
+	}
+}
 std::vector<float> FastOPTICS::Vectorized_Chromosome(chromosome* chrom)
 {
 	std::vector<float> vChrom(this->nDimensions, 0.0f);
@@ -125,7 +132,9 @@ std::vector<float> FastOPTICS::Vectorized_Chromosome(chromosome* chrom)
 	{
 		if(j == 0) //  building the first 3 comp. from genes[0] which are CartCoord x,y,z
 			for(int i = 0; i < 3; ++i)
+			{
 				vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
+			}
 		else
 		{
 			// j+2 is used from {j = 1 to N} to build further comp. of genes[j]
@@ -194,13 +203,13 @@ float FastOPTICS::compute_distance(std::pair< chromosome*,std::vector<float> > &
 // Constructor
 int const RandomProjectedNeighborsAndDensities::logOProjectionConstant;
 float RandomProjectedNeighborsAndDensities::sizeTolerance;
-RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities(std::vector< std::pair< chromosome*,std::vector<float> > >& points, int minSplitSize, FastOPTICS* top)
+RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities(std::vector< std::pair< chromosome*,std::vector<float> > >& inPoints, int minSplitSize, FastOPTICS* top)
 {
 	this->top = top;
 	this->minSplitSize = minSplitSize;
 	RandomProjectedNeighborsAndDensities::sizeTolerance = static_cast<float>(2.0f/3.0f);
 
-	if( points.empty() )
+	if( inPoints.size() < 1 )
 	{
 		this->N = 0;
 		this->nDimensions = 0;
@@ -209,18 +218,28 @@ RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities(std::
 	}
 	else
 	{
+        this->points = inPoints;
 		this->N = this->points.size();
-		this->nDimensions = (this->points[0].second).size();
-		this->nPointsSetSplits = static_cast<int>(this->logOProjectionConstant * log(this->N * this->nDimensions + 1)/log(2));
-		this->nProject1D = static_cast<int>(this->logOProjectionConstant * log(this->N * this->nDimensions + 1)/log(2));
+		this->nDimensions = this->top->nDimensions;
+		this->nPointsSetSplits = static_cast<int>(RandomProjectedNeighborsAndDensities::logOProjectionConstant * log(this->N * this->nDimensions + 1)/log(2));
+		this->nProject1D = static_cast<int>(RandomProjectedNeighborsAndDensities::logOProjectionConstant * log(this->N * this->nDimensions + 1)/log(2));
 		// line below calls copy-constructor
-		this->points = points;
+	}
+	this->projectedPoints.reserve(this->nProject1D);
+	for(int i = 0; i < this->nProject1D; ++i)
+	{
+        this->projectedPoints.push_back(std::vector<float>(this->N));
+	}
+	this->splitsets.reserve(this->nPointsSetSplits);
+	for(int j = 0; j< this->nPointsSetSplits; ++j)
+	{
+		this->splitsets.push_back(std::vector<int>());
 	}
 }
 
 void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > & ptList)
 {
-	std::vector< std::vector<float> > tempProj;
+	std::vector< std::vector<float> > tempProj(this->nProject1D);
 	// perform projection of points
 	for(int j = 0; j<this->nProject1D; ++j)
 	{
@@ -231,36 +250,44 @@ void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > &
 		while(it != ptList.end())
 		{
 			float sum = 0.0f;
-			std::vector<float>::iterator vecPt = this->points[(*it)++].second.begin();
-			std::vector<float>::iterator currPro = this->projectedPoints[j].begin();
+			std::vector<float>::iterator vecPt = this->points[(*it)].second.begin();
+			std::vector<float>::iterator currPro = (this->projectedPoints[j]).begin();
 			for(int m = 0; m < this->nDimensions; ++m)
 			{
 				sum += currentRp[m] * vecPt[m];
 			}
 			currPro[k] = sum;
 			++k;
+            ++it;
 		}
 	}
 
 	// Split Points Set
-	std::vector<int> projInd;
+	std::vector<int> projInd(this->nProject1D);
 	projInd.reserve(this->nProject1D);
 	for(int j = 0; j < this->nProject1D; ++j) 
-		projInd.push_back(j);
+	{
+//		projInd.push_back(j);
+        projInd[j] = j;
+	}
 	for(int avgP = 0; avgP < this->nPointsSetSplits; avgP++)
 	{
 		// Shuffle projections
 		for(int i = 0; i < this->nProject1D; ++i)
-			tempProj.push_back(this->projectedPoints[i]);
+        {
+//			tempProj.push_back(this->projectedPoints[i]);
+            tempProj[i] = this->projectedPoints[i];
+        }
 		std::random_shuffle(projInd.begin(), projInd.end());
 		std::vector<int>::iterator it = projInd.begin();
 		int i = 0;
 		while(it != projInd.end())
 		{
-			int cind = (*it)++;
+			int cind = (*it);
 			// look this line to be sure that the vector is pushed in this->projectedPoints
 			this->projectedPoints[cind] = tempProj[i];
-			i++;
+            i++;
+            it++;
 		}
 
 		//split points set
@@ -268,7 +295,9 @@ void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > &
 		std::vector<int> ind(nPoints);
 		ind.reserve(nPoints);
 		for(int l = 0; l < nPoints; ++l)
+		{
 			ind[l] = l;
+		}
 		this->SplitUpNoSort(ind,0);
 	}
 }
@@ -281,11 +310,14 @@ void RandomProjectedNeighborsAndDensities::SplitUpNoSort(std::vector< int >& ind
 	int splitPos;
 
 	// save set such that used for density or neighborhood computation
-	if(nElements > this->minSplitSize*(1 - this->sizeTolerance) && nElements < this->minSplitSize*(1 + this->sizeTolerance))
+	if(nElements > this->minSplitSize*(1 - RandomProjectedNeighborsAndDensities::sizeTolerance) && nElements < this->minSplitSize*(1 + RandomProjectedNeighborsAndDensities::sizeTolerance))
 	{
-		std::vector<float> cpro;
-		for(int i = 0; i < nElements; ++i)
-			cpro.push_back(tProj[ind[i]]);
+		std::vector<float> cpro(nElements);
+		for(int i = 0; i < nElements; ++i)	
+		{
+//			cpro.push_back(tProj[ind[i]]);
+            cpro[i] = tProj[ind[i]];
+		}
 		// sprting cpro[] && ind[] concurrently
 		this->quicksort_concurrent_Vectors(cpro, ind, 0, nElements-1);
 		this->splitsets.push_back(ind);
@@ -320,32 +352,38 @@ void RandomProjectedNeighborsAndDensities::SplitUpNoSort(std::vector< int >& ind
 		splitPos = minInd + 1;
 		
 		// std::vector<int> ind2(splitPos);
-		std::vector<int> ind2;
+		std::vector<int> ind2(splitPos);
 		for(int l = 0; l < splitPos; ++l)
-			// ind2[l] = ind[l];
-			ind2.push_back(ind[l]);
+		{
+			 ind2[l] = ind[l];
+//			ind2.push_back(ind[l]);
+		}
 		this->SplitUpNoSort(ind2,dim+1);
 		
 		// std::vector<int> ind3(nElements - splitPos);
-		std::vector<int> ind3;
+        ind2 = std::vector<int>( nElements-splitPos );
 		for(int l = 0; l < nElements-splitPos; ++l)
-			// ind3[l] = ind[l+splitPos];
-			ind3.push_back(ind[l+splitPos]);
-		this->SplitUpNoSort(ind3,dim+1);
+		{
+			 ind2[l] = ind[l+splitPos];
+//			ind3.push_back(ind[l+splitPos]);
+		}
+		this->SplitUpNoSort(ind2,dim+1);
 	}
 }
 
-std::vector<float> RandomProjectedNeighborsAndDensities::getInverseDensities()
+void RandomProjectedNeighborsAndDensities::getInverseDensities(std::vector< float > & inverseDensities)
 {
-	std::vector<float> distAvg;
-	distAvg.reserve(this->N);
+	inverseDensities.reserve(this->N);
 	std::vector<int> nDists;
 	nDists.reserve(this->N);
-	for(std::vector< std::vector< int> >::iterator it1 = this->splitsets.begin(); it1 != this->splitsets.end(); ++it1)
+//	for(std::vector< std::vector< int> >::iterator it1 = this->splitsets.begin(); it1 != this->splitsets.end(); ++it1)
+    for(int i = 0; i < this->splitsets.size(); ++i)
 	{
-		std::vector<int>::iterator pinSet = it1->begin();
-		// std::vector<int> & pinSet = 
-		int len = it1->size();
+//		std::vector<int>::iterator pinSet = it1->begin();
+        std::vector<int> & pinSet = this->splitsets.at(i);
+		
+//		int len = it1->size();
+        int len = pinSet.size();
 		int indoff = static_cast<int>(round(len/2));
 		int oldind = pinSet[indoff];
 		for(int i = 0; i < len; ++i)
@@ -354,23 +392,21 @@ std::vector<float> RandomProjectedNeighborsAndDensities::getInverseDensities()
 			if(ind == indoff) continue;
 			// CHOOSE BETWEEN OF THE 2 CALLS BELOW FOR compute_distance() IMPLEMENTATION
 			float dist = this->top->compute_distance(this->points[ind],this->points[oldind]);
-			distAvg[oldind] += dist;
+			inverseDensities[oldind] += dist;
 			nDists[oldind]++;
-			distAvg[ind] += dist;
+			inverseDensities[ind] += dist;
 			nDists[ind]++;
 		}
 	}
 	for(int l = 0; l < this->N; ++l)
 	{
-		if(nDists[l] == 0) distAvg[l] = UNDEFINED_DIST;
-		else distAvg[l] /= nDists[l];
+		if(nDists[l] == 0) inverseDensities[l] = UNDEFINED_DIST;
+		else inverseDensities[l] /= nDists[l];
 	}
-	return distAvg;
 }
 
-std::vector< std::vector< int > > RandomProjectedNeighborsAndDensities::getNeighbors()
+void RandomProjectedNeighborsAndDensities::getNeighbors(std::vector< std::vector< int > > & neighs)
 {
-	std::vector< std::vector< int > > neighs;
 	neighs.reserve(this->N);
 	for(int l = 0; l < this->N; l++)
 	{
@@ -425,7 +461,6 @@ std::vector< std::vector< int > > RandomProjectedNeighborsAndDensities::getNeigh
 		}
 
 	}
-	return neighs;
 }
 
 std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_Normalized_Vector()
@@ -436,10 +471,11 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_Normalized_V
 	for(int j = 0; j < this->nDimensions; ++j)
 	{
 		int intGene = this->Dice();
-		double doubleGeneIC = genetoic(&this->top->gene_lim[j],intGene);
+		
 		double doubleGene = RandomDouble(intGene);
 		if(j == 0) //  building the first 3 comp. from genes[0] which are CartCoord x,y,z
 		{
+            double doubleGeneIC = genetoic(&this->top->gene_lim[j],intGene);
 			for(int i = 0; i < 3; ++i)
 			{
 				vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].coor[i] - this->top->FA->ori[i]);
@@ -454,7 +490,7 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_Normalized_V
 		}
 	}
 	sum = sqrtf(sum);
-	for(int k = 0; k < this->nDimensions; ++k) vChrom[k]/=sum;
+	for(int k = 0; k < this->nDimensions; ++k) { vChrom[k]/=sum; }
 
 	return vChrom;
 }

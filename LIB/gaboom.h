@@ -200,7 +200,7 @@ int   	cmp_chrom2pop(const chromosome* chrom,const gene* genes, int num_genes,in
 void  	save_snapshot(chromosome* chrom_snapshot, const chromosome* chrom, int num_chrom, int num_genes);
 void  	cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC,chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue,gridpoint* cleftgrid, int memchrom, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp);
 void  	DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int memchrom, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp);
-void 	FOPTICS_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom);
+void 	FastOPTICS_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom);
 //long long time_seed();
 double 	calc_rmsp(int npar, const gene* g1, const gene* g2, const optmap* map_par, gridpoint* cleftgrid);
 void 	write_par(const chromosome* chrom,const genlim* gene_lim,int ger, char* outfile,int num_chrom,int num_genes);

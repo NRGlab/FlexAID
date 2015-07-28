@@ -12,7 +12,9 @@ BindingPopulation::BindingPopulation(unsigned int temp) : Temperature(temp)
 void BindingPopulation::add_BindingMode(BindingMode mode)
 {
 	for(std::vector<Pose>::iterator pose = mode.Poses.begin(); pose != mode.Poses.end(); ++pose)
+	{
 		this->PartitionFunction += pose->boltzmann_weight;
+	}
 
 	this->BindingModes.push_back(mode);
 	this->Entropize();
@@ -20,7 +22,7 @@ void BindingPopulation::add_BindingMode(BindingMode mode)
 
 void BindingPopulation::Entropize() { std::sort(this->BindingModes.begin(), this->BindingModes.end(), BindingPopulation::EnergyComparator::EnergyComparator()); }
 
-
+int BindingPopulation::get_BindingModes_size() { return this->BindingModes.size(); }
 /*****************************************\
 			  BindingMode
 \*****************************************/

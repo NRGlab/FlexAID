@@ -48,8 +48,9 @@ class FastOPTICS
 	friend class RandomProjectedNeighborsAndDensities;
 	
 	public:
-		FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, BindingPopulation&); // Constructor (publicly called from FlexAID's *_cluster.cxx)
-	
+		FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, gridpoint* cleftgrid, int nChrom, BindingPopulation&); // Constructor (publicly called from FlexAID's *_cluster.cxx)
+		void Execute_FastOPTICS();
+
 	private:
 		// FlexAID specific attributes
 		int N;			// N : number of chromosomes to cluster
@@ -69,7 +70,6 @@ class FastOPTICS
 		BindingPopulation* Population;
 		
 		// private methods
-		void Initialize(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom); // Initialize FastOPTICS private attributes from FlexAID structs
 		void ExpandClusterOrder(int);
 		// void Clusterize();
 	
@@ -81,8 +81,8 @@ class FastOPTICS
 		const VC_Global* VC;			// pointer to VC_Global struct
 		const chromosome* chroms;		// pointer to chromosomes' array
 		const genlim* gene_lim;		// pointer to gene_lim genlim array (useful for bondaries defined for each gene)
-		const atom* atoms;				// pointer to atoms' array
-		const resid* residue;			// pointer to residues' array
+		// const atom* atoms;				// pointer to atoms' array
+		// const resid* residue;			// pointer to residues' array
 		const gridpoint* cleftgrid;	// pointer to gridpoints' array (defining the total search space of the simulation)
 		std::vector<float> 				Vectorized_Chromosome(chromosome* chrom);
 		float							compute_distance(std::pair< chromosome*,std::vector<float> > &, std::pair< chromosome*,std::vector<float> > &);
@@ -121,8 +121,8 @@ class RandomProjectedNeighborsAndDensities
 		std::vector< std::vector< float > > projectedPoints;
 		// protected methods (accessible via FastOPTICS class)
 		void 								computeSetBounds(std::vector< int >&);
-		std::vector<float> 					getInverseDensities();
-		std::vector< std::vector< int > > 	getNeighbors();
+		void								getInverseDensities(std::vector<float> &);
+		void								getNeighbors(std::vector< std::vector< int > > &);
 		std::vector<float> 					Randomized_Normalized_Vector();
 		int 								Dice();
 };
