@@ -5,7 +5,7 @@
 #include "gaboom.h"
 #include <utility>
 #include <queue>
-
+#include <cmath>
 #define UNDEFINED_DIST -0.1f // Defined in FOPTICS as > than +INF
 #define isUndefinedDist(a) ((a - UNDEFINED_DIST) <= FLT_EPSILON)
 
