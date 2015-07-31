@@ -44,7 +44,7 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 	// FlexAID
 	this->N = num_chrom;
 //	this->minPoints = 5;
-	this->minPoints = static_cast<int>( floor(this->N * 0.005) );
+	this->minPoints = static_cast<int>( floor(this->N * 0.01) );
 	this->FA = FA;
 	this->GB = GB;
 	this->VC = VC;
@@ -169,7 +169,6 @@ void FastOPTICS::Execute_FastOPTICS()
         {
 			if(current.get_BindingMode_size() >= 2)
 			{
-				current.
 				this->Population->add_BindingMode(current);
 			}
             current.clear_Poses();
@@ -258,7 +257,7 @@ float FastOPTICS::compute_distance(std::pair< chromosome*,std::vector<float> > &
 
         // simple
         // distance = (a.second[i]-b.second[i]) * (b.second[i]-a.second[i]);
-        distance = (a.second[i]-b.second[i]) * (a.second[i]-b.second[i]);
+        distance += (a.second[i]-b.second[i]) * (a.second[i]-b.second[i]);
 	}
    	if(boost::math::isfinite(distance)) return sqrtf(distance);
 	else return UNDEFINED_DIST;

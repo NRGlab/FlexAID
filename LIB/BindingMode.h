@@ -102,7 +102,8 @@ class BindingPopulation
 		{
 			inline bool operator() ( const BindingMode& BindingMode1, const BindingMode& BindingMode2 )
 			{
-				return (BindingMode1.compute_energy() < BindingMode2.compute_energy());
+				return (BindingMode1.energy < BindingMode2.energy);
+				// return (BindingMode1.compute_energy() < BindingMode2.compute_energy());
 			}
 		};
 };

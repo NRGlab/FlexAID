@@ -20,7 +20,14 @@ void BindingPopulation::add_BindingMode(BindingMode& mode)
 	this->Entropize();
 }
 
-void BindingPopulation::Entropize() { std::sort(this->BindingModes.begin(), this->BindingModes.end(), BindingPopulation::EnergyComparator::EnergyComparator()); }
+void BindingPopulation::Entropize()
+{
+	for(std::vector<BindingMode>::iterator it = this->BindingModes.begin(); it != this->BindingModes.end(); ++it)
+	{
+		it->set_energy();
+	}
+	std::sort(this->BindingModes.begin(), this->BindingModes.end(), BindingPopulation::EnergyComparator::EnergyComparator());
+}
 
 int BindingPopulation::get_BindingModes_size() { return this->BindingModes.size(); }
 /*****************************************\
