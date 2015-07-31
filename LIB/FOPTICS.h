@@ -27,18 +27,17 @@ struct ClusterOrderingComparator
 	inline bool operator() ( const ClusterOrdering& pose1, const ClusterOrdering& pose2 )
 	{
 		if(pose1.reachability > pose2.reachability)
-			return 1;
+			return false;
 		else if(pose1.reachability < pose2.reachability)
-			return 1;
+			return true;
 		if(pose1.objectID > pose2.objectID)
-			return -1;
+			return true;
 		else if(pose1.objectID < pose2.objectID)
-			return 1;
+			return false;
 		// if nothing else is true, return 0
-		return 0;
+		return false;
 	}
 };
-
 
 /*****************************************\
 				FastOPTICS

@@ -20,15 +20,15 @@ inline bool const ClusterOrdering::operator==(const ClusterOrdering& rhs)
 inline bool const ClusterOrdering::operator< (const ClusterOrdering& rhs)
 {
 	if(this->reachability > rhs.reachability)
-			return 1;
+			return false;
 		else if(this->reachability < rhs.reachability)
-			return 1;
+			return true;
 		if(this->objectID > rhs.objectID)
-			return -1;
+			return false;
 		else if(this->objectID < rhs.objectID)
-			return 1;
+			return true;
 		// if nothing else is true, return 0
-		return 0;
+		return false;
 }
 /*****************************************\
 				FastOPTICS
@@ -44,10 +44,11 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 	// FlexAID
 	this->N = num_chrom;
 //	this->minPoints = 5;
-	this->minPoints = static_cast<int>( floor(this->N * 0.02) );
+	this->minPoints = static_cast<int>( floor(this->N * 0.005) );
 	this->FA = FA;
 	this->GB = GB;
 	this->VC = VC;
+	this->cleftgrid = cleftgrid;
 	this->nDimensions = this->FA->npar + 2; // 3 Dim for first gene (translational) + 1 Dim per gene = nGenes + 2
 	this->chroms = chrom;
 	this->gene_lim = gene_lim;
@@ -102,36 +103,77 @@ void FastOPTICS::Execute_FastOPTICS()
 		if(!this->processed[ipt]) this->ExpandClusterOrder(ipt);
     }
 	// Order chromosome and their reachDist in OPTICS
-	std::vector< std::pair< std::pair< chromosome*, int> , float > > OPTICS(this->N);
-	OPTICS.reserve(this->N);
+	// std::vector< std::pair< std::pair< chromosome*, int> , float > > OPTICS(this->N);
+	// OPTICS.reserve(this->N);
+
+    std::priority_queue< Pose, std::vector<Pose>, PoseClassifier::PoseClassifier > OPTICS;
+    std::vector<Pose> vec;
+
 	for(int i = 0; i < this->N; ++i)
 	{
-        // *** RE-DO THIS WHOLE FUCKING INSERTION SECTION ***
-        // VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-        // place vector<>::iterator it @ the order emplacement in OPTICS
-        std::vector< std::pair< std::pair< chromosome*, int >, float> >::iterator it = OPTICS.begin()+this->order[i];
-        
-        std::pair< chromosome*, int > newIntPair = std::make_pair((this->points[i]).first, i);
-        std::pair< std::pair< chromosome*, int >, float> newPair = std::make_pair( newIntPair, this->reachDist[i]);
-        it = OPTICS.erase(it);
-        it = OPTICS.insert(it, newPair);
+		// NEW
+		// 
+		if((this->points[i]).first != NULL && boost::math::isfinite(this->reachDist[i]) && this->order[i] <= this->N && this->order[i] >= 0)
+		{
+			Pose::Pose Pose((this->points[i]).first, i, this->order[i], this->reachDist[i], this->Population->Temperature);
+			OPTICS.push(Pose);
+            vec.push_back(Pose);
+		}
+		// OLD
+		// 
 		// OPTICS pairs contain :
 		//   first  -> pair<chromosome*, index>
 		//   second -> float reachDist
+        // *** RE-DO THIS WHOLE FUCKING INSERTION SECTION ***
+        // VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+        // place vector<>::iterator it @ the order emplacement in OPTICS
+        // std::vector< std::pair< std::pair< chromosome*, int >, float> >::iterator it = OPTICS.begin()+this->order[i];
+        
+        // std::pair< chromosome*, int > newIntPair = std::make_pair((this->points[i]).first, i);
+        // std::pair< std::pair< chromosome*, int >, float> newPair = std::make_pair( newIntPair, this->reachDist[i]);
+        // if(newIntPair.first != NULL && (newIntPair.first)->genes != NULL && newIntPair.second >= 0 && newIntPair.second < this->N)
+        // {
+        //     it = OPTICS.erase(it);
+        //     it = OPTICS.insert(it, newPair);
+        // }
 	}
+    std::sort(vec.begin(),vec.end(),PoseClassifier::PoseClassifier());
 
 	// Build BindingModes
-    int i = 0;
-	for(std::vector< std::pair< std::pair<chromosome*,int> ,float> >::iterator it = OPTICS.begin(); it != OPTICS.end(); it++, i++)
+    int i = 0; // used to have an idea of the number of loop completed (iterators are less convenient for that information while debugging)
+	// NEW
+//	while(!OPTICS.empty())
+//	{
+//		BindingMode::BindingMode current(this->Population);
+//		while((OPTICS.top()).reachDist < 0.4 && !OPTICS.empty())
+//		{
+//			Pose currPose = OPTICS.top();
+//			OPTICS.pop(); ++i;
+//			current.add_Pose(currPose);
+//		}
+//		while((OPTICS.top()).reachDist >= 0.4 && !OPTICS.empty())
+//		{
+//			OPTICS.pop(); ++i;
+//		}
+//		if(current.get_BindingMode_size() >= 2)
+//		{
+//			this->Population->add_BindingMode(current);
+//		}
+//	}
+	// OLD
+ 	BindingMode::BindingMode current(this->Population);
+	for(std::vector< Pose >::iterator it = vec.begin(); it != vec.end(); ++i, ++it)
 	{
-		BindingMode::BindingMode current(this->Population);
-        while(it->second < 0.3)
+        if(it->reachDist < 0.4) current.add_Pose(*it);
+	   	if(it->reachDist >= 0.4)
         {
-            if((it->first).first != NULL && ( (it->first).second >= 0 || isUndefinedDist((it->first).second) ) && (it->first).second < this->N ) current.add_Pose( (it->first).first, (it->first).second );
-            ++it;
+			if(current.get_BindingMode_size() >= 2)
+			{
+				current.
+				this->Population->add_BindingMode(current);
+			}
+            current.clear_Poses();
         }
-		while(it->second >= 0.3) ++it;
-		this->Population->add_BindingMode(current);
 	}
 }
 std::vector<float> FastOPTICS::Vectorized_Chromosome(chromosome* chrom)
@@ -160,26 +202,27 @@ std::vector<float> FastOPTICS::Vectorized_Chromosome(chromosome* chrom)
 
 void FastOPTICS::ExpandClusterOrder(int ipt)
 {
-	std::priority_queue< ClusterOrdering, std::vector<ClusterOrdering>, ClusterOrderingComparator > queue;
+    std::priority_queue< ClusterOrdering, std::vector<ClusterOrdering>, ClusterOrderingComparator::ClusterOrderingComparator > queue;
 	ClusterOrdering tmp(ipt,0,1e6f);
 	queue.push(tmp);
 
-    while(!queue.empty() && FastOPTICS::iOrder < this->N)
+    while(!queue.empty() /*&& FastOPTICS::iOrder < this->N*/)
 	{
 		ClusterOrdering current = queue.top();
 		queue.pop();
 		int currPt = current.objectID;
 		this->order[FastOPTICS::iOrder] = currPt;
 		
-		// incrementing STATIC rank ordering
+		if(this->processed[currPt] == true) continue;
+		// incrementing STATIC rank ordering ()
 		FastOPTICS::iOrder++;
-		
 		this->processed[currPt] = true;
+		
 		float coredist = this->inverseDensities[currPt];
 		for( std::vector<int>::iterator it = this->neighbors[currPt].begin(); it != this->neighbors[currPt].end(); ++it)
 		{
 			int iNeigh = *it;
-			if(this->processed[iNeigh]) continue;
+			if(this->processed[iNeigh] == true) continue;
 
 			float nrdist = this->compute_distance(points[iNeigh], points[currPt]);
 
@@ -208,10 +251,14 @@ float FastOPTICS::compute_distance(std::pair< chromosome*,std::vector<float> > &
 	{
 		// distance += (aVec[i]-bVec[i])*(bVec[i]-aVec[i]);
 		// x.second gives the vector reference of this->nDimensions size
-        float raw_distance = (a.second[i]-b.second[i]) * (b.second[i]-a.second[i]);
-        if(boost::math::isinf(raw_distance)) return sqrtf(FLT_MAX);
-        else if(boost::math::isnan(raw_distance)) continue;
-        else if(boost::math::isfinite(raw_distance)) distance += fabs(raw_distance);
+        // float raw_distance = (a.second[i]-b.second[i]) * (b.second[i]-a.second[i]);
+        // if(boost::math::isinf(raw_distance)) continue;
+        // else if(boost::math::isnan(raw_distance)) continue;
+        // else if(boost::math::isfinite(raw_distance)) distance += fabs(raw_distance);
+
+        // simple
+        // distance = (a.second[i]-b.second[i]) * (b.second[i]-a.second[i]);
+        distance = (a.second[i]-b.second[i]) * (a.second[i]-b.second[i]);
 	}
    	if(boost::math::isfinite(distance)) return sqrtf(distance);
 	else return UNDEFINED_DIST;
@@ -220,9 +267,12 @@ float FastOPTICS::compute_distance(std::pair< chromosome*,std::vector<float> > &
 /*****************************************\
 			RandomProjections
 \*****************************************/
-// Constructor
+
+// STATIC variables declaration
 int const RandomProjectedNeighborsAndDensities::logOProjectionConstant;
 float RandomProjectedNeighborsAndDensities::sizeTolerance;
+
+// Constructor
 RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities(std::vector< std::pair< chromosome*,std::vector<float> > >& inPoints, int minSplitSize, FastOPTICS* top)
 {
 	this->top = top;
@@ -394,7 +444,7 @@ void RandomProjectedNeighborsAndDensities::SplitUpNoSort(std::vector< int >& ind
 void RandomProjectedNeighborsAndDensities::getInverseDensities(std::vector< float > & inverseDensities)
 {
 	inverseDensities.reserve(this->N);
-	std::vector<int> nDists;
+	std::vector<int> nDists(this->N);
 	nDists.reserve(this->N);
 //	for(std::vector< std::vector< int> >::iterator it1 = this->splitsets.begin(); it1 != this->splitsets.end(); ++it1)
     for(int i = 0; i < this->splitsets.size(); ++i)
