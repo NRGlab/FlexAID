@@ -85,9 +85,15 @@ inline bool const BindingMode::operator< (const BindingMode& rhs) { return this-
 /*****************************************\
 				  Pose
 \*****************************************/
-Pose::Pose(chromosome* chrom, int index, int iorder, float dist, uint temperature) : chrom(chrom), order(iorder), chrom_index(index), reachDist(dist), CF(chrom->app_evalue)
+Pose::Pose(chromosome* chrom, int index, int iorder, float dist, uint temperature, std::vector<float> vec) : chrom(chrom), order(iorder), chrom_index(index), reachDist(dist), CF(chrom->app_evalue), vPose(vec)
 {
 	this->boltzmann_weight = pow( E, ((-1.0) * (1/static_cast<double>(temperature)) * chrom->app_evalue) );
+	// double BoltzWeight = pow( E, ((-1.0) * (1/static_cast<double>(temperature)) * chrom->app_evalue) );
+	// if(boost::math::isfinite(BoltzWeight)) this->boltzmann_weight = BoltzWeight;
+	// else if(BoltzWeight - 0.0 < DBL_EPSILON ) this->boltzmann_weight = DBL_EPSILON;
+	// else if(boost::math::isinf(BoltzWeight)) this->boltzmann_weight = DBL_MAX;
+	// else if(boost::math::isnan(BoltzWeight)) this->boltzmann_weight = DBL_EPSILON;
+	// else this->boltzmann_weight = DBL_EPSILON;
 }
 inline bool const Pose::operator< (const Pose& rhs)
 {

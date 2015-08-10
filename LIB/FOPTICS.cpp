@@ -43,7 +43,7 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 	this->Population = &Population;
 	// FlexAID
 	this->N = num_chrom;
-//	this->minPoints = 5;
+//    this->minPoints = 20;
 	this->minPoints = static_cast<int>( floor(this->N * 0.01) );
 	this->FA = FA;
 	this->GB = GB;
@@ -106,18 +106,18 @@ void FastOPTICS::Execute_FastOPTICS()
 	// std::vector< std::pair< std::pair< chromosome*, int> , float > > OPTICS(this->N);
 	// OPTICS.reserve(this->N);
 
-    std::priority_queue< Pose, std::vector<Pose>, PoseClassifier::PoseClassifier > OPTICS;
-    std::vector<Pose> vec;
+    // std::priority_queue< Pose, std::vector<Pose>, PoseClassifier::PoseClassifier > OPTICS;
+    std::vector<Pose> OPTICS;
 
 	for(int i = 0; i < this->N; ++i)
 	{
 		// NEW
 		// 
-		if((this->points[i]).first != NULL && boost::math::isfinite(this->reachDist[i]) && this->order[i] <= this->N && this->order[i] >= 0)
+		if( (this->points[i]).first != NULL && boost::math::isfinite(this->reachDist[i]) && this->order[i] <= this->N && this->order[i] >= 0 && (this->points[i].first)->app_evalue < 10000 )
 		{
-			Pose::Pose Pose((this->points[i]).first, i, this->order[i], this->reachDist[i], this->Population->Temperature);
-			OPTICS.push(Pose);
-            vec.push_back(Pose);
+			Pose::Pose Pose((this->points[i]).first, i, this->order[i], this->reachDist[i], this->Population->Temperature, (this->points[i]).second);
+			// OPTICS.push(Pose);
+            OPTICS.push_back(Pose);
 		}
 		// OLD
 		// 
@@ -137,7 +137,7 @@ void FastOPTICS::Execute_FastOPTICS()
         //     it = OPTICS.insert(it, newPair);
         // }
 	}
-    std::sort(vec.begin(),vec.end(),PoseClassifier::PoseClassifier());
+    std::sort(OPTICS.begin(),OPTICS.end(),PoseClassifier::PoseClassifier());
 
 	// Build BindingModes
     int i = 0; // used to have an idea of the number of loop completed (iterators are less convenient for that information while debugging)
@@ -162,12 +162,12 @@ void FastOPTICS::Execute_FastOPTICS()
 //	}
 	// OLD
  	BindingMode::BindingMode current(this->Population);
-	for(std::vector< Pose >::iterator it = vec.begin(); it != vec.end(); ++i, ++it)
+	for(std::vector< Pose >::iterator it = OPTICS.begin(); it != OPTICS.end(); ++i, ++it)
 	{
-        if(it->reachDist < 0.4) current.add_Pose(*it);
-	   	if(it->reachDist >= 0.4)
+        if(it->reachDist < 0.3) current.add_Pose(*it);
+	   	if(it->reachDist >= 0.3 or isUndefinedDist(it->reachDist))
         {
-			if(current.get_BindingMode_size() >= 2)
+			if(current.get_BindingMode_size() >= this->minPoints)
 			{
 				this->Population->add_BindingMode(current);
 			}
@@ -177,6 +177,7 @@ void FastOPTICS::Execute_FastOPTICS()
 }
 std::vector<float> FastOPTICS::Vectorized_Chromosome(chromosome* chrom)
 {
+    float norm = 0.0f;
 	std::vector<float> vChrom(this->nDimensions, 0.0f);
 	// getting nDim-2 because the Dim=0 fills 3 memory cases
 	for(int j = 0; j < this->nDimensions-2; ++j)
@@ -187,6 +188,7 @@ std::vector<float> FastOPTICS::Vectorized_Chromosome(chromosome* chrom)
 			{
 				vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
 //                vChrom[i] = static_cast<float>( this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] );
+                norm += vChrom[i]*vChrom[i];
 			}
 		}
 		else
@@ -194,8 +196,13 @@ std::vector<float> FastOPTICS::Vectorized_Chromosome(chromosome* chrom)
 			// j+2 is used from {j = 1 to N} to build further comp. of genes[j]
 			// vChrom[j+2] = static_cast<float>(genetoic(&gene_lim[j], (*chrom).genes[j].to_int32));
 			vChrom[j+2] = static_cast<float>(RandomDouble( (*chrom).genes[j].to_int32 ));
+            norm += vChrom[j]*vChrom[j];
 		}
 	}
+    
+    norm = sqrtf(norm);
+    for(int k = 0; k < this->nDimensions; ++k) { vChrom[k]/=norm; }
+    
 	return vChrom;
 }
 
@@ -259,8 +266,9 @@ float FastOPTICS::compute_distance(std::pair< chromosome*,std::vector<float> > &
         // distance = (a.second[i]-b.second[i]) * (b.second[i]-a.second[i]);
         distance += (a.second[i]-b.second[i]) * (a.second[i]-b.second[i]);
 	}
-   	if(boost::math::isfinite(distance)) return sqrtf(distance);
-	else return UNDEFINED_DIST;
+   	if(boost::math::isfinite(distance))         return sqrtf(distance);
+	else if( fabs(distance) > FLT_EPSILON )     return UNDEFINED_DIST;
+    else                                        return 0.0f;
 }
 
 /*****************************************\
