@@ -125,7 +125,10 @@ OBJ =	top.o			\
 	rna_structure.o		\
 	maps.o			\
 	shortest_path.o		\
-	assign_shortflex.o
+	assign_shortflex.o 	\
+	BindingMode.o 	\
+	FOPTICS.o 	\
+	FastOPTICS_cluster.o
 	
 all: a.out
 	\mv a.out $W/FlexAID_Linux32
@@ -346,3 +349,13 @@ assign_shortflex.o: $I/assign_shortflex.c $I/boinc.h
 
 maps.o: $I/maps.cpp $I/maps.hpp
 	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/maps.cpp
+
+BindingMode.o: $I/BindingMode.cpp $I/boinc.h $I/gaboom.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/BindingMode.cpp $(INCLUDES)
+
+FOPTICS.o: $I/FOPTICS.cpp $I/BindingMode.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/FOPTICS.cpp $(INCLUDES)
+
+FastOPTICS_cluster.o: $I/FastOPTICS_cluster.c $I/BindingMode.h $I/gaboom.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/FastOPTICS_cluster.c $(INCLUDES)
+

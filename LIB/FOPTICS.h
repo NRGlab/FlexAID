@@ -2,7 +2,6 @@
 #define FOPTICS_H
 
 #include "BindingMode.h"
-#include "gaboom.h"
 #include <utility>
 #include <queue>
 #include <cmath>

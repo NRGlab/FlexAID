@@ -1,4 +1,4 @@
-    #include "FOPTICS.h"
+#include "FOPTICS.h"
 
 void FastOPTICS_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
 {
@@ -13,5 +13,5 @@ void FastOPTICS_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome*
     // 	5. Populate BindingPopulation::Population after analyzing OPTICS
 	Algo.Execute_FastOPTICS();
     std::cout << "Size of Population is " << Population.get_BindingModes_size() << " Binding Modes." << std::endl;
-    
+
 }
