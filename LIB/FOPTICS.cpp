@@ -43,8 +43,8 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 	this->Population = &Population;
 	// FlexAID
 	this->N = num_chrom;
-//    this->minPoints = 20;
-	this->minPoints = static_cast<int>( floor(this->N * 0.01) );
+	// this->minPoints = 7;
+	this->minPoints = static_cast<int>( floor(this->N * 0.005) );
 	this->FA = FA;
 	this->GB = GB;
 	this->VC = VC;

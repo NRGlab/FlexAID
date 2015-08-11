@@ -97,7 +97,7 @@ class RandomProjectedNeighborsAndDensities
 		RandomProjectedNeighborsAndDensities(std::vector< std::pair< chromosome*,std::vector<float> > >&, int, FastOPTICS*); // Constructor (publicly called from FlexAID *_cluster.cxx)
 	
 	private:
-		// provate attributes
+		// private attributes
 		FastOPTICS* top;
 		int N;
 		int nDimensions;

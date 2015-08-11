@@ -125,7 +125,6 @@ void DensityPeak_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome
 	for(i = 0; i < num_chrom; ++i)
 	{
 		iChrom = &Chrom[i];
-//        for(j = i+1; j < num_chrom; ++j)
 		for(j = i+1; j < num_chrom; ++j)
 		{
 			jChrom	= &Chrom[j];
