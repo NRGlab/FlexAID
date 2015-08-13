@@ -1,5 +1,15 @@
 #include "FOPTICS.h"
 
+bool definitelyGreaterThan(float a, float b, float epsilon)
+{
+    return (a - b) > ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
+}
+
+bool definitelyLessThan(float a, float b, float epsilon)
+{
+    return (b - a) > ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
+}
+
 ClusterOrdering::ClusterOrdering(int id, int predID, float reach) : objectID(id), predecessorID(predID), reachability(reach)
 {
 	// this->objectID = id;
@@ -19,16 +29,16 @@ inline bool const ClusterOrdering::operator==(const ClusterOrdering& rhs)
 
 inline bool const ClusterOrdering::operator< (const ClusterOrdering& rhs)
 {
-	if(this->reachability > rhs.reachability)
+	if(this->reachability > rhs.reachability || isUndefinedDist(this->reachability))
 			return false;
 		else if(this->reachability < rhs.reachability)
 			return true;
 		if(this->objectID > rhs.objectID)
-			return false;
-		else if(this->objectID < rhs.objectID)
 			return true;
+		else if(this->objectID < rhs.objectID)
+			return false;
 		// if nothing else is true, return 0
-		return false;
+		return 0;
 }
 /*****************************************\
 				FastOPTICS
@@ -43,8 +53,8 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 	this->Population = &Population;
 	// FlexAID
 	this->N = num_chrom;
-	// this->minPoints = 7;
-	this->minPoints = static_cast<int>( floor(this->N * 0.005) );
+	this->minPoints = 10;
+	// this->minPoints = static_cast<int>( floor(this->N * 0.015) );
 	this->FA = FA;
 	this->GB = GB;
 	this->VC = VC;
@@ -61,7 +71,7 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 	this->inverseDensities.reserve(this->N);
 	this->points.reserve(this->N);
 	this->neighbors.reserve(this->N);
-	
+    
 	for(int i = 0; i < this->N; ++i)
 	{
 		// need to transform the chromosomes into vector f
@@ -72,7 +82,7 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 			// 	first  -> chromosome* pChrom (pointer to chromosome)
 			// 	second -> vChrom[FA->npar+n] (vectorized chromosome)
 			this->order.push_back(-1);
-			this->reachDist.push_back(FLT_MAX);
+			this->reachDist.push_back(UNDEFINED_DIST);
 			this->processed.push_back(false);
 			this->inverseDensities.push_back(0.0f);
 			this->points.push_back( std::make_pair( (chromosome*)&chrom[i], vChrom) ) ;
@@ -103,78 +113,65 @@ void FastOPTICS::Execute_FastOPTICS()
 		if(!this->processed[ipt]) this->ExpandClusterOrder(ipt);
     }
 	// Order chromosome and their reachDist in OPTICS
-	// std::vector< std::pair< std::pair< chromosome*, int> , float > > OPTICS(this->N);
-	// OPTICS.reserve(this->N);
-
-    // std::priority_queue< Pose, std::vector<Pose>, PoseClassifier::PoseClassifier > OPTICS;
-    std::vector<Pose> OPTICS;
+    //  points pairs contain :
+    //   first  -> pair<chromosome*, index>
+    //   second -> float reachDist
 
 	for(int i = 0; i < this->N; ++i)
 	{
-		// NEW
-		// 
-		if( (this->points[i]).first != NULL && boost::math::isfinite(this->reachDist[i]) && this->order[i] <= this->N && this->order[i] >= 0 && (this->points[i].first)->app_evalue < 10000 )
+		//
+		if( (this->points[i]).first != NULL && boost::math::isfinite(this->reachDist[i]) && this->order[i] <= this->N && this->order[i] >= 0 && (this->points[i].first)->app_evalue < CLASH_THRESHOLD )
 		{
 			Pose::Pose Pose((this->points[i]).first, i, this->order[i], this->reachDist[i], this->Population->Temperature, (this->points[i]).second);
 			// OPTICS.push(Pose);
-            OPTICS.push_back(Pose);
+            this->OPTICS.push_back(Pose);
 		}
-		// OLD
-		// 
-		// OPTICS pairs contain :
-		//   first  -> pair<chromosome*, index>
-		//   second -> float reachDist
-        // *** RE-DO THIS WHOLE FUCKING INSERTION SECTION ***
-        // VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
-        // place vector<>::iterator it @ the order emplacement in OPTICS
-        // std::vector< std::pair< std::pair< chromosome*, int >, float> >::iterator it = OPTICS.begin()+this->order[i];
-        
-        // std::pair< chromosome*, int > newIntPair = std::make_pair((this->points[i]).first, i);
-        // std::pair< std::pair< chromosome*, int >, float> newPair = std::make_pair( newIntPair, this->reachDist[i]);
-        // if(newIntPair.first != NULL && (newIntPair.first)->genes != NULL && newIntPair.second >= 0 && newIntPair.second < this->N)
-        // {
-        //     it = OPTICS.erase(it);
-        //     it = OPTICS.insert(it, newPair);
-        // }
 	}
-    std::sort(OPTICS.begin(),OPTICS.end(),PoseClassifier::PoseClassifier());
+    std::sort(this->OPTICS.begin(),this->OPTICS.end(),PoseClassifier::PoseClassifier());
 
-	// Build BindingModes
+	// Build BindingModes (aggregation of Poses in BindingModes)
     int i = 0; // used to have an idea of the number of loop completed (iterators are less convenient for that information while debugging)
-	// NEW
-//	while(!OPTICS.empty())
-//	{
-//		BindingMode::BindingMode current(this->Population);
-//		while((OPTICS.top()).reachDist < 0.4 && !OPTICS.empty())
-//		{
-//			Pose currPose = OPTICS.top();
-//			OPTICS.pop(); ++i;
-//			current.add_Pose(currPose);
-//		}
-//		while((OPTICS.top()).reachDist >= 0.4 && !OPTICS.empty())
-//		{
-//			OPTICS.pop(); ++i;
-//		}
-//		if(current.get_BindingMode_size() >= 2)
-//		{
-//			this->Population->add_BindingMode(current);
-//		}
-//	}
-	// OLD
  	BindingMode::BindingMode current(this->Population);
-	for(std::vector< Pose >::iterator it = OPTICS.begin(); it != OPTICS.end(); ++i, ++it)
+	for(std::vector< Pose >::iterator it = this->OPTICS.begin(); it != this->OPTICS.end(); ++i, ++it)
 	{
         if(it->reachDist < 0.3) current.add_Pose(*it);
-	   	if(it->reachDist >= 0.3 or isUndefinedDist(it->reachDist))
+	   	if(it->reachDist >= 0.3 || isUndefinedDist(it->reachDist))
         {
-			if(current.get_BindingMode_size() >= this->minPoints)
+			if(current.get_BindingMode_size() > 0)
 			{
 				this->Population->add_BindingMode(current);
-			}
-            current.clear_Poses();
+                current.clear_Poses();
+            }
         }
 	}
 }
+
+void FastOPTICS::output_OPTICS(char* end_strfile, char* tmp_end_strfile)
+{
+	// output variables
+    char sufix[25];
+    
+    // priting OPTICS variable to '__minPoints.optics' file
+    sprintf(sufix,"__%d.optics",this->minPoints);
+    strcpy(tmp_end_strfile,end_strfile);
+	strcat(tmp_end_strfile,sufix);
+    FILE* outfile;// = fopen(tmp_end_strfile,"w");
+	if(!OpenFile_B(tmp_end_strfile,"w",&outfile))
+	{
+		Terminate(6);
+	}
+	else
+	{
+        fprintf(outfile, "#order\treachDist\tCF\n");
+		for(std::vector<Pose>::iterator it = this->OPTICS.begin(); it != this->OPTICS.end(); ++it)
+		{
+            if(!isUndefinedDist(it->reachDist)) fprintf(outfile, "%d\t%g\t%g\n", it->order, it->reachDist, it->CF);
+            else fprintf(outfile, "%d\t%g\t%g\n", it->order, 1.1f, it->CF);
+		}
+   }
+   CloseFile_B(&outfile,"w");;//fclose(outfile);
+}
+
 std::vector<float> FastOPTICS::Vectorized_Chromosome(chromosome* chrom)
 {
     float norm = 0.0f;
@@ -184,12 +181,18 @@ std::vector<float> FastOPTICS::Vectorized_Chromosome(chromosome* chrom)
 	{
 		if(j == 0) //  building the first 3 comp. from genes[0] which are CartCoord x,y,z
 		{
+            float space_norm = 0.0f;
 			for(int i = 0; i < 3; ++i)
 			{
 				vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
-//                vChrom[i] = static_cast<float>( this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] );
                 norm += vChrom[i]*vChrom[i];
 			}
+           // space_norm = sqrtf(space_norm);
+           // for(int i = 0; i < 3; ++i)
+           // {
+           //     vChrom[i] /= space_norm;
+           //     norm += vChrom[i]*vChrom[i];
+           // }
 		}
 		else
 		{
@@ -200,8 +203,8 @@ std::vector<float> FastOPTICS::Vectorized_Chromosome(chromosome* chrom)
 		}
 	}
     
-    norm = sqrtf(norm);
-    for(int k = 0; k < this->nDimensions; ++k) { vChrom[k]/=norm; }
+   norm = sqrtf(norm);
+   for(int k = 0; k < this->nDimensions; ++k) { vChrom[k]/=norm; }
     
 	return vChrom;
 }
@@ -247,28 +250,22 @@ void FastOPTICS::ExpandClusterOrder(int ipt)
 float FastOPTICS::compute_distance(std::pair< chromosome*,std::vector<float> > & a, std::pair< chromosome*,std::vector<float> > & b)
 {
 	float distance = 0.0f;
-	// chromosome* aChrom = a.first;
-	// chromosome* branch = b.first;
-	// std::vector<float> aVec(a.second);
-	// std::vector<float> bVec(b.second);
 
-	// insert distance calculation below
+	// simple distance calculation below
 	for(int i = 0; i < this->nDimensions; ++i)
 	{
-		// distance += (aVec[i]-bVec[i])*(bVec[i]-aVec[i]);
-		// x.second gives the vector reference of this->nDimensions size
-        // float raw_distance = (a.second[i]-b.second[i]) * (b.second[i]-a.second[i]);
-        // if(boost::math::isinf(raw_distance)) continue;
-        // else if(boost::math::isnan(raw_distance)) continue;
-        // else if(boost::math::isfinite(raw_distance)) distance += fabs(raw_distance);
-
-        // simple
-        // distance = (a.second[i]-b.second[i]) * (b.second[i]-a.second[i]);
         distance += (a.second[i]-b.second[i]) * (a.second[i]-b.second[i]);
 	}
-   	if(boost::math::isfinite(distance))         return sqrtf(distance);
-	else if( fabs(distance) > FLT_EPSILON )     return UNDEFINED_DIST;
-    else                                        return 0.0f;
+
+   	if(boost::math::isfinite(distance))
+   	{
+   			return sqrtf(distance);
+   	}
+    else if( boost::math::isinf(distance) && distance > FLT_EPSILON )
+    {
+        	return UNDEFINED_DIST;
+    }
+    else 	return 0.0f;
 }
 
 /*****************************************\
@@ -556,11 +553,18 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_Normalized_V
 		if(j == 0) //  building the first 3 comp. from genes[0] which are CartCoord x,y,z
 		{
             double doubleGeneIC = genetoic(&this->top->gene_lim[j],intGene);
-			for(int i = 0; i < 3; ++i)
+            float space_norm = 0.0f;
+            for(int i = 0; i < 3; ++i)
 			{
 				vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].coor[i] - this->top->FA->ori[i]);
 				sum += vChrom[i]*vChrom[i];
 			}
+            // space_norm = sqrtf(space_norm);
+            // for(int i = 0; i < 3; ++i)
+            // {
+            //     vChrom[i] /= space_norm;
+            //     sum += vChrom[i]*vChrom[i];
+            // }
 		}
 		else
 		{

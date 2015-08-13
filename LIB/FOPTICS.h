@@ -3,10 +3,16 @@
 
 #include "BindingMode.h"
 #include <utility>
+#include <iostream>
+#include <sstream> // for ostringstream
+#include <string>
+#include <fstream>
 #include <queue>
 #include <cmath>
-#define UNDEFINED_DIST -0.1f // Defined in FOPTICS as > than +INF
-#define isUndefinedDist(a) ((a - UNDEFINED_DIST) <= FLT_EPSILON)
+
+// Float comparators
+bool definitelyGreaterThan(float a, float b, float epsilon);
+bool definitelyLessThan(float a, float b, float epsilon);
 
 struct ClusterOrdering
 {
@@ -23,9 +29,19 @@ struct ClusterOrdering
 
 struct ClusterOrderingComparator
 {
+	// inline int operator() ( const ClusterOrdering& pose1, const ClusterOrdering& pose2 )
 	inline bool operator() ( const ClusterOrdering& pose1, const ClusterOrdering& pose2 )
 	{
-		if(pose1.reachability > pose2.reachability)
+		// if(pose1.reachability > pose2.reachability)
+		// 	return 1;
+		// else if(pose1.reachability < pose2.reachability)
+		// 	return -1;
+		// if(pose1.objectID > pose2.objectID)
+		// 	return -1;
+		// else if(pose1.objectID < pose2.objectID)
+		// 	return 1;
+
+		if(pose1.reachability > pose2.reachability || isUndefinedDist(pose1.reachability))
 			return false;
 		else if(pose1.reachability < pose2.reachability)
 			return true;
@@ -33,8 +49,9 @@ struct ClusterOrderingComparator
 			return true;
 		else if(pose1.objectID < pose2.objectID)
 			return false;
+
 		// if nothing else is true, return 0
-		return false;
+		return 0;
 	}
 };
 
@@ -48,7 +65,8 @@ class FastOPTICS
 	public:
 		FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, gridpoint* cleftgrid, int nChrom, BindingPopulation&); // Constructor (publicly called from FlexAID's *_cluster.cxx)
 		void Execute_FastOPTICS();
-
+        void output_OPTICS(char* end_strfile, char* tmp_end_strfile);
+    
 	private:
 		// FlexAID specific attributes
 		int N;			// N : number of chromosomes to cluster
@@ -63,7 +81,7 @@ class FastOPTICS
 		std::vector< float > inverseDensities;
 		std::vector< std::pair<chromosome*,std::vector<float> > > points;
 		std::vector< std::vector< int > > neighbors;
-
+        std::vector< Pose > OPTICS;
 		// BindingPopulation is used for clustering purposed
 		BindingPopulation* Population;
 		

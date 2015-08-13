@@ -1,4 +1,5 @@
 #include "BindingMode.h"
+
 /*****************************************\
 			BindingPopulation  
 \*****************************************/
@@ -41,9 +42,11 @@ void BindingPopulation::output_Population(int nResults, char* end_strfile, char*
 
     // Looping through BindingModes
     int num_result = 0;
-	for(std::vector<BindingMode>::iterator mode = this->BindingModes.begin(); mode != this->BindingModes.end() && nResults > 0; ++mode, --nResults)
+    if(!nResults) nResults = this->get_Population_size() - 1; // if 0 is sent to this function, output all
+	for(std::vector<BindingMode>::iterator mode = this->BindingModes.begin(); mode != this->BindingModes.end() && nResults > 0; ++mode, --nResults, ++num_result)
 	{
-		mode->output_BindingMode(num_result++, end_strfile, tmp_end_strfile, dockinp, gainp);
+		mode->output_BindingMode(num_result, end_strfile, tmp_end_strfile, dockinp, gainp);
+    	mode->output_dynamic_BindingMode(num_result,end_strfile, tmp_end_strfile, dockinp, gainp);
 	}
 }
 
@@ -127,8 +130,8 @@ void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tm
 	std::vector<Pose>::const_iterator Rep_lowOPTICS = this->elect_Representative(true);
 	
     // 1. build FA->opt_par[GB->num_genes]
-	for(int k = 0; k < this->Population->GB->num_genes; ++k) this->Population->FA->opt_par[k] = Rep_lowCF->chrom->genes[k].to_ic;
-	// for(int k = 0; k < this->Population->GB->num_genes; ++k) this->Population->FA->opt_par[k] = Rep_lowOPTICS->chrom->genes[k].to_ic;
+	 for(int k = 0; k < this->Population->GB->num_genes; ++k) this->Population->FA->opt_par[k] = Rep_lowCF->chrom->genes[k].to_ic;
+	 // for(int k = 0; k < this->Population->GB->num_genes; ++k) this->Population->FA->opt_par[k] = Rep_lowOPTICS->chrom->genes[k].to_ic;
 
 	// 2. get CF with ic2cf() 
 	CF = ic2cf(this->Population->FA, this->Population->VC, this->Population->atoms, this->Population->residue, this->Population->cleftgrid, this->Population->GB->num_genes, this->Population->FA->opt_par);
@@ -136,8 +139,8 @@ void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tm
     // 3. print REMARKS for FA->optres (res_ptr && cf_ptr for each optimizable residue)
 	strcpy(remark,"REMARK optimized structure\n");
 	
-	sprintf(tmpremark,"REMARK Fast OPTICS clustering algorithm used to output the lowest CF as Binding Mode representative\n");
-	// sprintf(tmpremark,"REMARK Fast OPTICS clustering algorithm used to output the lowest OPTICS reachability distance as Binding Mode representative\n");
+	 sprintf(tmpremark,"REMARK Fast OPTICS clustering algorithm used to output the lowest CF as Binding Mode representative\n");
+	 // sprintf(tmpremark,"REMARK Fast OPTICS clustering algorithm used to output the lowest OPTICS ordering as Binding Mode representative\n");
 	strcat(remark,tmpremark);
 	
 	sprintf(tmpremark,"REMARK CF=%8.5f\n",get_cf_evalue(&CF));
@@ -196,6 +199,101 @@ void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tm
 }
 
 
+void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
+{
+    // File and Output variables declarations
+    cfstr CF; /* complementarity function value */
+    resid *pRes = NULL;
+    cfstr* pCF = NULL;
+
+    FILE* outfile_ptr = NULL;
+    char sufix[10];
+    char remark[MAX_REMARK];
+    char tmpremark[MAX_REMARK];
+    int nModel = 1;
+    for(std::vector<Pose>::iterator Pose = this->Poses.begin(); Pose != this->Poses.end(); ++Pose, ++nModel)
+    {
+    	// 1. build FA->opt_par[GB->num_genes]
+		 for(int k = 0; k < this->Population->GB->num_genes; ++k) this->Population->FA->opt_par[k] = Pose->chrom->genes[k].to_ic;
+
+		// 2. get CF with ic2cf() 
+		CF = ic2cf(this->Population->FA, this->Population->VC, this->Population->atoms, this->Population->residue, this->Population->cleftgrid, this->Population->GB->num_genes, this->Population->FA->opt_par);
+		
+	    // 3. print REMARKS for FA->optres (res_ptr && cf_ptr for each optimizable residue)
+		strcpy(remark,"REMARK optimized structure\n");
+		
+	//	 sprintf(tmpremark,"REMARK Fast OPTICS clustering algorithm used to output the lowest CF as Binding Mode representative\n");
+		 sprintf(tmpremark,"REMARK Fast OPTICS clustering algorithm used to output the lowest OPTICS ordering as Binding Mode representative\n");
+		strcat(remark,tmpremark);
+		
+		sprintf(tmpremark,"REMARK CF=%8.5f\n",get_cf_evalue(&CF));
+		strcat(remark,tmpremark);
+		sprintf(tmpremark,"REMARK CF.app=%8.5f\n",get_apparent_cf_evalue(&CF));
+		strcat(remark,tmpremark);
+	    
+		for(int j = 0; j < this->Population->FA->num_optres; ++j)
+		{
+			pRes = &this->Population->residue[this->Population->FA->optres[j].rnum];
+			pCF  = &this->Population->FA->optres[j].cf;
+	        
+	        sprintf(tmpremark,"REMARK optimizable residue %s %c %d\n", pRes->name, pRes->chn, pRes->number);
+	        strcat(remark,tmpremark);
+	        
+	        sprintf(tmpremark ,"REMARK CF.com=%8.5f\n", pCF->com);
+	        strcat(remark, tmpremark);
+	        sprintf(tmpremark ,"REMARK CF.sas=%8.5f\n", pCF->sas);
+	        strcat(remark, tmpremark);
+	        sprintf(tmpremark ,"REMARK CF.wal=%8.5f\n", pCF->wal);
+	        strcat(remark, tmpremark);
+	        sprintf(tmpremark ,"REMARK CF.con=%8.5f\n", pCF->con);
+	        strcat(remark, tmpremark);
+	        sprintf(tmpremark, "REMARK Residue has an overall SAS of %.3f\n", pCF->totsas);
+	        strcat(remark, tmpremark);
+		}
+	    
+	    for(int j=0; j < this->Population->FA->npar; ++j)
+		{
+			sprintf(tmpremark, "REMARK [%8.3f]\n",this->Population->FA->opt_par[j]);
+			strcat(remark,tmpremark);
+		}
+
+		// 4. if(REF) prints RMSD to REF
+		if(this->Population->FA->refstructure == 1)
+		{
+			bool Hungarian = false;
+			sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure (no symmetry correction)\n",
+			calc_rmsd(this->Population->FA,this->Population->atoms,this->Population->residue,this->Population->cleftgrid,this->Population->FA->npar,this->Population->FA->opt_par, Hungarian));
+			strcat(remark,tmpremark);
+			Hungarian = true;
+			sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure     (symmetry corrected)\n",
+			calc_rmsd(this->Population->FA,this->Population->atoms,this->Population->residue,this->Population->cleftgrid,this->Population->FA->npar,this->Population->FA->opt_par, Hungarian));
+			strcat(remark,tmpremark);
+		}
+		sprintf(tmpremark,"REMARK inputs: %s & %s\n",dockinp,gainp);
+		strcat(remark,tmpremark);
+		sprintf(sufix,"_%d.pdb",num_result);
+		strcpy(tmp_end_strfile,end_strfile);
+		strcat(tmp_end_strfile,sufix);
+		// 5. write_pdb(FA,atoms,residue,tmp_end_strfile,remark)
+		if(Pose == this->Poses.begin() && Pose+1 == this->Poses.end())
+		{
+			write_MODEL_pdb(true, true, nModel, num_result, this->Population->FA,this->Population->atoms,this->Population->residue,tmp_end_strfile,remark);
+		}
+		else if(Pose == this->Poses.begin())
+		{
+			write_MODEL_pdb(true, false, nModel, num_result, this->Population->FA,this->Population->atoms,this->Population->residue,tmp_end_strfile,remark);
+		}
+		else if(Pose+1 == this->Poses.end())
+		{
+			write_MODEL_pdb(false, true, nModel, num_result, this->Population->FA,this->Population->atoms,this->Population->residue,tmp_end_strfile,remark);
+		}
+		else
+		{
+			write_MODEL_pdb(false, false, nModel, num_result, this->Population->FA,this->Population->atoms,this->Population->residue,tmp_end_strfile,remark);
+		}
+    }
+}
+
 std::vector<Pose>::const_iterator BindingMode::elect_Representative(bool useOPTICSorder) const
 {
 	std::vector<Pose>::const_iterator Rep = this->Poses.begin();
@@ -203,7 +301,7 @@ std::vector<Pose>::const_iterator BindingMode::elect_Representative(bool useOPTI
 	{
 		// IF (Rep - it > EPSILON ->) it->CF is {definitelyLessThan(it, Rep) == true} than Rep->CF
 		if(!useOPTICSorder && (Rep->CF - it->CF) > DBL_EPSILON ) Rep = it;
-		if(useOPTICSorder &&  (Rep->reachDist - it->reachDist) > DBL_EPSILON ) Rep = it;
+		if(useOPTICSorder && it->reachDist < Rep->reachDist && !isUndefinedDist(it->reachDist)) Rep = it;
 	}
 	return Rep;
 }
@@ -226,11 +324,15 @@ inline bool const Pose::operator< (const Pose& rhs)
 {
 	if(this->order < rhs.order) return true;
    	else if(this->order > rhs.order) return false;
-	else if(this->reachDist < rhs.reachDist) return true;
+	
+	if(this->reachDist < rhs.reachDist) return true;
 	else if(this->reachDist > rhs.reachDist) return false;
-	else if(this->CF < rhs.CF) return true;
+	
+	if(this->CF < rhs.CF) return true;
 	else if(this->CF > rhs.CF) return false;
-	else if(this->chrom_index < rhs.chrom_index) return true;
+	
+	if(this->chrom_index < rhs.chrom_index) return true;
 	else if(this->chrom_index > rhs.chrom_index) return false;
-	else return false;
+	
+	return false;
 }

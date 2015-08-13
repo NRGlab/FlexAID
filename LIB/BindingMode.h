@@ -4,19 +4,10 @@
 #include "gaboom.h"
 #include "boinc.h"
 
-// Float comparators
-// bool definitelyGreaterThan(float a, float b, float epsilon);
-// bool definitelyLessThan(float a, float b, float epsilon);
+//#define UNDEFINED_DIST FLT_MAX // Defined in FOPTICS as > than +INF
+#define UNDEFINED_DIST -0.1f // Defined in FOPTICS as > than +INF
+#define isUndefinedDist(a) ((a - UNDEFINED_DIST) <= FLT_EPSILON)
 
-// bool definitelyGreaterThan(float a, float b, float epsilon)
-// {
-//     return (a - b) > ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
-// }
-
-// bool definitelyLessThan(float a, float b, float epsilon)
-// {
-//     return (b - a) > ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
-// }
 class BindingPopulation; // forward-declaration in order to access BindingPopulation* Population pointer
 /*****************************************\
 				  Pose
@@ -44,13 +35,14 @@ struct PoseClassifier
    {
        	if(Pose1.order < Pose2.order) return true;
        	else if(Pose1.order > Pose2.order) return false;
-		else if(Pose1.reachDist < Pose2.reachDist) return true;
+		if(Pose1.reachDist < Pose2.reachDist) return true;
 		else if(Pose1.reachDist > Pose2.reachDist) return false;
-		else if(Pose1.CF < Pose2.CF) return true;
+		if(Pose1.CF < Pose2.CF) return true;
 		else if(Pose1.CF > Pose2.CF) return false;
-		else if(Pose1.chrom_index < Pose2.chrom_index) return true;
+		if(Pose1.chrom_index < Pose2.chrom_index) return true;
 		else if(Pose1.chrom_index > Pose2.chrom_index) return false;
-		else return false;
+		
+		return false;
    }
 };
 /*****************************************\
@@ -80,6 +72,7 @@ class BindingMode // aggregation of poses (Cluster)
 
 	private:
 		void 	output_BindingMode(int num_result, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp);
+		void	output_dynamic_BindingMode(int nBindingMode, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp);
 		double energy;
 };
 

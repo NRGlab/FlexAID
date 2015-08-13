@@ -20,7 +20,7 @@
 # include "str_util.h"	     // for parse_command_line()
 #endif
 
-#define MAX_PATH__ 250
+#define MAX_PATH__ 255
 #define MAX_NUM_FILES 15
 
 //File Handling Function Declarations
