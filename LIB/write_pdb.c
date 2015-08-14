@@ -13,7 +13,10 @@ int write_MODEL_pdb(bool isFirst, bool isLast, int nModel, int nBindingMode, FA_
 	int rot;
 
 	FILE *outfile_ptr = NULL;
-	if(!OpenFile_B(outfile,"a+",&outfile_ptr))
+	int outfile_code = 0;
+	if(isFirst) outfile_code = OpenFile_B(outfile,"w",&outfile_ptr);
+	else outfile_code = OpenFile_B(outfile,"a+",&outfile_ptr);
+	if(!outfile_code)
 	{
 		Terminate(6);
 	}
@@ -79,7 +82,8 @@ int write_MODEL_pdb(bool isFirst, bool isLast, int nModel, int nBindingMode, FA_
 		}
 	}
 	
-	CloseFile_B(&outfile_ptr,"a+");
+	if(isFirst) CloseFile_B(&outfile_ptr,"w");
+	else 		CloseFile_B(&outfile_ptr,"a+");
     
 	return(0);
 }

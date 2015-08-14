@@ -53,8 +53,8 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 	this->Population = &Population;
 	// FlexAID
 	this->N = num_chrom;
-	this->minPoints = 10;
-	// this->minPoints = static_cast<int>( floor(this->N * 0.015) );
+//	this->minPoints = 22;
+    this->minPoints = static_cast<int>( floor(this->N * 0.0025) );
 	this->FA = FA;
 	this->GB = GB;
 	this->VC = VC;
@@ -137,7 +137,7 @@ void FastOPTICS::Execute_FastOPTICS()
         if(it->reachDist < 0.3) current.add_Pose(*it);
 	   	if(it->reachDist >= 0.3 || isUndefinedDist(it->reachDist))
         {
-			if(current.get_BindingMode_size() > 0)
+			if(current.get_BindingMode_size() > 1)
 			{
 				this->Population->add_BindingMode(current);
                 current.clear_Poses();
@@ -181,10 +181,21 @@ std::vector<float> FastOPTICS::Vectorized_Chromosome(chromosome* chrom)
 	{
 		if(j == 0) //  building the first 3 comp. from genes[0] which are CartCoord x,y,z
 		{
-            float space_norm = 0.0f;
+//            float space_norm = 0.0f;
 			for(int i = 0; i < 3; ++i)
 			{
-				vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
+				// vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
+				if(i == 0) vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i]);// * 0.1;
+				if(i == 1)
+				{
+					 vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i]);// * 0.1;
+//					vChrom[i] = static_cast<float>( RandomDouble( (*chrom).genes[j].to_int32) );
+				}
+				if(i == 2)
+				{
+					 vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i]);// * 0.1;
+//					vChrom[i] = static_cast<float>( genetoic(&this->gene_lim[i],(*chrom).genes[j].to_int32) );
+				}
                 norm += vChrom[i]*vChrom[i];
 			}
            // space_norm = sqrtf(space_norm);
@@ -198,15 +209,16 @@ std::vector<float> FastOPTICS::Vectorized_Chromosome(chromosome* chrom)
 		{
 			// j+2 is used from {j = 1 to N} to build further comp. of genes[j]
 			// vChrom[j+2] = static_cast<float>(genetoic(&gene_lim[j], (*chrom).genes[j].to_int32));
-			vChrom[j+2] = static_cast<float>(RandomDouble( (*chrom).genes[j].to_int32 ));
-            norm += vChrom[j]*vChrom[j];
+			// vChrom[j+2] = static_cast<float>((*chrom).genes[j].to_ic);
+			vChrom[j+2] = static_cast<float>( RandomDouble( (*chrom).genes[j].to_int32) );
+            norm += vChrom[j+2]*vChrom[j+2];
 		}
 	}
     
-   norm = sqrtf(norm);
-   for(int k = 0; k < this->nDimensions; ++k) { vChrom[k]/=norm; }
-    
-	return vChrom;
+  norm = sqrtf(norm);
+  for(int k = 0; k < this->nDimensions; ++k) { vChrom[k]/=norm; }
+   
+   return vChrom;
 }
 
 void FastOPTICS::ExpandClusterOrder(int ipt)
@@ -543,20 +555,26 @@ void RandomProjectedNeighborsAndDensities::getNeighbors(std::vector< std::vector
 std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_Normalized_Vector()
 {
 	std::vector<float> vChrom(this->nDimensions, 0.0f);
-	
+    // random_dice() declaration
+    unsigned int tt = static_cast<unsigned int>(time(0));
+    srand(tt);
+    RNGType rng(tt);
+    boost::uniform_int<> one_to_max_int32( 0, MAX_RANDOM_VALUE );
+    boost::variate_generator< RNGType, boost::uniform_int<> > random_dice(rng, one_to_max_int32);
+    // end random_dice()
 	float sum = 0.0f;
 	for(int j = 0; j < this->nDimensions-2; ++j)
 	{
-		int intGene = this->Dice();
-		
-		double doubleGene = RandomDouble(intGene);
 		if(j == 0) //  building the first 3 comp. from genes[0] which are CartCoord x,y,z
 		{
-            double doubleGeneIC = genetoic(&this->top->gene_lim[j],intGene);
-            float space_norm = 0.0f;
+            double doubleGeneIC = genetoic(&this->top->gene_lim[j],random_dice());
+//            float space_norm = 0.0f;
             for(int i = 0; i < 3; ++i)
 			{
-				vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].coor[i] - this->top->FA->ori[i]);
+				// vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].coor[i] - this->top-÷>FA->ori[i]);
+				if(i == 0) vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].coor[i]);// * 0.1);
+				if(i == 1) vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].coor[i]);// * 0.1);
+				if(i == 2) vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].coor[i]);// * 0.1);
 				sum += vChrom[i]*vChrom[i];
 			}
             // space_norm = sqrtf(space_norm);
@@ -569,7 +587,7 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_Normalized_V
 		else
 		{
 			// j+2 is used from {j = 1 to N} to build further comp. of genes[j]
-			vChrom[j+2] = static_cast<float>(doubleGene);
+			vChrom[j+2] = static_cast<float>(RandomDouble(random_dice()));
 			sum += vChrom[j+2]*vChrom[j+2];
 		}
 	}

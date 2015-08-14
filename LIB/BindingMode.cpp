@@ -207,7 +207,7 @@ void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, 
     cfstr* pCF = NULL;
 
     FILE* outfile_ptr = NULL;
-    char sufix[10];
+    char sufix[25];
     char remark[MAX_REMARK];
     char tmpremark[MAX_REMARK];
     int nModel = 1;
@@ -271,7 +271,7 @@ void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, 
 		}
 		sprintf(tmpremark,"REMARK inputs: %s & %s\n",dockinp,gainp);
 		strcat(remark,tmpremark);
-		sprintf(sufix,"_%d.pdb",num_result);
+		sprintf(sufix,"_MODEL_%d.pdb",num_result);
 		strcpy(tmp_end_strfile,end_strfile);
 		strcat(tmp_end_strfile,sufix);
 		// 5. write_pdb(FA,atoms,residue,tmp_end_strfile,remark)
