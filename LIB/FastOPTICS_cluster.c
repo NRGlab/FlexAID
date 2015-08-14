@@ -18,6 +18,6 @@ void FastOPTICS_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome*
     std::cout << "Size of Population is " << Population.get_Population_size() << " Binding Modes." << std::endl;
     
     // output FA->max_result BindingModes
-    //Population.output_Population(FA->max_results, end_strfile, tmp_end_strfile, dockinp, gainp);
-    Population.output_Population(25, end_strfile, tmp_end_strfile, dockinp, gainp);
+    Population.output_Population(FA->max_results, end_strfile, tmp_end_strfile, dockinp, gainp);
+//    Population.output_Population(25, end_strfile, tmp_end_strfile, dockinp, gainp);
 }
