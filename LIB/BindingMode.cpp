@@ -120,7 +120,6 @@ void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tm
     resid *pRes = NULL;
     cfstr* pCF = NULL;
 
-    FILE* outfile_ptr = NULL;
     char sufix[10];
     char remark[MAX_REMARK];
     char tmpremark[MAX_REMARK];
@@ -206,7 +205,6 @@ void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, 
     resid *pRes = NULL;
     cfstr* pCF = NULL;
 
-    FILE* outfile_ptr = NULL;
     char sufix[25];
     char remark[MAX_REMARK];
     char tmpremark[MAX_REMARK];
@@ -299,7 +297,6 @@ std::vector<Pose>::const_iterator BindingMode::elect_Representative(bool useOPTI
 	std::vector<Pose>::const_iterator Rep = this->Poses.begin();
 	for(std::vector<Pose>::const_iterator it = this->Poses.begin(); it != this->Poses.end(); ++it)
 	{
-		// IF (Rep - it > EPSILON ->) it->CF is {definitelyLessThan(it, Rep) == true} than Rep->CF
 		if(!useOPTICSorder && (Rep->CF - it->CF) > DBL_EPSILON ) Rep = it;
 		if(useOPTICSorder && it->reachDist < Rep->reachDist && !isUndefinedDist(it->reachDist)) Rep = it;
 	}

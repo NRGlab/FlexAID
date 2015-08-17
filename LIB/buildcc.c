@@ -10,32 +10,37 @@ void buildcc(FA_Global* FA,atom* atoms,int tot,int list[]){
 
   for(an=0;an<tot;an++){
     
-    for(i=1;i<=3;i++){
+    for(i=1;i<=3;i++)
+    {
       j=atoms[list[an]].rec[i-1];
       //printf("recj[%d]=%d listan[%d]=%d\n",j,atoms[j].number,list[an],atoms[list[an]].number);
       //PAUSE;
-      if(j != 0){
-	//x[1],y[1],z[1] are coordinates from rec[0] of atom list[an]
-	//x[2],y[2],z[2] are coordinates from rec[1] of atom list[an]
-	//x[3],y[3],z[3] are coordinates from rec[2] of atom list[an]
-	x[i]=atoms[j].coor[0];
-	y[i]=atoms[j].coor[1];
-	z[i]=atoms[j].coor[2];
+      if(j != 0)
+      {
+      	//x[1],y[1],z[1] are coordinates from rec[0] of atom list[an]
+      	//x[2],y[2],z[2] are coordinates from rec[1] of atom list[an]
+      	//x[3],y[3],z[3] are coordinates from rec[2] of atom list[an]
+      	x[i]=atoms[j].coor[0];
+      	y[i]=atoms[j].coor[1];
+      	z[i]=atoms[j].coor[2];
       }
-      else if(i==1){
-	x[i]=1.0f+FA->ori[0];
-	y[i]=0.0f+FA->ori[1];
-	z[i]=0.0f+FA->ori[2];
+      else if(i==1)
+      {
+      	x[i]=1.0f+FA->ori[0];
+      	y[i]=0.0f+FA->ori[1];
+      	z[i]=0.0f+FA->ori[2];
       }
-      else if(i==3){
-	x[i]=0.0f+FA->ori[0];
-	y[i]=1.0f+FA->ori[1];
-	z[i]=0.0f+FA->ori[2];
+      else if(i==3)
+      {
+      	x[i]=0.0f+FA->ori[0];
+      	y[i]=1.0f+FA->ori[1];
+      	z[i]=0.0f+FA->ori[2];
       }
-      else{
-	x[i]=0.0f+FA->ori[0];
-	y[i]=0.0f+FA->ori[1];
-	z[i]=0.0f+FA->ori[2];
+      else
+      {
+      	x[i]=0.0f+FA->ori[0];
+      	y[i]=0.0f+FA->ori[1];
+      	z[i]=0.0f+FA->ori[2];
       }	
 
       // perturb atom coordinates

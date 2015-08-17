@@ -87,7 +87,7 @@ class FastOPTICS
 		
 		// private methods
 		void ExpandClusterOrder(int);
-		// void Clusterize();
+		void normalizeDistances();
 	
 
 	protected:

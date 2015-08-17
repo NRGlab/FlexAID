@@ -30,13 +30,13 @@ inline bool const ClusterOrdering::operator==(const ClusterOrdering& rhs)
 inline bool const ClusterOrdering::operator< (const ClusterOrdering& rhs)
 {
 	if(this->reachability > rhs.reachability || isUndefinedDist(this->reachability))
-			return false;
+			return true;
 		else if(this->reachability < rhs.reachability)
-			return true;
-		if(this->objectID > rhs.objectID)
-			return true;
-		else if(this->objectID < rhs.objectID)
 			return false;
+		if(this->objectID > rhs.objectID)
+			return false;
+		else if(this->objectID < rhs.objectID)
+			return true;
 		// if nothing else is true, return 0
 		return 0;
 }
@@ -103,10 +103,10 @@ void FastOPTICS::Execute_FastOPTICS()
 	
 	// Build object, compute projections, density estimates and density neighborhoods (in serial order of function calls below)
 	RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities MultiPartition(this->points, this->minPoints, this);
-	MultiPartition.RandomProjectedNeighborsAndDensities::computeSetBounds(ptInd);
-	MultiPartition.RandomProjectedNeighborsAndDensities::getInverseDensities(this->inverseDensities);
-	MultiPartition.RandomProjectedNeighborsAndDensities::getNeighbors(this->neighbors);
-
+	MultiPartition.computeSetBounds(ptInd);
+	MultiPartition.getInverseDensities(this->inverseDensities);
+	MultiPartition.getNeighbors(this->neighbors);
+    
 	// Compute OPTICS ordering
 	for(int ipt = 0; ipt < this->N; ipt++)
     {
@@ -116,7 +116,7 @@ void FastOPTICS::Execute_FastOPTICS()
     //  points pairs contain :
     //   first  -> pair<chromosome*, index>
     //   second -> float reachDist
-
+    this->normalizeDistances();
 	for(int i = 0; i < this->N; ++i)
 	{
 		//
@@ -166,7 +166,7 @@ void FastOPTICS::output_OPTICS(char* end_strfile, char* tmp_end_strfile)
 		for(std::vector<Pose>::iterator it = this->OPTICS.begin(); it != this->OPTICS.end(); ++it)
 		{
             if(!isUndefinedDist(it->reachDist)) fprintf(outfile, "%d\t%g\t%g\n", it->order, it->reachDist, it->CF);
-            else fprintf(outfile, "%d\t%g\t%g\n", it->order, 1.1f, it->CF);
+            else fprintf(outfile, "%d\t%g\t%g\n", it->order, UNDEFINED_DIST, it->CF);
 		}
    }
    CloseFile_B(&outfile,"w");;//fclose(outfile);
@@ -185,38 +185,41 @@ std::vector<float> FastOPTICS::Vectorized_Chromosome(chromosome* chrom)
 			for(int i = 0; i < 3; ++i)
 			{
 				// vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
-				if(i == 0) vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i]);// * 0.1;
+				if(i == 0)
+				{
+                    vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
+//					vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].dis);
+//                    vChrom[i] *= vChrom[i];
+				}
 				if(i == 1)
 				{
-					 vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i]);// * 0.1;
+					vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
+//					vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].ang);
 //					vChrom[i] = static_cast<float>( RandomDouble( (*chrom).genes[j].to_int32) );
+//                    vChrom[i] *= vChrom[i];
 				}
 				if(i == 2)
 				{
-					 vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i]);// * 0.1;
+                    vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
+//					vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].dih);
 //					vChrom[i] = static_cast<float>( genetoic(&this->gene_lim[i],(*chrom).genes[j].to_int32) );
+//                    vChrom[i] *= vChrom[i];
 				}
                 norm += vChrom[i]*vChrom[i];
 			}
-           // space_norm = sqrtf(space_norm);
-           // for(int i = 0; i < 3; ++i)
-           // {
-           //     vChrom[i] /= space_norm;
-           //     norm += vChrom[i]*vChrom[i];
-           // }
 		}
 		else
 		{
 			// j+2 is used from {j = 1 to N} to build further comp. of genes[j]
 			// vChrom[j+2] = static_cast<float>(genetoic(&gene_lim[j], (*chrom).genes[j].to_int32));
-			// vChrom[j+2] = static_cast<float>((*chrom).genes[j].to_ic);
-			vChrom[j+2] = static_cast<float>( RandomDouble( (*chrom).genes[j].to_int32) );
+			vChrom[j+2] = static_cast<float>((*chrom).genes[j].to_ic);
+			// vChrom[j+2] = static_cast<float>( RandomDouble( (*chrom).genes[j].to_int32) );
             norm += vChrom[j+2]*vChrom[j+2];
 		}
 	}
     
-  norm = sqrtf(norm);
-  for(int k = 0; k < this->nDimensions; ++k) { vChrom[k]/=norm; }
+  // norm = sqrtf(norm);
+  // for(int k = 0; k < this->nDimensions; ++k) { vChrom[k]/=norm; }
    
    return vChrom;
 }
@@ -552,6 +555,14 @@ void RandomProjectedNeighborsAndDensities::getNeighbors(std::vector< std::vector
 	}
 }
 
+void FastOPTICS::normalizeDistances()
+{
+	float max = 0.0f;
+	std::vector<float> & Distances = this->reachDist;
+	for(std::vector<float>::iterator it = Distances.begin(); it != Distances.end(); ++it) if(*it > max && !isUndefinedDist(*it)) max = *it;
+	for(std::vector<float>::iterator it = Distances.begin(); it != Distances.end(); ++it) if(!isUndefinedDist(*it)) *it /= max;
+}
+
 std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_Normalized_Vector()
 {
 	std::vector<float> vChrom(this->nDimensions, 0.0f);
@@ -568,26 +579,35 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_Normalized_V
 		if(j == 0) //  building the first 3 comp. from genes[0] which are CartCoord x,y,z
 		{
             double doubleGeneIC = genetoic(&this->top->gene_lim[j],random_dice());
-//            float space_norm = 0.0f;
             for(int i = 0; i < 3; ++i)
 			{
 				// vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].coor[i] - this->top-÷>FA->ori[i]);
-				if(i == 0) vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].coor[i]);// * 0.1);
-				if(i == 1) vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].coor[i]);// * 0.1);
-				if(i == 2) vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].coor[i]);// * 0.1);
+				if(i == 0)
+				{
+					vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].coor[i] - this->top->FA->ori[i]);
+//					vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].dis);
+//                    vChrom[i] *= vChrom[i];
+				}
+				if(i == 1)
+				{
+                    vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].coor[i] - this->top->FA->ori[i]);
+//					vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].ang);
+//                    vChrom[i] *= vChrom[i];
+				}
+				if(i == 2)
+				{
+                    vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].coor[i] - this->top->FA->ori[i]);
+//					vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].dih);
+//                    vChrom[i] *= vChrom[i];
+				}
 				sum += vChrom[i]*vChrom[i];
 			}
-            // space_norm = sqrtf(space_norm);
-            // for(int i = 0; i < 3; ++i)
-            // {
-            //     vChrom[i] /= space_norm;
-            //     sum += vChrom[i]*vChrom[i];
-            // }
 		}
 		else
 		{
 			// j+2 is used from {j = 1 to N} to build further comp. of genes[j]
-			vChrom[j+2] = static_cast<float>(RandomDouble(random_dice()));
+			// vChrom[j+2] = static_cast<float>(RandomDouble(random_dice()));
+			vChrom[j+2] = static_cast<float>(genetoic(&this->top->gene_lim[j],random_dice()));
 			sum += vChrom[j+2]*vChrom[j+2];
 		}
 	}
