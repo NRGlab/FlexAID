@@ -6,7 +6,7 @@ void FastOPTICS_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome*
 	BindingPopulation::BindingPopulation Population(FA,GB,VC,chrom,gene_lim,atoms,residue,cleftgrid,nChrom);
 	
     // FastOPTICS() : calling FastOPTICS constructor
-    FastOPTICS::FastOPTICS Algo(FA, GB, VC, chrom, gene_lim, cleftgrid, nChrom, Population);
+    FastOPTICS::FastOPTICS Algo(FA, GB, VC, chrom, gene_lim, atoms, residue, cleftgrid, nChrom, Population);
     
     // 	1. Partition Sets using Random Vectorial Projections
     // 	2. Calculate Neighborhood

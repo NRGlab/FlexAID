@@ -14,6 +14,8 @@
 bool definitelyGreaterThan(float a, float b, float epsilon);
 bool definitelyLessThan(float a, float b, float epsilon);
 
+float normalize_IC_interval(const genlim* gene_lim, float dist);
+
 struct ClusterOrdering
 {
 	int objectID;
@@ -42,13 +44,13 @@ struct ClusterOrderingComparator
 		// 	return 1;
 
 		if(pose1.reachability > pose2.reachability || isUndefinedDist(pose1.reachability))
-			return false;
+			return true;
 		else if(pose1.reachability < pose2.reachability)
-			return true;
-		if(pose1.objectID > pose2.objectID)
-			return true;
-		else if(pose1.objectID < pose2.objectID)
 			return false;
+		if(pose1.objectID > pose2.objectID)
+			return false;
+		else if(pose1.objectID < pose2.objectID)
+			return true;
 
 		// if nothing else is true, return 0
 		return 0;
@@ -63,9 +65,10 @@ class FastOPTICS
 	friend class RandomProjectedNeighborsAndDensities;
 	
 	public:
-		FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, gridpoint* cleftgrid, int nChrom, BindingPopulation&); // Constructor (publicly called from FlexAID's *_cluster.cxx)
-		void Execute_FastOPTICS();
-        void output_OPTICS(char* end_strfile, char* tmp_end_strfile);
+		explicit 	FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, BindingPopulation&); // Constructor (publicly called from FlexAID's *_cluster.cxx)
+		void 		Execute_FastOPTICS();
+        void 		output_OPTICS(char* end_strfile, char* tmp_end_strfile);
+		float 		compute_distance(std::pair< chromosome*,std::vector<float> > &, std::pair< chromosome*,std::vector<float> > &);
     
 	private:
 		// FlexAID specific attributes
@@ -86,8 +89,8 @@ class FastOPTICS
 		BindingPopulation* Population;
 		
 		// private methods
-		void ExpandClusterOrder(int);
-		void normalizeDistances();
+		void 	ExpandClusterOrder(int);
+		void 	normalizeDistances();
 	
 
 	protected:
@@ -97,11 +100,10 @@ class FastOPTICS
 		const VC_Global* VC;			// pointer to VC_Global struct
 		const chromosome* chroms;		// pointer to chromosomes' array
 		const genlim* gene_lim;		// pointer to gene_lim genlim array (useful for bondaries defined for each gene)
-		// const atom* atoms;				// pointer to atoms' array
-		// const resid* residue;			// pointer to residues' array
+		atom* atoms;				// pointer to atoms' array
+		resid* residue;			// pointer to residues' array
 		const gridpoint* cleftgrid;	// pointer to gridpoints' array (defining the total search space of the simulation)
 		std::vector<float> 				Vectorized_Chromosome(chromosome* chrom);
-		float							compute_distance(std::pair< chromosome*,std::vector<float> > &, std::pair< chromosome*,std::vector<float> > &);
 };
 
 /*****************************************\
@@ -112,7 +114,7 @@ class RandomProjectedNeighborsAndDensities
 	friend class FastOPTICS;
 	
 	public:
-		RandomProjectedNeighborsAndDensities(std::vector< std::pair< chromosome*,std::vector<float> > >&, int, FastOPTICS*); // Constructor (publicly called from FlexAID *_cluster.cxx)
+		explicit RandomProjectedNeighborsAndDensities(std::vector< std::pair< chromosome*,std::vector<float> > >&, int, FastOPTICS*); // Constructor (publicly called from FlexAID *_cluster.cxx)
 	
 	private:
 		// private attributes

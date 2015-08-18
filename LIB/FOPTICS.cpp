@@ -10,12 +10,19 @@ bool definitelyLessThan(float a, float b, float epsilon)
     return (b - a) > ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
 }
 
-ClusterOrdering::ClusterOrdering(int id, int predID, float reach) : objectID(id), predecessorID(predID), reachability(reach)
+//Normalizes any number to an arbitrary range 
+//by assuming the range wraps around when going below min or above max 
+float normalize_IC_interval(const genlim* gene_lim, float value)
 {
-	// this->objectID = id;
-	// this->predecessorID = predID;
-	// this->reachability = reach;
+	float start = gene_lim->min;
+	float end = gene_lim->max;
+	float width = end - start;
+	float offsetValue = value - start; // value relative to 0
+	return ( offsetValue - ( floor( offsetValue / width) * width) ) + start;
 }
+
+ClusterOrdering::ClusterOrdering(int id, int predID, float reach) : objectID(id), predecessorID(predID), reachability(reach)
+{}
 
 inline bool const ClusterOrdering::operator==(const ClusterOrdering& rhs)
 {
@@ -30,13 +37,13 @@ inline bool const ClusterOrdering::operator==(const ClusterOrdering& rhs)
 inline bool const ClusterOrdering::operator< (const ClusterOrdering& rhs)
 {
 	if(this->reachability > rhs.reachability || isUndefinedDist(this->reachability))
-			return true;
+			return false;
 		else if(this->reachability < rhs.reachability)
-			return false;
-		if(this->objectID > rhs.objectID)
-			return false;
-		else if(this->objectID < rhs.objectID)
 			return true;
+		if(this->objectID > rhs.objectID)
+			return true;
+		else if(this->objectID < rhs.objectID)
+			return false;
 		// if nothing else is true, return 0
 		return 0;
 }
@@ -45,23 +52,25 @@ inline bool const ClusterOrdering::operator< (const ClusterOrdering& rhs)
 \*****************************************/
 // Constructor and Algorithm main+only call
 int FastOPTICS::iOrder;
-FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, gridpoint* cleftgrid, int num_chrom, BindingPopulation& Population)
+FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, BindingPopulation& Population)
 {	
 // Declarations
 	///////////////////////////////////////////////////////
 	// Entropy
 	this->Population = &Population;
 	// FlexAID
-	this->N = num_chrom;
+	this->N = nChrom;
 //	this->minPoints = 22;
     this->minPoints = static_cast<int>( floor(this->N * 0.0025) );
 	this->FA = FA;
 	this->GB = GB;
 	this->VC = VC;
 	this->cleftgrid = cleftgrid;
+	this->atoms = atoms;
+	this->residue = residue;
 	this->nDimensions = this->FA->npar + 2; // 3 Dim for first gene (translational) + 1 Dim per gene = nGenes + 2
 	this->chroms = chrom;
-	this->gene_lim = gene_lim;
+	this->gene_lim = gen_lim;
 
 	// FastOPTICS
 	FastOPTICS::iOrder = 0;
@@ -89,7 +98,7 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 		}
 	}
 
-}
+};
 
 void FastOPTICS::Execute_FastOPTICS()
 {
@@ -269,7 +278,12 @@ float FastOPTICS::compute_distance(std::pair< chromosome*,std::vector<float> > &
 	// simple distance calculation below
 	for(int i = 0; i < this->nDimensions; ++i)
 	{
-        distance += (a.second[i]-b.second[i]) * (a.second[i]-b.second[i]);
+		float tempDist = (a.second[i]-b.second[i]);
+		if(i > 2 && this->FA->map_par[i-2].typ > 0)
+		{
+			tempDist = normalize_IC_interval(&this->gene_lim[i-2],tempDist);
+		}
+        distance +=  tempDist * tempDist;
 	}
 
    	if(boost::math::isfinite(distance))
