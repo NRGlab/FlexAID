@@ -1,4 +1,5 @@
 #include "FOPTICS.h"
+#include "gaboom.h"
 
 bool definitelyGreaterThan(float a, float b, float epsilon)
 {
@@ -60,15 +61,16 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 	this->Population = &Population;
 	// FlexAID
 	this->N = nChrom;
-//	this->minPoints = 22;
-    this->minPoints = static_cast<int>( floor(this->N * 0.0025) );
+	this->minPoints = 22;
+//    this->minPoints = static_cast<int>( floor(this->N * 0.0025) );
 	this->FA = FA;
 	this->GB = GB;
 	this->VC = VC;
 	this->cleftgrid = cleftgrid;
 	this->atoms = atoms;
 	this->residue = residue;
-	this->nDimensions = this->FA->npar + 2; // 3 Dim for first gene (translational) + 1 Dim per gene = nGenes + 2
+	// this->nDimensions = this->FA->npar + 2; 	// use with Vectorized_Chromosome()
+	this->nDimensions = this->FA->num_het_atm*3;	// use with Vectorized_Cartesian_Coordinates()
 	this->chroms = chrom;
 	this->gene_lim = gen_lim;
 
@@ -84,7 +86,8 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 	for(int i = 0; i < this->N; ++i)
 	{
 		// need to transform the chromosomes into vector f
-		std::vector<float> vChrom(this->FastOPTICS::Vectorized_Chromosome(&chrom[i])); // Copy constructor
+		// std::vector<float> vChrom(this->FastOPTICS::Vectorized_Chromosome(&chrom[i])); // Copy constructor
+		std::vector<float> vChrom( this->Vectorized_Cartesian_Coordinates(i) ); // Copy constructor
 		if(vChrom.size() == this->nDimensions)
 		{
 			// std::pair<first, second> is pushed to this->points[]
@@ -121,11 +124,14 @@ void FastOPTICS::Execute_FastOPTICS()
     {
 		if(!this->processed[ipt]) this->ExpandClusterOrder(ipt);
     }
+    
+    // Would it be useful to normalize 'reachability distance' ?
+    //this->normalizeDistances();
+    
 	// Order chromosome and their reachDist in OPTICS
     //  points pairs contain :
     //   first  -> pair<chromosome*, index>
     //   second -> float reachDist
-    this->normalizeDistances();
 	for(int i = 0; i < this->N; ++i)
 	{
 		//
@@ -143,8 +149,10 @@ void FastOPTICS::Execute_FastOPTICS()
  	BindingMode::BindingMode current(this->Population);
 	for(std::vector< Pose >::iterator it = this->OPTICS.begin(); it != this->OPTICS.end(); ++i, ++it)
 	{
-        if(it->reachDist < 0.3) current.add_Pose(*it);
-	   	if(it->reachDist >= 0.3 || isUndefinedDist(it->reachDist))
+        // if(it->reachDist < 0.3) current.add_Pose(*it);
+        if(it->reachDist < this->FA->cluster_rmsd) current.add_Pose(*it);
+	   	// if(it->reachDist >= 0.3 || isUndefinedDist(it->reachDist))
+	   	if(it->reachDist >= this->FA->cluster_rmsd || isUndefinedDist(it->reachDist))
         {
 			if(current.get_BindingMode_size() > 1)
 			{
@@ -190,29 +198,28 @@ std::vector<float> FastOPTICS::Vectorized_Chromosome(chromosome* chrom)
 	{
 		if(j == 0) //  building the first 3 comp. from genes[0] which are CartCoord x,y,z
 		{
-//            float space_norm = 0.0f;
 			for(int i = 0; i < 3; ++i)
 			{
 				// vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
 				if(i == 0)
 				{
                     vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
-//					vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].dis);
-//                    vChrom[i] *= vChrom[i];
+					// vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].dis);
+					// vChrom[i] *= vChrom[i];
 				}
 				if(i == 1)
 				{
 					vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
-//					vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].ang);
-//					vChrom[i] = static_cast<float>( RandomDouble( (*chrom).genes[j].to_int32) );
-//                    vChrom[i] *= vChrom[i];
+					// vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].ang);
+					// vChrom[i] = static_cast<float>( RandomDouble( (*chrom).genes[j].to_int32) );
+					// vChrom[i] *= vChrom[i];
 				}
 				if(i == 2)
 				{
                     vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
-//					vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].dih);
-//					vChrom[i] = static_cast<float>( genetoic(&this->gene_lim[i],(*chrom).genes[j].to_int32) );
-//                    vChrom[i] *= vChrom[i];
+					// vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].dih);
+					// vChrom[i] = static_cast<float>( genetoic(&this->gene_lim[i],(*chrom).genes[j].to_int32) );
+					// vChrom[i] *= vChrom[i];
 				}
                 norm += vChrom[i]*vChrom[i];
 			}
@@ -231,6 +238,95 @@ std::vector<float> FastOPTICS::Vectorized_Chromosome(chromosome* chrom)
   // for(int k = 0; k < this->nDimensions; ++k) { vChrom[k]/=norm; }
    
    return vChrom;
+}
+
+std::vector<float> FastOPTICS::Vectorized_Cartesian_Coordinates(int chrom_index)
+{
+	int i = 0,j = 0,l = 0,m = 0;
+	int cat;
+	int rot;
+
+	uint grd_idx;
+	int normalmode=-1;
+	int rot_idx=0;
+
+    std::vector<float> vChrom(this->nDimensions);
+
+	int npar = this->GB->num_genes;
+	
+	j = chrom_index;
+
+	for(i=0;i<npar;i++){ this->FA->opt_par[i] = this->chroms[j].genes[i].to_ic; }
+
+	for(i=0;i<npar;i++)
+	{
+		//printf("[%8.3f]",FA->opt_par[i]);
+  
+		if(this->FA->map_par[i].typ==-1) 
+		{ //by index
+			grd_idx = (uint)this->FA->opt_par[i];
+			//printf("this->FA->opt_par(index): %d\n", grd_idx);
+			//PAUSE;
+			this->atoms[this->FA->map_par[i].atm].dis = this->cleftgrid[grd_idx].dis;
+			this->atoms[this->FA->map_par[i].atm].ang = this->cleftgrid[grd_idx].ang;
+			this->atoms[this->FA->map_par[i].atm].dih = this->cleftgrid[grd_idx].dih;
+
+		}
+		else if(this->FA->map_par[i].typ == 0)
+		{
+			this->atoms[this->FA->map_par[i].atm].dis = (float)this->FA->opt_par[i];
+		}
+		else if(this->FA->map_par[i].typ == 1)
+		{
+			this->atoms[this->FA->map_par[i].atm].ang = (float)this->FA->opt_par[i];
+		}
+		else if(this->FA->map_par[i].typ == 2)
+		{
+			this->atoms[this->FA->map_par[i].atm].dih = (float)this->FA->opt_par[i];
+
+			j=this->FA->map_par[i].atm;
+			cat=this->atoms[j].rec[3];
+			if(cat != 0)
+			{
+				while(cat != this->FA->map_par[i].atm)
+				{
+					this->atoms[cat].dih=this->atoms[j].dih + this->atoms[cat].shift; 
+					j=cat;
+					cat=this->atoms[j].rec[3];
+				}
+			}
+		}else if(this->FA->map_par[i].typ == 3)
+		{ //by index
+			grd_idx = (uint)this->FA->opt_par[i];
+
+			// serves as flag , but also as grid index
+			normalmode=grd_idx;
+
+		}else if(this->FA->map_par[i].typ == 4)
+		{
+			rot_idx = (int)(this->FA->opt_par[i]+0.5);
+
+			this->residue[this->atoms[this->FA->map_par[i].atm].ofres].rot=rot_idx;
+		}
+  
+	}
+
+	if(normalmode > -1) alter_mode(this->atoms,this->residue,this->FA->normal_grid[normalmode],this->FA->res_cnt,this->FA->normal_modes);
+
+	/* rebuild cartesian coordinates of optimized residues*/
+    for(i=0;i<this->FA->nors;i++) buildcc(this->FA,this->atoms,this->FA->nmov[i],this->FA->mov[i]);
+
+	// residue that is optimized geometrically (ligand)
+	l=this->atoms[this->FA->map_par[0].atm].ofres;
+
+	rot=this->residue[l].rot;
+    m=0;
+	for(i=this->residue[l].fatm[rot];i<=this->residue[l].latm[rot];i++)
+	{
+		for(j=0;j<3;j++) vChrom[m*3+j] = this->atoms[i].coor[j];
+        ++m;
+	}
+	return vChrom;
 }
 
 void FastOPTICS::ExpandClusterOrder(int ipt)
@@ -279,10 +375,10 @@ float FastOPTICS::compute_distance(std::pair< chromosome*,std::vector<float> > &
 	for(int i = 0; i < this->nDimensions; ++i)
 	{
 		float tempDist = (a.second[i]-b.second[i]);
-		if(i > 2 && this->FA->map_par[i-2].typ > 0)
-		{
-			tempDist = normalize_IC_interval(&this->gene_lim[i-2],tempDist);
-		}
+//		if(i > 2 && this->FA->map_par[i-2].typ > 0)
+//		{
+//			tempDist = normalize_IC_interval(&this->gene_lim[i-2],tempDist);
+//		}
         distance +=  tempDist * tempDist;
 	}
 
@@ -346,8 +442,8 @@ void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > &
 	// perform projection of points
 	for(int j = 0; j<this->nProject1D; ++j)
 	{
-		std::vector<float> currentRp = this->Randomized_Normalized_Vector();
-
+        //std::vector<float> currentRp = this->Randomized_InternalCoord_Vector();
+        std::vector<float> currentRp = this->Randomized_CartesianCoord_Vector();
 		int k = 0;
 		std::vector<int>::iterator it = ptList.begin();
 		while(it != ptList.end())
@@ -577,7 +673,7 @@ void FastOPTICS::normalizeDistances()
 	for(std::vector<float>::iterator it = Distances.begin(); it != Distances.end(); ++it) if(!isUndefinedDist(*it)) *it /= max;
 }
 
-std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_Normalized_Vector()
+std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_InternalCoord_Vector()
 {
 	std::vector<float> vChrom(this->nDimensions, 0.0f);
     // random_dice() declaration
@@ -628,6 +724,108 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_Normalized_V
 	sum = sqrtf(sum);
 	for(int k = 0; k < this->nDimensions; ++k) { vChrom[k]/=sum; }
 
+    
+	return vChrom;
+}
+
+std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_CartesianCoord_Vector()
+{
+    // random_dice() declaration
+    unsigned int tt = static_cast<unsigned int>(time(0));
+    srand(tt);
+    RNGType rng(tt);
+    boost::uniform_int<> one_to_max_int32( 0, MAX_RANDOM_VALUE );
+    boost::variate_generator< RNGType, boost::uniform_int<> > random_dice(rng, one_to_max_int32);
+    // end random_dice()
+    
+    // float norm = 0.0f;
+
+    int i = 0,j = 0,l = 0,m = 0;
+	int cat;
+	int rot;
+
+	uint grd_idx;
+	int normalmode=-1;
+	int rot_idx=0;
+
+    std::vector<float> vChrom(this->nDimensions);
+
+	int npar = this->top->GB->num_genes;
+
+	for(i=0;i<npar;i++){ this->top->FA->opt_par[i] = genetoic(&this->top->gene_lim[i],random_dice()); }
+
+	for(i=0;i<npar;i++)
+	{
+  
+		if(this->top->FA->map_par[i].typ==-1) 
+		{ //by index
+			grd_idx = (uint)this->top->FA->opt_par[i];
+
+			this->top->atoms[this->top->FA->map_par[i].atm].dis = this->top->cleftgrid[grd_idx].dis;
+			this->top->atoms[this->top->FA->map_par[i].atm].ang = this->top->cleftgrid[grd_idx].ang;
+			this->top->atoms[this->top->FA->map_par[i].atm].dih = this->top->cleftgrid[grd_idx].dih;
+
+		}
+		else if(this->top->FA->map_par[i].typ == 0)
+		{
+			this->top->atoms[this->top->FA->map_par[i].atm].dis = (float)this->top->FA->opt_par[i];
+		}
+		else if(this->top->FA->map_par[i].typ == 1)
+		{
+			this->top->atoms[this->top->FA->map_par[i].atm].ang = (float)this->top->FA->opt_par[i];
+		}
+		else if(this->top->FA->map_par[i].typ == 2)
+		{
+			this->top->atoms[this->top->FA->map_par[i].atm].dih = (float)this->top->FA->opt_par[i];
+
+			j=this->top->FA->map_par[i].atm;
+			cat=this->top->atoms[j].rec[3];
+			if(cat != 0)
+			{
+				while(cat != this->top->FA->map_par[i].atm)
+				{
+					this->top->atoms[cat].dih=this->top->atoms[j].dih + this->top->atoms[cat].shift; 
+					j=cat;
+					cat=this->top->atoms[j].rec[3];
+				}
+			}
+		}else if(this->top->FA->map_par[i].typ == 3)
+		{ //by index
+			grd_idx = (uint)this->top->FA->opt_par[i];
+
+			// serves as flag , but also as grid index
+			normalmode=grd_idx;
+
+		}else if(this->top->FA->map_par[i].typ == 4)
+		{
+			rot_idx = (int)(this->top->FA->opt_par[i]+0.5);
+
+			this->top->residue[this->top->atoms[this->top->FA->map_par[i].atm].ofres].rot=rot_idx;
+		}
+  
+	}
+
+	if(normalmode > -1) alter_mode(this->top->atoms,this->top->residue,this->top->FA->normal_grid[normalmode],this->top->FA->res_cnt,this->top->FA->normal_modes);
+
+	/* rebuild cartesian coordinates of optimized residues*/
+    for(i=0;i<this->top->FA->nors;i++) buildcc(this->top->FA,this->top->atoms,this->top->FA->nmov[i],this->top->FA->mov[i]);
+
+	// residue that is optimized geometrically (ligand)
+	l=this->top->atoms[this->top->FA->map_par[0].atm].ofres;
+
+	rot=this->top->residue[l].rot;
+    m=0;
+	for(i=this->top->residue[l].fatm[rot];i<=this->top->residue[l].latm[rot];i++)
+	{
+		for(j=0;j<3;j++)
+		{
+			vChrom[m*3+j] = this->top->atoms[i].coor[j];
+			// norm += vChrom[m*3+j]*vChrom[m*3+j];
+		}
+        ++m;
+	}
+	// norm = sqrtf(norm);
+	// for(i = 0; i < this->nDimensions; ++i) vChrom[i] /= norm;
 	return vChrom;
 }
 

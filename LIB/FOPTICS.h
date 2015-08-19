@@ -95,15 +95,16 @@ class FastOPTICS
 
 	protected:
 		// protected methods to be used by RandomProjectedNeighborsAndDensities::methods()
-		const FA_Global* FA;			// pointer to FA_Global struct
-		const GB_Global* GB;			// pointer to GB_Global struct
-		const VC_Global* VC;			// pointer to VC_Global struct
-		const chromosome* chroms;		// pointer to chromosomes' array
+	/*const*/ FA_Global* FA;		// pointer to FA_Global struct
+		const GB_Global* GB;		// pointer to GB_Global struct
+		const VC_Global* VC;		// pointer to VC_Global struct
+		const chromosome* chroms;	// pointer to chromosomes' array
 		const genlim* gene_lim;		// pointer to gene_lim genlim array (useful for bondaries defined for each gene)
 		atom* atoms;				// pointer to atoms' array
-		resid* residue;			// pointer to residues' array
+		resid* residue;				// pointer to residues' array
 		const gridpoint* cleftgrid;	// pointer to gridpoints' array (defining the total search space of the simulation)
-		std::vector<float> 				Vectorized_Chromosome(chromosome* chrom);
+		std::vector<float> 			Vectorized_Chromosome(chromosome* chrom);
+		std::vector<float>			Vectorized_Cartesian_Coordinates(int chrom_index);
 };
 
 /*****************************************\
@@ -141,7 +142,8 @@ class RandomProjectedNeighborsAndDensities
 		void 								computeSetBounds(std::vector< int >&);
 		void								getInverseDensities(std::vector<float> &);
 		void								getNeighbors(std::vector< std::vector< int > > &);
-		std::vector<float> 					Randomized_Normalized_Vector();
+		std::vector<float> 					Randomized_InternalCoord_Vector();
+        std::vector<float>                  Randomized_CartesianCoord_Vector();
 		int 								Dice();
 };
 #endif
