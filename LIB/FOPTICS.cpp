@@ -60,22 +60,23 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 	// Entropy
 	this->Population = &Population;
 	// FlexAID
+    this->FA = FA;
+    this->GB = GB;
+    this->VC = VC;
+    this->cleftgrid = cleftgrid;
+    this->atoms = atoms;
+    this->residue = residue;
+    this->chroms = chrom;
+    this->gene_lim = gen_lim;
 	this->N = nChrom;
-	this->minPoints = 22;
-//    this->minPoints = static_cast<int>( floor(this->N * 0.0025) );
-	this->FA = FA;
-	this->GB = GB;
-	this->VC = VC;
-	this->cleftgrid = cleftgrid;
-	this->atoms = atoms;
-	this->residue = residue;
-	// this->nDimensions = this->FA->npar + 2; 	// use with Vectorized_Chromosome()
-	this->nDimensions = this->FA->num_het_atm*3;	// use with Vectorized_Cartesian_Coordinates()
-	this->chroms = chrom;
-	this->gene_lim = gen_lim;
-
+    
 	// FastOPTICS
-	FastOPTICS::iOrder = 0;
+    this->nDimensions = this->FA->num_het_atm*3;	// use with Vectorized_Cartesian_Coordinates()
+    // this->nDimensions = this->FA->npar + 2; 	// use with Vectorized_Chromosome()
+    // this->minPoints = this->nDimensions;
+    this->minPoints = static_cast<int>( floor(this->N * 0.005) );
+    // this->minPoints = 13;
+    FastOPTICS::iOrder = 0;
 	this->order.reserve(this->N);
 	this->reachDist.reserve(this->N);
 	this->processed.reserve(this->N);
@@ -126,7 +127,7 @@ void FastOPTICS::Execute_FastOPTICS()
     }
     
     // Would it be useful to normalize 'reachability distance' ?
-    //this->normalizeDistances();
+    this->normalizeDistances();
     
 	// Order chromosome and their reachDist in OPTICS
     //  points pairs contain :
@@ -149,10 +150,11 @@ void FastOPTICS::Execute_FastOPTICS()
  	BindingMode::BindingMode current(this->Population);
 	for(std::vector< Pose >::iterator it = this->OPTICS.begin(); it != this->OPTICS.end(); ++i, ++it)
 	{
-        // if(it->reachDist < 0.3) current.add_Pose(*it);
-        if(it->reachDist < this->FA->cluster_rmsd) current.add_Pose(*it);
-	   	// if(it->reachDist >= 0.3 || isUndefinedDist(it->reachDist))
-	   	if(it->reachDist >= this->FA->cluster_rmsd || isUndefinedDist(it->reachDist))
+		if(isUndefinedDist(it->reachDist) && it->order == 0) current.add_Pose(*it);
+        while(it->reachDist < 0.33) { current.add_Pose(*it); ++it; ++i; }
+//        while(it->reachDist <= this->FA->cluster_rmsd+0.5f) { current.add_Pose(*it); ++it; ++i; }
+        if(it->reachDist >= 0.4 || isUndefinedDist(it->reachDist))
+//        if(it->reachDist > this->FA->cluster_rmsd+0.66f || isUndefinedDist(it->reachDist))
         {
 			if(current.get_BindingMode_size() > 1)
 			{
@@ -443,7 +445,7 @@ void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > &
 	for(int j = 0; j<this->nProject1D; ++j)
 	{
         //std::vector<float> currentRp = this->Randomized_InternalCoord_Vector();
-        std::vector<float> currentRp = this->Randomized_CartesianCoord_Vector();
+        std::vector<float> currentRp(this->Randomized_CartesianCoord_Vector());
 		int k = 0;
 		std::vector<int>::iterator it = ptList.begin();
 		while(it != ptList.end())
@@ -738,7 +740,7 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_CartesianCoo
     boost::variate_generator< RNGType, boost::uniform_int<> > random_dice(rng, one_to_max_int32);
     // end random_dice()
     
-    // float norm = 0.0f;
+    float norm = 0.0f;
 
     int i = 0,j = 0,l = 0,m = 0;
 	int cat;
@@ -820,11 +822,11 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_CartesianCoo
 		for(j=0;j<3;j++)
 		{
 			vChrom[m*3+j] = this->top->atoms[i].coor[j];
-			// norm += vChrom[m*3+j]*vChrom[m*3+j];
+			norm += vChrom[m*3+j]*vChrom[m*3+j];
 		}
         ++m;
 	}
-	// norm = sqrtf(norm);
+	norm = sqrtf(norm);
 	// for(i = 0; i < this->nDimensions; ++i) vChrom[i] /= norm;
 	return vChrom;
 }

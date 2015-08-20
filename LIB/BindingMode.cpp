@@ -39,7 +39,8 @@ int BindingPopulation::get_Population_size() { return this->BindingModes.size();
 void BindingPopulation::output_Population(int nResults, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
 {
     // Output Population information ~= output clusters informations (*.cad)
-
+    
+    
     // Looping through BindingModes
     int num_result = 0;
     if(!nResults) nResults = this->get_Population_size() - 1; // if 0 is sent to this function, output all
