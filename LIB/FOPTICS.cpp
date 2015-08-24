@@ -73,9 +73,11 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 	// FastOPTICS
     this->nDimensions = this->FA->num_het_atm*3;	// use with Vectorized_Cartesian_Coordinates()
     // this->nDimensions = this->FA->npar + 2; 	// use with Vectorized_Chromosome()
-    // this->minPoints = this->nDimensions;
-    this->minPoints = static_cast<int>( floor(this->N * 0.005) );
+    
+    int nPoints = static_cast<int>( floor(this->N * 0.005) );
+    (nPoints < this->nDimensions) ? this->minPoints = nPoints : this->minPoints = nDimensions;
     // this->minPoints = 13;
+    
     FastOPTICS::iOrder = 0;
 	this->order.reserve(this->N);
 	this->reachDist.reserve(this->N);
@@ -127,7 +129,7 @@ void FastOPTICS::Execute_FastOPTICS()
     }
     
     // Would it be useful to normalize 'reachability distance' ?
-    this->normalizeDistances();
+    // this->normalizeDistances();
     
 	// Order chromosome and their reachDist in OPTICS
     //  points pairs contain :
@@ -138,9 +140,9 @@ void FastOPTICS::Execute_FastOPTICS()
 		//
 		if( (this->points[i]).first != NULL && boost::math::isfinite(this->reachDist[i]) && this->order[i] <= this->N && this->order[i] >= 0 && (this->points[i].first)->app_evalue < CLASH_THRESHOLD )
 		{
-			Pose::Pose Pose((this->points[i]).first, i, this->order[i], this->reachDist[i], this->Population->Temperature, (this->points[i]).second);
+            Pose* pPose = new Pose::Pose((this->points[i]).first, i, this->order[i], this->reachDist[i], this->Population->Temperature, (this->points[i]).second);
 			// OPTICS.push(Pose);
-            this->OPTICS.push_back(Pose);
+            this->OPTICS.push_back(pPose);
 		}
 	}
     std::sort(this->OPTICS.begin(),this->OPTICS.end(),PoseClassifier::PoseClassifier());
@@ -148,13 +150,13 @@ void FastOPTICS::Execute_FastOPTICS()
 	// Build BindingModes (aggregation of Poses in BindingModes)
     int i = 0; // used to have an idea of the number of loop completed (iterators are less convenient for that information while debugging)
  	BindingMode::BindingMode current(this->Population);
-	for(std::vector< Pose >::iterator it = this->OPTICS.begin(); it != this->OPTICS.end(); ++i, ++it)
+	for(std::vector< Pose* >::iterator it = this->OPTICS.begin(); it != this->OPTICS.end(); ++i, ++it)
 	{
-		if(isUndefinedDist(it->reachDist) && it->order == 0) current.add_Pose(*it);
-        while(it->reachDist < 0.33) { current.add_Pose(*it); ++it; ++i; }
-//        while(it->reachDist <= this->FA->cluster_rmsd+0.5f) { current.add_Pose(*it); ++it; ++i; }
-        if(it->reachDist >= 0.4 || isUndefinedDist(it->reachDist))
-//        if(it->reachDist > this->FA->cluster_rmsd+0.66f || isUndefinedDist(it->reachDist))
+		if(isUndefinedDist((*it)->reachDist) && (*it)->order == 0) current.add_Pose(*it);
+        // if((*it)->reachDist < 0.33 && i < this->OPTICS.size()) current.add_Pose(*it);
+       if(it->reachDist <= this->FA->cluster_rmsd+0.5f) current.add_Pose(*it);
+        // if((*it)->reachDist >= 0.4 || isUndefinedDist((*it)->reachDist))
+       if(it->reachDist > this->FA->cluster_rmsd+0.66f || isUndefinedDist(it->reachDist))
         {
 			if(current.get_BindingMode_size() > 1)
 			{
@@ -182,10 +184,10 @@ void FastOPTICS::output_OPTICS(char* end_strfile, char* tmp_end_strfile)
 	else
 	{
         fprintf(outfile, "#order\treachDist\tCF\n");
-		for(std::vector<Pose>::iterator it = this->OPTICS.begin(); it != this->OPTICS.end(); ++it)
+		for(std::vector<Pose*>::iterator it = this->OPTICS.begin(); it != this->OPTICS.end(); ++it)
 		{
-            if(!isUndefinedDist(it->reachDist)) fprintf(outfile, "%d\t%g\t%g\n", it->order, it->reachDist, it->CF);
-            else fprintf(outfile, "%d\t%g\t%g\n", it->order, UNDEFINED_DIST, it->CF);
+            if(!isUndefinedDist((*it)->reachDist)) fprintf(outfile, "%d\t%g\t%g\n", (*it)->order, (*it)->reachDist, (*it)->CF);
+            else fprintf(outfile, "%d\t%g\t%g\n", (*it)->order, UNDEFINED_DIST, (*it)->CF);
 		}
    }
    CloseFile_B(&outfile,"w");;//fclose(outfile);
@@ -492,7 +494,7 @@ void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > &
 		}
 
 		//split points set
-		int nPoints = ptList.size();
+		unsigned long nPoints = ptList.size();
 		std::vector<int> ind(nPoints);
 		ind.reserve(nPoints);
 		for(int l = 0; l < nPoints; ++l)

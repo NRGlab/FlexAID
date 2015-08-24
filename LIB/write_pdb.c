@@ -33,7 +33,7 @@ int write_MODEL_pdb(bool isFirst, bool isLast, int nModel, int nBindingMode, FA_
 			write_contributions(FA,outfile_ptr,true);
 			write_contributions(FA,outfile_ptr,false);
 		}
-		fprintf(outfile_ptr,"%14-s%d\n","MODEL",nModel);
+		fprintf(outfile_ptr,"%-14s%d\n","MODEL",nModel);
 		for(int k=1;k<=FA->res_cnt;k++)
 		{
 			rot=residue[k].rot;

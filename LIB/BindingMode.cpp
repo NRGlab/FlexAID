@@ -1,20 +1,20 @@
-#include "BindingMode.h"
+    #include "BindingMode.h"
 
 /*****************************************\
 			BindingPopulation  
 \*****************************************/
 // public (explicitely requires unsigned int temperature) *non-overloadable*
 // BindingPopulation::BindingPopulation(unsigned int temp) : Temperature(temp)
-BindingPopulation::BindingPopulation(FA_Global* pFA, GB_Global* pGB, VC_Global* pVC, chromosome* pchrom, genlim* pgene_lim, atom* patoms, resid* presidue, gridpoint* pcleftgrid, int num_chrom) : Temperature(pFA->temperature), PartitionFunction(0.0), FA(pFA), GB(pGB), VC(pVC), chroms(pchrom), gene_lim(pgene_lim), atoms(patoms), residue(presidue), cleftgrid(pcleftgrid), nChroms(num_chrom)
+BindingPopulation::BindingPopulation(FA_Global* pFA, GB_Global* pGB, VC_Global* pVC, chromosome* pchrom, genlim* pgene_lim, atom* patoms, resid* presidue, gridpoint* pcleftgrid, int num_chrom) : Temperature(pFA->temperature), PartitionFunction(0.0), nChroms(num_chrom), FA(pFA), GB(pGB), VC(pVC), chroms(pchrom), gene_lim(pgene_lim), atoms(patoms), residue(presidue), cleftgrid(pcleftgrid)
 {
 }
 
 
 void BindingPopulation::add_BindingMode(BindingMode& mode)
 {
-	for(std::vector<Pose>::iterator pose = mode.Poses.begin(); pose != mode.Poses.end(); ++pose)
+	for(std::vector<Pose*>::iterator pose = mode.Poses.begin(); pose != mode.Poses.end(); ++pose)
 	{
-		this->PartitionFunction += pose->boltzmann_weight;
+		this->PartitionFunction += (*pose)->boltzmann_weight;
 	}
     mode.set_energy();
 	this->BindingModes.push_back(mode);
@@ -32,7 +32,7 @@ void BindingPopulation::Entropize()
 }
 
 
-int BindingPopulation::get_Population_size() { return this->BindingModes.size(); }
+unsigned long int BindingPopulation::get_Population_size() { return this->BindingModes.size(); }
 
 
 // output BindingMode up to nResults results
@@ -64,7 +64,7 @@ BindingMode::BindingMode(BindingPopulation* pop) : Population(pop), energy(0.0)
 
 
 // public method for pose addition
-void BindingMode::add_Pose(Pose& pose)
+void BindingMode::add_Pose(Pose* pose)
 {
 	this->Poses.push_back(pose);
 }
@@ -74,10 +74,10 @@ double BindingMode::compute_enthalpy() const
 {
 	double enthalpy = 0.0;
 	// compute enthalpy
-	for(std::vector<Pose>::const_iterator pose = this->Poses.begin(); pose != this->Poses.end(); ++pose)
+	for(std::vector<Pose*>::const_iterator pose = this->Poses.begin(); pose != this->Poses.end(); ++pose)
 	{
-		double boltzmann_prob = pose->boltzmann_weight / this->Population->PartitionFunction;
-		enthalpy += boltzmann_prob * pose->CF;
+		double boltzmann_prob = (*pose)->boltzmann_weight / this->Population->PartitionFunction;
+		enthalpy += boltzmann_prob * (*pose)->CF;
 	}
 	return enthalpy;
 }
@@ -87,9 +87,9 @@ double BindingMode::compute_entropy() const
 { 
 	double entropy = 0.0;
 	// compute entropy
-	for(std::vector<Pose>::const_iterator pose = this->Poses.begin(); pose != this->Poses.end(); ++pose)
+	for(std::vector<Pose*>::const_iterator pose = this->Poses.begin(); pose != this->Poses.end(); ++pose)
 	{
-		double boltzmann_prob = pose->boltzmann_weight / this->Population->PartitionFunction;
+		double boltzmann_prob = (*pose)->boltzmann_weight / this->Population->PartitionFunction;
 		entropy += boltzmann_prob * log(boltzmann_prob);
 	}
 	return -entropy; // returning a S value instead of ∆S value. Rendering it negative as in Shannon Entropy (no reference state)
@@ -102,7 +102,7 @@ double BindingMode::compute_energy() const
 }
 
 
-int BindingMode::get_BindingMode_size() const { return this->Poses.size(); }
+unsigned long int BindingMode::get_BindingMode_size() const { return this->Poses.size(); }
 
 
 void BindingMode::clear_Poses() { this->Poses.clear(); }
@@ -113,6 +113,10 @@ void BindingMode::set_energy()
 	this->energy = this->compute_energy();
 }
 
+BindingMode::~BindingMode()
+{
+
+}
 
 void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
 {
@@ -126,12 +130,12 @@ void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tm
     char tmpremark[MAX_REMARK];
 	
     // 0. elect a Pose representative (Rep) of the current BindingMode
-	std::vector<Pose>::const_iterator Rep_lowCF = this->elect_Representative(false);
-	std::vector<Pose>::const_iterator Rep_lowOPTICS = this->elect_Representative(true);
+	std::vector<Pose*>::const_iterator Rep_lowCF = this->elect_Representative(false);
+	std::vector<Pose*>::const_iterator Rep_lowOPTICS = this->elect_Representative(true);
 	
     // 1. build FA->opt_par[GB->num_genes]
-	 for(int k = 0; k < this->Population->GB->num_genes; ++k) this->Population->FA->opt_par[k] = Rep_lowCF->chrom->genes[k].to_ic;
-	 // for(int k = 0; k < this->Population->GB->num_genes; ++k) this->Population->FA->opt_par[k] = Rep_lowOPTICS->chrom->genes[k].to_ic;
+	 for(int k = 0; k < this->Population->GB->num_genes; ++k) this->Population->FA->opt_par[k] = (*Rep_lowCF)->chrom->genes[k].to_ic;
+	 // for(int k = 0; k < this->Population->GB->num_genes; ++k) this->Population->FA->opt_par[k] = (*Rep_lowOPTICS)->chrom->genes[k].to_ic;
 
 	// 2. get CF with ic2cf() 
 	CF = ic2cf(this->Population->FA, this->Population->VC, this->Population->atoms, this->Population->residue, this->Population->cleftgrid, this->Population->GB->num_genes, this->Population->FA->opt_par);
@@ -168,8 +172,8 @@ void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tm
         strcat(remark, tmpremark);
 	}
     
-    sprintf(tmpremark,"REMARK Binding Mode:%d Best CF in Binding Mode:%8.5f OPTICS Center (CF):%8.5f Binding Mode Total CF:%8.5f Binding Mode Frequency:%d\n",
-            num_result, Rep_lowCF->CF, Rep_lowOPTICS->CF, this->compute_energy(), this->get_BindingMode_size());
+    sprintf(tmpremark,"REMARK Binding Mode:%d Best CF in Binding Mode:%8.5f OPTICS Center (CF):%8.5f Binding Mode Total CF:%8.5f Binding Mode Frequency:%lu\n",
+            num_result, (*Rep_lowCF)->CF, (*Rep_lowOPTICS)->CF, this->compute_energy(), this->get_BindingMode_size());
     strcat(remark,tmpremark);
     for(int j=0; j < this->Population->FA->npar; ++j)
 	{
@@ -210,10 +214,10 @@ void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, 
     char remark[MAX_REMARK];
     char tmpremark[MAX_REMARK];
     int nModel = 1;
-    for(std::vector<Pose>::iterator Pose = this->Poses.begin(); Pose != this->Poses.end(); ++Pose, ++nModel)
+    for(std::vector< Pose* >::iterator Pose = this->Poses.begin(); Pose != this->Poses.end(); ++Pose, ++nModel)
     {
     	// 1. build FA->opt_par[GB->num_genes]
-		 for(int k = 0; k < this->Population->GB->num_genes; ++k) this->Population->FA->opt_par[k] = Pose->chrom->genes[k].to_ic;
+		 for(int k = 0; k < this->Population->GB->num_genes; ++k) this->Population->FA->opt_par[k] = (*Pose)->chrom->genes[k].to_ic;
 
 		// 2. get CF with ic2cf() 
 		CF = ic2cf(this->Population->FA, this->Population->VC, this->Population->atoms, this->Population->residue, this->Population->cleftgrid, this->Population->GB->num_genes, this->Population->FA->opt_par);
@@ -293,13 +297,13 @@ void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, 
     }
 }
 
-std::vector<Pose>::const_iterator BindingMode::elect_Representative(bool useOPTICSorder) const
+std::vector< Pose* >::const_iterator BindingMode::elect_Representative(bool useOPTICSorder) const
 {
-	std::vector<Pose>::const_iterator Rep = this->Poses.begin();
-	for(std::vector<Pose>::const_iterator it = this->Poses.begin(); it != this->Poses.end(); ++it)
+	std::vector< Pose* >::const_iterator Rep = this->Poses.begin();
+	for(std::vector< Pose* >::const_iterator it = this->Poses.begin(); it != this->Poses.end(); ++it)
 	{
-		if(!useOPTICSorder && (Rep->CF - it->CF) > DBL_EPSILON ) Rep = it;
-		if(useOPTICSorder && it->reachDist < Rep->reachDist && !isUndefinedDist(it->reachDist)) Rep = it;
+		if(!useOPTICSorder && ((*Rep)->CF - (*it)->CF) > DBL_EPSILON ) Rep = it;
+		if(useOPTICSorder && (*it)->reachDist < (*Rep)->reachDist && !isUndefinedDist((*it)->reachDist)) Rep = it;
 	}
 	return Rep;
 }
@@ -312,11 +316,12 @@ inline bool const BindingMode::operator< (const BindingMode& rhs) { return this-
 				  Pose
 \*****************************************/
 // public constructor for Pose *non-overloadable*
-Pose::Pose(chromosome* chrom, int index, int iorder, float dist, uint temperature, std::vector<float> vec) : chrom(chrom), order(iorder), chrom_index(index), reachDist(dist), CF(chrom->app_evalue), vPose(vec)
+Pose::Pose(chromosome* chrom, int index, int iorder, float dist, uint temperature, std::vector<float> vec) : chrom_index(index), order(iorder), reachDist(dist), chrom(chrom), CF(chrom->app_evalue), vPose(vec)
 {
 	this->boltzmann_weight = pow( E, ((-1.0) * (1/static_cast<double>(temperature)) * chrom->app_evalue) );
 }
 
+Pose::~Pose(){}
 
 inline bool const Pose::operator< (const Pose& rhs)
 {

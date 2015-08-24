@@ -69,29 +69,6 @@ class FastOPTICS
 		void 		Execute_FastOPTICS();
         void 		output_OPTICS(char* end_strfile, char* tmp_end_strfile);
 		float 		compute_distance(std::pair< chromosome*,std::vector<float> > &, std::pair< chromosome*,std::vector<float> > &);
-    
-	private:
-		// FlexAID specific attributes
-		int N;			// N : number of chromosomes to cluster
-		int minPoints;	// minPts : minimal number of neighbors (only parameter in FOPTICS)
-		int nDimensions;
-		
-		// FOPTICS algorithm attributes
-		static int iOrder;
-		std::vector< int > order;
-		std::vector< float > reachDist;
-		std::vector< bool > processed;
-		std::vector< float > inverseDensities;
-		std::vector< std::pair<chromosome*,std::vector<float> > > points;
-		std::vector< std::vector< int > > neighbors;
-        std::vector< Pose > OPTICS;
-		// BindingPopulation is used for clustering purposed
-		BindingPopulation* Population;
-		
-		// private methods
-		void 	ExpandClusterOrder(int);
-		void 	normalizeDistances();
-	
 
 	protected:
 		// protected methods to be used by RandomProjectedNeighborsAndDensities::methods()
@@ -105,6 +82,29 @@ class FastOPTICS
 		const gridpoint* cleftgrid;	// pointer to gridpoints' array (defining the total search space of the simulation)
 		std::vector<float> 			Vectorized_Chromosome(chromosome* chrom);
 		std::vector<float>			Vectorized_Cartesian_Coordinates(int chrom_index);
+    
+	private:
+		// FlexAID specific attributes
+		unsigned long int N;			// N : number of chromosomes to cluster
+		int minPoints;	// minPts : minimal number of neighbors (only parameter in FOPTICS)
+		int nDimensions;
+		
+		// FOPTICS algorithm attributes
+		static int iOrder;
+		std::vector< int > order;
+		std::vector< float > reachDist;
+		std::vector< bool > processed;
+		std::vector< float > inverseDensities;
+		std::vector< std::pair<chromosome*,std::vector<float> > > points;
+		std::vector< std::vector< int > > neighbors;
+        std::vector< Pose* > OPTICS;
+		// BindingPopulation is used for clustering purposed
+		BindingPopulation* Population;
+		
+		// private methods
+		void 	ExpandClusterOrder(int);
+		void 	normalizeDistances();
+	
 };
 
 /*****************************************\
