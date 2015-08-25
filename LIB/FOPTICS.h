@@ -65,11 +65,12 @@ class FastOPTICS
 	friend class RandomProjectedNeighborsAndDensities;
 	
 	public:
-		explicit 	FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, BindingPopulation&); // Constructor (publicly called from FlexAID's *_cluster.cxx)
+		explicit 	FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, BindingPopulation&, int nPoints); // Constructor (publicly called from FlexAID's *_cluster.cxx)
 		void 		Execute_FastOPTICS();
         void 		output_OPTICS(char* end_strfile, char* tmp_end_strfile);
 		float 		compute_distance(std::pair< chromosome*,std::vector<float> > &, std::pair< chromosome*,std::vector<float> > &);
-    
+		float 		compute_vect_distance(std::vector<float> a, std::vector<float> b);
+		int 		get_minPoints();
 	private:
 		// FlexAID specific attributes
 		int N;			// N : number of chromosomes to cluster
@@ -77,7 +78,7 @@ class FastOPTICS
 		int nDimensions;
 		
 		// FOPTICS algorithm attributes
-		static int iOrder;
+		int iOrder;
 		std::vector< int > order;
 		std::vector< float > reachDist;
 		std::vector< bool > processed;

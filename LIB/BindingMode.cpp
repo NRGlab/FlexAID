@@ -18,7 +18,7 @@ void BindingPopulation::add_BindingMode(BindingMode& mode)
 	}
     mode.set_energy();
 	this->BindingModes.push_back(mode);
-	this->Entropize();
+    this->Entropize();
 }
 
 
@@ -36,7 +36,7 @@ int BindingPopulation::get_Population_size() { return this->BindingModes.size();
 
 
 // output BindingMode up to nResults results
-void BindingPopulation::output_Population(int nResults, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
+void BindingPopulation::output_Population(int nResults, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints)
 {
     // Output Population information ~= output clusters informations (*.cad)
     
@@ -46,8 +46,8 @@ void BindingPopulation::output_Population(int nResults, char* end_strfile, char*
     if(!nResults) nResults = this->get_Population_size() - 1; // if 0 is sent to this function, output all
 	for(std::vector<BindingMode>::iterator mode = this->BindingModes.begin(); mode != this->BindingModes.end() && nResults > 0; ++mode, --nResults, ++num_result)
 	{
-		mode->output_BindingMode(num_result, end_strfile, tmp_end_strfile, dockinp, gainp);
-    	mode->output_dynamic_BindingMode(num_result,end_strfile, tmp_end_strfile, dockinp, gainp);
+		mode->output_BindingMode(num_result, end_strfile, tmp_end_strfile, dockinp, gainp, minPoints);
+        mode->output_dynamic_BindingMode(num_result,end_strfile, tmp_end_strfile, dockinp, gainp, minPoints);
 	}
 }
 
@@ -114,14 +114,14 @@ void BindingMode::set_energy()
 }
 
 
-void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
+void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints)
 {
     // File and Output variables declarations
     cfstr CF; /* complementarity function value */
     resid *pRes = NULL;
     cfstr* pCF = NULL;
 
-    char sufix[10];
+    char sufix[25];
     char remark[MAX_REMARK];
     char tmpremark[MAX_REMARK];
 	
@@ -191,7 +191,7 @@ void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tm
 	}
 	sprintf(tmpremark,"REMARK inputs: %s & %s\n",dockinp,gainp);
 	strcat(remark,tmpremark);
-	sprintf(sufix,"_%d.pdb",num_result);
+	sprintf(sufix,"_%d_%d.pdb", minPoints, num_result);
 	strcpy(tmp_end_strfile,end_strfile);
 	strcat(tmp_end_strfile,sufix);
 	// 5. write_pdb(FA,atoms,residue,tmp_end_strfile,remark)
@@ -199,7 +199,7 @@ void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tm
 }
 
 
-void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
+void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints)
 {
     // File and Output variables declarations
     cfstr CF; /* complementarity function value */
@@ -213,7 +213,7 @@ void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, 
     for(std::vector<Pose>::iterator Pose = this->Poses.begin(); Pose != this->Poses.end(); ++Pose, ++nModel)
     {
     	// 1. build FA->opt_par[GB->num_genes]
-		 for(int k = 0; k < this->Population->GB->num_genes; ++k) this->Population->FA->opt_par[k] = Pose->chrom->genes[k].to_ic;
+		for(int k = 0; k < this->Population->GB->num_genes; ++k) this->Population->FA->opt_par[k] = Pose->chrom->genes[k].to_ic;
 
 		// 2. get CF with ic2cf() 
 		CF = ic2cf(this->Population->FA, this->Population->VC, this->Population->atoms, this->Population->residue, this->Population->cleftgrid, this->Population->GB->num_genes, this->Population->FA->opt_par);
@@ -222,7 +222,7 @@ void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, 
 		strcpy(remark,"REMARK optimized structure\n");
 		
 	//	 sprintf(tmpremark,"REMARK Fast OPTICS clustering algorithm used to output the lowest CF as Binding Mode representative\n");
-		 sprintf(tmpremark,"REMARK Fast OPTICS clustering algorithm used to output the lowest OPTICS ordering as Binding Mode representative\n");
+		sprintf(tmpremark,"REMARK Fast OPTICS clustering algorithm used to output the lowest OPTICS ordering as Binding Mode representative\n");
 		strcat(remark,tmpremark);
 		
 		sprintf(tmpremark,"REMARK CF=%8.5f\n",get_cf_evalue(&CF));
@@ -270,7 +270,8 @@ void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, 
 		}
 		sprintf(tmpremark,"REMARK inputs: %s & %s\n",dockinp,gainp);
 		strcat(remark,tmpremark);
-		sprintf(sufix,"_MODEL_%d.pdb",num_result);
+        
+		sprintf(sufix,"_%d_MODEL_%d.pdb", minPoints, num_result);
 		strcpy(tmp_end_strfile,end_strfile);
 		strcat(tmp_end_strfile,sufix);
 		// 5. write_pdb(FA,atoms,residue,tmp_end_strfile,remark)
@@ -305,7 +306,7 @@ std::vector<Pose>::const_iterator BindingMode::elect_Representative(bool useOPTI
 }
 
 
-inline bool const BindingMode::operator< (const BindingMode& rhs) { return this->compute_energy() < rhs.compute_energy(); }
+inline bool const BindingMode::operator< (const BindingMode& rhs) { return (this->compute_energy() < rhs.compute_energy()); }
 
 
 /*****************************************\

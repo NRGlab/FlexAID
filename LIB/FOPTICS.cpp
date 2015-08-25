@@ -52,8 +52,8 @@ inline bool const ClusterOrdering::operator< (const ClusterOrdering& rhs)
 				FastOPTICS
 \*****************************************/
 // Constructor and Algorithm main+only call
-int FastOPTICS::iOrder;
-FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, BindingPopulation& Population)
+// int FastOPTICS::iOrder;
+FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, BindingPopulation& Population, int nPoints)
 {	
 // Declarations
 	///////////////////////////////////////////////////////
@@ -73,10 +73,11 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 	// FastOPTICS
     this->nDimensions = this->FA->num_het_atm*3;	// use with Vectorized_Cartesian_Coordinates()
     // this->nDimensions = this->FA->npar + 2; 	// use with Vectorized_Chromosome()
-    // this->minPoints = this->nDimensions;
-    this->minPoints = static_cast<int>( floor(this->N * 0.005) );
-    // this->minPoints = 13;
-    FastOPTICS::iOrder = 0;
+    
+    this->minPoints = nPoints;
+    
+    // FastOPTICS::iOrder = 0;
+    this->iOrder = 0;
 	this->order.reserve(this->N);
 	this->reachDist.reserve(this->N);
 	this->processed.reserve(this->N);
@@ -127,7 +128,7 @@ void FastOPTICS::Execute_FastOPTICS()
     }
     
     // Would it be useful to normalize 'reachability distance' ?
-    this->normalizeDistances();
+//    this->normalizeDistances();
     
 	// Order chromosome and their reachDist in OPTICS
     //  points pairs contain :
@@ -150,13 +151,20 @@ void FastOPTICS::Execute_FastOPTICS()
  	BindingMode::BindingMode current(this->Population);
 	for(std::vector< Pose >::iterator it = this->OPTICS.begin(); it != this->OPTICS.end(); ++i, ++it)
 	{
-		if(isUndefinedDist(it->reachDist) && it->order == 0) current.add_Pose(*it);
-        while(it->reachDist < 0.33) { current.add_Pose(*it); ++it; ++i; }
-//        while(it->reachDist <= this->FA->cluster_rmsd+0.5f) { current.add_Pose(*it); ++it; ++i; }
-        if(it->reachDist >= 0.4 || isUndefinedDist(it->reachDist))
-//        if(it->reachDist > this->FA->cluster_rmsd+0.66f || isUndefinedDist(it->reachDist))
+        std::vector<Pose>::const_iterator rep = current.elect_Representative(false);
+
+        if(isUndefinedDist(it->reachDist) && it->order == 0) { current.add_Pose(*it); }
+        //else if(it->reachDist < 0.33) current.add_Pose(*it);
+       	else if(it->reachDist <= this->FA->cluster_rmsd+0.5f) { current.add_Pose(*it); }
+        else if( (*rep).vPose.size() > 0)
         {
-			if(current.get_BindingMode_size() > 1)
+            float d = this->compute_vect_distance((*it).vPose,(*rep).vPose);
+            if(d <  this->FA->cluster_rmsd+0.5f) current.add_Pose(*it);
+        }
+        // if(it->reachDist >= 0.4 || isUndefinedDist(it->reachDist))
+       	if(it->reachDist > this->FA->cluster_rmsd+0.66f || isUndefinedDist(it->reachDist))
+        {
+			if(current.get_BindingMode_size() > 2)
 			{
 				this->Population->add_BindingMode(current);
                 current.clear_Poses();
@@ -342,11 +350,13 @@ void FastOPTICS::ExpandClusterOrder(int ipt)
 		ClusterOrdering current = queue.top();
 		queue.pop();
 		int currPt = current.objectID;
-		this->order[FastOPTICS::iOrder] = currPt;
+		// this->order[FastOPTICS::iOrder] = currPt;
+		this->order[this->iOrder] = currPt;
 		
 		if(this->processed[currPt] == true) continue;
 		// incrementing STATIC rank ordering ()
-		FastOPTICS::iOrder++;
+		// FastOPTICS::iOrder++;
+		this->iOrder++;
 		this->processed[currPt] = true;
 		
 		float coredist = this->inverseDensities[currPt];
@@ -377,13 +387,11 @@ float FastOPTICS::compute_distance(std::pair< chromosome*,std::vector<float> > &
 	for(int i = 0; i < this->nDimensions; ++i)
 	{
 		float tempDist = (a.second[i]-b.second[i]);
-//		if(i > 2 && this->FA->map_par[i-2].typ > 0)
-//		{
-//			tempDist = normalize_IC_interval(&this->gene_lim[i-2],tempDist);
-//		}
         distance +=  tempDist * tempDist;
 	}
 
+	return sqrtf(distance);
+   	
    	if(boost::math::isfinite(distance))
    	{
    			return sqrtf(distance);
@@ -395,6 +403,21 @@ float FastOPTICS::compute_distance(std::pair< chromosome*,std::vector<float> > &
     else 	return 0.0f;
 }
 
+float FastOPTICS::compute_vect_distance(std::vector<float> a, std::vector<float> b)
+{
+	float distance = 0.0f;
+
+	// simple distance calculation below
+	for(int i = 0; i < this->nDimensions; ++i)
+	{
+		float tempDist = (a[i]-b[i]);
+        distance +=  tempDist * tempDist;
+	}
+
+	return sqrtf(distance);
+}
+
+int FastOPTICS::get_minPoints() { return this->minPoints; }
 /*****************************************\
 			RandomProjections
 \*****************************************/

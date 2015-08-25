@@ -71,8 +71,8 @@ class BindingMode // aggregation of poses (Cluster)
 		void	set_energy();
 
 	private:
-		void 	output_BindingMode(int num_result, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp);
-		void	output_dynamic_BindingMode(int nBindingMode, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp);
+		void 	output_BindingMode(int num_result, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints);
+		void	output_dynamic_BindingMode(int nBindingMode, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints);
 		double energy;
 };
 
@@ -93,7 +93,7 @@ class BindingPopulation
 			// return the number of BindinMonde (size getter)
 			int		get_Population_size();
 			// output BindingMode up to nResults results
-			void	output_Population(int nResults, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp);
+			void	output_Population(int nResults, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints);
 
 	protected:
 		double PartitionFunction;	// sum of all Boltzmann_weight
