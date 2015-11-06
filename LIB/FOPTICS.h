@@ -85,7 +85,9 @@ class FastOPTICS
 		std::vector< float > inverseDensities;
 		std::vector< std::pair<chromosome*,std::vector<float> > > points;
 		std::vector< std::vector< int > > neighbors;
+        
         std::vector< Pose > OPTICS;
+        // std::priority_queue< Pose, std::vector<Pose>, PoseClassifier::PoseClassifier > OPTICS;
 		// BindingPopulation is used for clustering purposed
 		BindingPopulation* Population;
 		

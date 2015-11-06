@@ -100,7 +100,7 @@ class BindingPopulation
 		int nChroms;				// n_chrom_snapshot input to clustergin function
 
 		// FlexAID pointer
-		FA_Global* 			FA;		// pointer to FA_Global struct
+		FA_Global* 	FA;		// pointer to FA_Global struct
 		GB_Global* 	GB;		// pointer to GB_Global struct
 		VC_Global* 	VC;		// pointer to VC_Global struct
 		chromosome* chroms;	// pointer to chromosomes' array

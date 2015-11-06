@@ -144,27 +144,29 @@ void FastOPTICS::Execute_FastOPTICS()
             this->OPTICS.push_back(Pose);
 		}
 	}
-    std::sort(this->OPTICS.begin(),this->OPTICS.end(),PoseClassifier::PoseClassifier());
+//    std::sort(this->OPTICS.begin(),this->OPTICS.end(),PoseClassifier::PoseClassifier());
+    // std::make_heap(this->OPTICS.begin(), this->OPTICS.end(), PoseClassifier::PoseClassifier());
 
 	// Build BindingModes (aggregation of Poses in BindingModes)
     int i = 0; // used to have an idea of the number of loop completed (iterators are less convenient for that information while debugging)
  	BindingMode::BindingMode current(this->Population);
 	for(std::vector< Pose >::iterator it = this->OPTICS.begin(); it != this->OPTICS.end(); ++i, ++it)
 	{
-        std::vector<Pose>::const_iterator rep = current.elect_Representative(false);
+        // std::vector<Pose>::const_iterator rep = current.elect_Representative(false);
 
         if(isUndefinedDist(it->reachDist) && it->order == 0) { current.add_Pose(*it); }
         //else if(it->reachDist < 0.33) current.add_Pose(*it);
-       	else if(it->reachDist <= this->FA->cluster_rmsd+0.5f) { current.add_Pose(*it); }
-        else if( (*rep).vPose.size() > 0)
-        {
-            float d = this->compute_vect_distance((*it).vPose,(*rep).vPose);
-            if(d <  this->FA->cluster_rmsd+0.5f) current.add_Pose(*it);
-        }
+       	else if(it->reachDist <= this->FA->cluster_rmsd) { current.add_Pose(*it); }
+        // else if( current.get_BindingMode_size() > 0 && (*rep).vPose.size() > 0)
+        // {
+        //     float d = this->compute_vect_distance((*it).vPose,(*rep).vPose);
+        //     if(d <  this->FA->cluster_rmsd+0.5f) current.add_Pose(*it);
+        // }
         // if(it->reachDist >= 0.4 || isUndefinedDist(it->reachDist))
-       	if(it->reachDist > this->FA->cluster_rmsd+0.66f || isUndefinedDist(it->reachDist))
+       	if(it->reachDist > this->FA->cluster_rmsd || isUndefinedDist(it->reachDist))
         {
-			if(current.get_BindingMode_size() > 2)
+			// if(current.get_BindingMode_size() > this->minPoints)
+			if(current.get_BindingMode_size() > 1)
 			{
 				this->Population->add_BindingMode(current);
                 current.clear_Poses();
@@ -192,8 +194,10 @@ void FastOPTICS::output_OPTICS(char* end_strfile, char* tmp_end_strfile)
         fprintf(outfile, "#order\treachDist\tCF\n");
 		for(std::vector<Pose>::iterator it = this->OPTICS.begin(); it != this->OPTICS.end(); ++it)
 		{
-            if(!isUndefinedDist(it->reachDist)) fprintf(outfile, "%d\t%g\t%g\n", it->order, it->reachDist, it->CF);
-            else fprintf(outfile, "%d\t%g\t%g\n", it->order, UNDEFINED_DIST, it->CF);
+			float prevDist = (it == this->OPTICS.begin()) ? 0.0f : this->compute_vect_distance(it->vPose, (it-1)->vPose);
+			float nextDist = ((it+1) == this->OPTICS.end()) ? 0.0f : this->compute_vect_distance(it->vPose, (it+1)->vPose);
+            if(!isUndefinedDist(it->reachDist)) fprintf(outfile, "%d\t%g\t%g\t%g\t%g\n", it->order, it->reachDist, it->CF, prevDist, nextDist);
+            else fprintf(outfile, "%d\t%g\t%g\t%g\t%g\n", it->order, UNDEFINED_DIST, it->CF, prevDist, nextDist);
 		}
    }
    CloseFile_B(&outfile,"w");;//fclose(outfile);
@@ -345,15 +349,15 @@ void FastOPTICS::ExpandClusterOrder(int ipt)
 	ClusterOrdering tmp(ipt,0,1e6f);
 	queue.push(tmp);
 
-    while(!queue.empty() /*&& FastOPTICS::iOrder < this->N*/)
+    while(!queue.empty() && this->iOrder < this->N)
 	{
 		ClusterOrdering current = queue.top();
 		queue.pop();
 		int currPt = current.objectID;
 		// this->order[FastOPTICS::iOrder] = currPt;
-		this->order[this->iOrder] = currPt;
-		
 		if(this->processed[currPt] == true) continue;
+		
+		this->order[this->iOrder] = currPt;
 		// incrementing STATIC rank ordering ()
 		// FastOPTICS::iOrder++;
 		this->iOrder++;
@@ -392,15 +396,15 @@ float FastOPTICS::compute_distance(std::pair< chromosome*,std::vector<float> > &
 
 	return sqrtf(distance);
    	
-   	if(boost::math::isfinite(distance))
-   	{
-   			return sqrtf(distance);
-   	}
-    else if( boost::math::isinf(distance) && distance > FLT_EPSILON )
-    {
-        	return UNDEFINED_DIST;
-    }
-    else 	return 0.0f;
+   	// if(boost::math::isfinite(distance))
+   	// {
+   	// 		return sqrtf(distance);
+   	// }
+    // else if( boost::math::isinf(distance) && distance > FLT_EPSILON )
+    // {
+    //     	return UNDEFINED_DIST;
+    // }
+    // else 	return 0.0f;
 }
 
 float FastOPTICS::compute_vect_distance(std::vector<float> a, std::vector<float> b)
@@ -474,13 +478,19 @@ void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > &
 		while(it != ptList.end())
 		{
 			float sum = 0.0f;
-			std::vector<float>::iterator vecPt = this->points[(*it)].second.begin();
+			// std::vector<float>::iterator vecPt = this->points[(*it)].second.begin();
+			std::vector<float> vecPt(this->points[(*it)].second);
 			std::vector<float>::iterator currPro = (this->projectedPoints[j]).begin();
 			for(int m = 0; m < this->nDimensions; ++m)
 			{
-				sum += currentRp[m] * vecPt[m];
+				float a = currentRp[m];
+				float b = vecPt[m];
+
+				sum += a * b;
+				// sum += currentRp[m] * vecPt[m];
 			}
 			currPro[k] = sum;
+//            std::cout << currPro[k] << std::endl;
 			++k;
             ++it;
 		}
@@ -584,14 +594,14 @@ void RandomProjectedNeighborsAndDensities::SplitUpNoSort(std::vector< int >& ind
 		}
 		this->SplitUpNoSort(ind2,dim+1);
 		
-		// std::vector<int> ind3(nElements - splitPos);
-        ind2 = std::vector<int>( nElements-splitPos );
+        std::vector<int> ind3(nElements - splitPos);
+//        ind2 = std::vector<int>( nElements-splitPos );
 		for(int l = 0; l < nElements-splitPos; ++l)
 		{
-			 ind2[l] = ind[l+splitPos];
+			 ind3[l] = ind[l+splitPos];
 //			ind3.push_back(ind[l+splitPos]);
 		}
-		this->SplitUpNoSort(ind2,dim+1);
+		this->SplitUpNoSort(ind3,dim+1);
 	}
 }
 
@@ -850,7 +860,7 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_CartesianCoo
         ++m;
 	}
 	norm = sqrtf(norm);
-	// for(i = 0; i < this->nDimensions; ++i) vChrom[i] /= norm;
+   	for(i = 0; i < this->nDimensions; ++i) vChrom[i] /= norm;
 	return vChrom;
 }
 
