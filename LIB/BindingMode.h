@@ -37,12 +37,12 @@ struct PoseClassifier
        	else if(Pose1.order > Pose2.order) return false;
 		if(Pose1.reachDist < Pose2.reachDist) return true;
 		else if(Pose1.reachDist > Pose2.reachDist) return false;
-		if(Pose1.CF < Pose2.CF) return true;
-		else if(Pose1.CF > Pose2.CF) return false;
 		if(Pose1.chrom_index < Pose2.chrom_index) return true;
 		else if(Pose1.chrom_index > Pose2.chrom_index) return false;
 		
 		return false;
+
+		
    }
 };
 /*****************************************\

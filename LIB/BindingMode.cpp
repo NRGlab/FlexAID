@@ -327,11 +327,8 @@ inline bool const Pose::operator< (const Pose& rhs)
 	if(this->reachDist < rhs.reachDist) return true;
 	else if(this->reachDist > rhs.reachDist) return false;
 	
-	if(this->CF < rhs.CF) return true;
-	else if(this->CF > rhs.CF) return false;
-	
 	if(this->chrom_index < rhs.chrom_index) return true;
 	else if(this->chrom_index > rhs.chrom_index) return false;
-	
+
 	return false;
 }

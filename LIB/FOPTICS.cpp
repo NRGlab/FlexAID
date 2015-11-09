@@ -124,7 +124,7 @@ void FastOPTICS::Execute_FastOPTICS()
 	// Compute OPTICS ordering
 	for(int ipt = 0; ipt < this->N; ipt++)
     {
-		if(!this->processed[ipt]) this->ExpandClusterOrder(ipt);
+		if(!this->processed[ipt]/* && ipt < this->N*/) this->ExpandClusterOrder(ipt);
     }
     
     // Would it be useful to normalize 'reachability distance' ?
@@ -137,14 +137,14 @@ void FastOPTICS::Execute_FastOPTICS()
 	for(int i = 0; i < this->N; ++i)
 	{
 		//
-		if( (this->points[i]).first != NULL && boost::math::isfinite(this->reachDist[i]) && this->order[i] <= this->N && this->order[i] >= 0 && (this->points[i].first)->app_evalue < CLASH_THRESHOLD )
+		if( (this->points[i]).first != NULL)// && boost::math::isfinite(this->reachDist[i]) && this->order[i] <= this->N && this->order[i] >= 0 && (this->points[i].first)->app_evalue < CLASH_THRESHOLD )
 		{
 			Pose::Pose Pose((this->points[i]).first, i, this->order[i], this->reachDist[i], this->Population->Temperature, (this->points[i]).second);
 			// OPTICS.push(Pose);
             this->OPTICS.push_back(Pose);
 		}
 	}
-//    std::sort(this->OPTICS.begin(),this->OPTICS.end(),PoseClassifier::PoseClassifier());
+    std::sort(this->OPTICS.begin(),this->OPTICS.end(),PoseClassifier::PoseClassifier());
     // std::make_heap(this->OPTICS.begin(), this->OPTICS.end(), PoseClassifier::PoseClassifier());
 
 	// Build BindingModes (aggregation of Poses in BindingModes)
@@ -349,13 +349,14 @@ void FastOPTICS::ExpandClusterOrder(int ipt)
 	ClusterOrdering tmp(ipt,0,1e6f);
 	queue.push(tmp);
 
-    while(!queue.empty() && this->iOrder < this->N)
+    while(!queue.empty())
 	{
 		ClusterOrdering current = queue.top();
+//        cout << queue.size() << endl;
 		queue.pop();
 		int currPt = current.objectID;
-		// this->order[FastOPTICS::iOrder] = currPt;
-		if(this->processed[currPt] == true) continue;
+        
+        if(this->processed[currPt] == true) continue;
 		
 		this->order[this->iOrder] = currPt;
 		// incrementing STATIC rank ordering ()
