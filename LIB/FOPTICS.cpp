@@ -192,8 +192,8 @@ void FastOPTICS::output_OPTICS(char* end_strfile, char* tmp_end_strfile)
 		{
 			float prevDist = (it == this->OPTICS.begin()) ? 0.0f : this->compute_vect_distance(it->vPose, (it-1)->vPose);
 			float nextDist = ((it+1) == this->OPTICS.end()) ? 0.0f : this->compute_vect_distance(it->vPose, (it+1)->vPose);
-            if(!isUndefinedDist(it->reachDist)) fprintf(outfile, "%d\t%d\t%g\t%g\t%g\t%g\n", it->order, it->chrom_index, it->reachDist, it->CF, prevDist, nextDist);
-            else fprintf(outfile, "%d\t%d\t%g\t%g\t%g\t%g\n", it->order, it->chrom_index, UNDEFINED_DIST, it->CF, prevDist, nextDist);
+            if(!isUndefinedDist(it->reachDist)) fprintf(outfile, "%d\t%d\t%8g\t%8g\t%8g\t%8g\n", it->order, it->chrom_index, it->reachDist, it->CF, prevDist, nextDist);
+            else fprintf(outfile, "%d\t%d\t%8g\t%8g\t%8g\t%8g\n", it->order, it->chrom_index, UNDEFINED_DIST, it->CF, prevDist, nextDist);
 		}
    }
    CloseFile_B(&outfile,"w");;//fclose(outfile);
