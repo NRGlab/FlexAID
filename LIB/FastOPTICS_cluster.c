@@ -3,7 +3,7 @@
 void FastOPTICS_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
 {
 //    int minPoints = static_cast<int>( floor(nChrom * 0.0025) );
-    int minPoints = 20;
+    int minPoints = 5;
     // (minPoints < 3*FA->num_het_atm) ? minPoints = minPoints : minPoints = 3*FA->num_het_atm;
 	
     // BindingPopulation() : BindingPopulation constructor *non-overridable*

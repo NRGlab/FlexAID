@@ -155,14 +155,10 @@ void FastOPTICS::Execute_FastOPTICS()
         // std::vector<Pose>::const_iterator rep = current.elect_Representative(false);
 
         if(isUndefinedDist(it->reachDist) && it->order == 0) { current.add_Pose(*it); }
-        //else if(it->reachDist < 0.33) current.add_Pose(*it);
-       	else if(it->reachDist <= this->FA->cluster_rmsd) { current.add_Pose(*it); }
-        // else if( current.get_BindingMode_size() > 0 && (*rep).vPose.size() > 0)
-        // {
-        //     float d = this->compute_vect_distance((*it).vPose,(*rep).vPose);
-        //     if(d <  this->FA->cluster_rmsd+0.5f) current.add_Pose(*it);
-        // }
-        // if(it->reachDist >= 0.4 || isUndefinedDist(it->reachDist))
+//        else if(it->reachDist < 0.33) current.add_Pose(*it);
+        else if(it->reachDist <= this->FA->cluster_rmsd) { current.add_Pose(*it); }
+
+//         if(it->reachDist >= 0.4 || isUndefinedDist(it->reachDist))
        	if(it->reachDist > this->FA->cluster_rmsd || isUndefinedDist(it->reachDist))
         {
 			// if(current.get_BindingMode_size() > this->minPoints)
@@ -196,8 +192,8 @@ void FastOPTICS::output_OPTICS(char* end_strfile, char* tmp_end_strfile)
 		{
 			float prevDist = (it == this->OPTICS.begin()) ? 0.0f : this->compute_vect_distance(it->vPose, (it-1)->vPose);
 			float nextDist = ((it+1) == this->OPTICS.end()) ? 0.0f : this->compute_vect_distance(it->vPose, (it+1)->vPose);
-            if(!isUndefinedDist(it->reachDist)) fprintf(outfile, "%d\t%g\t%g\t%g\t%g\n", it->order, it->reachDist, it->CF, prevDist, nextDist);
-            else fprintf(outfile, "%d\t%g\t%g\t%g\t%g\n", it->order, UNDEFINED_DIST, it->CF, prevDist, nextDist);
+            if(!isUndefinedDist(it->reachDist)) fprintf(outfile, "%d\t%d\t%g\t%g\t%g\t%g\n", it->order, it->chrom_index, it->reachDist, it->CF, prevDist, nextDist);
+            else fprintf(outfile, "%d\t%d\t%g\t%g\t%g\t%g\n", it->order, it->chrom_index, UNDEFINED_DIST, it->CF, prevDist, nextDist);
 		}
    }
    CloseFile_B(&outfile,"w");;//fclose(outfile);
