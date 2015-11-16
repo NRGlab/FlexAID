@@ -10,6 +10,8 @@
 #include <queue>
 #include <cmath>
 
+
+int roll_die();
 // Float comparators
 bool definitelyGreaterThan(float a, float b, float epsilon);
 bool definitelyLessThan(float a, float b, float epsilon);
@@ -66,7 +68,7 @@ class FastOPTICS
 	
 	public:
 		explicit 	FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, BindingPopulation&, int nPoints); // Constructor (publicly called from FlexAID's *_cluster.cxx)
-		void 		Execute_FastOPTICS();
+		void 		Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile);
         void 		output_OPTICS(char* end_strfile, char* tmp_end_strfile);
 		float 		compute_distance(std::pair< chromosome*,std::vector<float> > &, std::pair< chromosome*,std::vector<float> > &);
 		float 		compute_vect_distance(std::vector<float> a, std::vector<float> b);
@@ -98,7 +100,7 @@ class FastOPTICS
 
 	protected:
 		// protected methods to be used by RandomProjectedNeighborsAndDensities::methods()
-	/*const*/ FA_Global* FA;		// pointer to FA_Global struct
+			  FA_Global* FA;		// pointer to FA_Global struct
 		const GB_Global* GB;		// pointer to GB_Global struct
 		const VC_Global* VC;		// pointer to VC_Global struct
 		const chromosome* chroms;	// pointer to chromosomes' array
@@ -119,7 +121,7 @@ class RandomProjectedNeighborsAndDensities
 	
 	public:
 		explicit RandomProjectedNeighborsAndDensities(std::vector< std::pair< chromosome*,std::vector<float> > >&, int, FastOPTICS*); // Constructor (publicly called from FlexAID *_cluster.cxx)
-	
+
 	private:
 		// private attributes
 		FastOPTICS* top;
@@ -147,6 +149,7 @@ class RandomProjectedNeighborsAndDensities
 		void								getNeighbors(std::vector< std::vector< int > > &);
 		std::vector<float> 					Randomized_InternalCoord_Vector();
         std::vector<float>                  Randomized_CartesianCoord_Vector();
-		int 								Dice();
+        void								output_projected_distance(char* end_strfile, char* tmp_end_strfile);
+		// int 								Dice();
 };
 #endif

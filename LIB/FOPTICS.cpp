@@ -1,6 +1,10 @@
 #include "FOPTICS.h"
 #include "gaboom.h"
 
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_int_distribution.hpp>
+boost::random::mt19937 gen;
+// 
 bool definitelyGreaterThan(float a, float b, float epsilon)
 {
     return (a - b) > ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
@@ -105,7 +109,7 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 
 };
 
-void FastOPTICS::Execute_FastOPTICS()
+void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
 {
 	// vector of point indexes 
 	std::vector< int > ptInd;
@@ -127,6 +131,7 @@ void FastOPTICS::Execute_FastOPTICS()
 		if(!this->processed[ipt]/* && ipt < this->N*/) this->ExpandClusterOrder(ipt);
     }
     
+    MultiPartition.output_projected_distance(end_strfile, tmp_end_strfile);
     // Would it be useful to normalize 'reachability distance' ?
 //    this->normalizeDistances();
     
@@ -137,7 +142,7 @@ void FastOPTICS::Execute_FastOPTICS()
 	for(int i = 0; i < this->N; ++i)
 	{
 		//
-		if( (this->points[i]).first != NULL)// && boost::math::isfinite(this->reachDist[i]) && this->order[i] <= this->N && this->order[i] >= 0 && (this->points[i].first)->app_evalue < CLASH_THRESHOLD )
+		if( (this->points[i]).first != NULL && (this->points[i].first)->app_evalue < CLASH_THRESHOLD )
 		{
 			Pose::Pose Pose((this->points[i]).first, i, this->order[i], this->reachDist[i], this->Population->Temperature, (this->points[i]).second);
 			// OPTICS.push(Pose);
@@ -162,7 +167,7 @@ void FastOPTICS::Execute_FastOPTICS()
        	if(it->reachDist > this->FA->cluster_rmsd || isUndefinedDist(it->reachDist))
         {
 			// if(current.get_BindingMode_size() > this->minPoints)
-			if(current.get_BindingMode_size() > 1)
+			if(current.get_BindingMode_size() > this->minPoints)
 			{
 				this->Population->add_BindingMode(current);
                 current.clear_Poses();
@@ -187,7 +192,7 @@ void FastOPTICS::output_OPTICS(char* end_strfile, char* tmp_end_strfile)
 	}
 	else
 	{
-        fprintf(outfile, "#order\treachDist\tCF\n");
+        fprintf(outfile, "#ORDER\t#INDEX\t#reachDist\t#CF\t#prevRMSD\t#nextRMSD\n");
 		for(std::vector<Pose>::iterator it = this->OPTICS.begin(); it != this->OPTICS.end(); ++it)
 		{
 			float prevDist = (it == this->OPTICS.begin()) ? 0.0f : this->compute_vect_distance(it->vPose, (it-1)->vPose);
@@ -470,6 +475,7 @@ void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > &
 	{
         //std::vector<float> currentRp = this->Randomized_InternalCoord_Vector();
         std::vector<float> currentRp(this->Randomized_CartesianCoord_Vector());
+        cout << currentRp[0] << " " << currentRp[1] << " " << currentRp[2] << endl;
 		int k = 0;
 		std::vector<int>::iterator it = ptList.begin();
 		while(it != ptList.end())
@@ -494,6 +500,7 @@ void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > &
 	}
 
 	// Split Points Set
+    
 	std::vector<int> projInd(this->nProject1D);
 	projInd.reserve(this->nProject1D);
 	for(int j = 0; j < this->nProject1D; ++j) 
@@ -509,16 +516,14 @@ void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > &
 //			tempProj.push_back(this->projectedPoints[i]);
             tempProj[i] = this->projectedPoints[i];
         }
-		std::random_shuffle(projInd.begin(), projInd.end());
-		std::vector<int>::iterator it = projInd.begin();
+        std::random_shuffle(projInd.begin(), projInd.end(), [](int n) { return rand() % n; });
+		
 		int i = 0;
-		while(it != projInd.end())
+        for(std::vector<int>::iterator it = projInd.begin(); it != projInd.end(); ++it, i++)
 		{
 			int cind = (*it);
 			// look this line to be sure that the vector is pushed in this->projectedPoints
 			this->projectedPoints[cind] = tempProj[i];
-            i++;
-            it++;
 		}
 
 		//split points set
@@ -707,20 +712,14 @@ void FastOPTICS::normalizeDistances()
 
 std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_InternalCoord_Vector()
 {
-	std::vector<float> vChrom(this->nDimensions, 0.0f);
-    // random_dice() declaration
-    unsigned int tt = static_cast<unsigned int>(time(0));
-    srand(tt);
-    RNGType rng(tt);
-    boost::uniform_int<> one_to_max_int32( 0, MAX_RANDOM_VALUE );
-    boost::variate_generator< RNGType, boost::uniform_int<> > random_dice(rng, one_to_max_int32);
-    // end random_dice()
+    std::vector<float> vChrom(this->nDimensions);
+
 	float sum = 0.0f;
 	for(int j = 0; j < this->nDimensions-2; ++j)
 	{
 		if(j == 0) //  building the first 3 comp. from genes[0] which are CartCoord x,y,z
 		{
-            double doubleGeneIC = genetoic(&this->top->gene_lim[j],random_dice());
+            double doubleGeneIC = genetoic(&this->top->gene_lim[j],roll_die());
             for(int i = 0; i < 3; ++i)
 			{
 				// vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].coor[i] - this->top-÷>FA->ori[i]);
@@ -749,7 +748,7 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_InternalCoor
 		{
 			// j+2 is used from {j = 1 to N} to build further comp. of genes[j]
 			// vChrom[j+2] = static_cast<float>(RandomDouble(random_dice()));
-			vChrom[j+2] = static_cast<float>(genetoic(&this->top->gene_lim[j],random_dice()));
+			vChrom[j+2] = static_cast<float>(genetoic(&this->top->gene_lim[j],roll_die()));
 			sum += vChrom[j+2]*vChrom[j+2];
 		}
 	}
@@ -761,15 +760,7 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_InternalCoor
 }
 
 std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_CartesianCoord_Vector()
-{
-    // random_dice() declaration
-    unsigned int tt = static_cast<unsigned int>(time(0));
-    srand(tt);
-    RNGType rng(tt);
-    boost::uniform_int<> one_to_max_int32( 0, MAX_RANDOM_VALUE );
-    boost::variate_generator< RNGType, boost::uniform_int<> > random_dice(rng, one_to_max_int32);
-    // end random_dice()
-    
+{   
     float norm = 0.0f;
 
     int i = 0,j = 0,l = 0,m = 0;
@@ -784,7 +775,7 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_CartesianCoo
 
 	int npar = this->top->GB->num_genes;
 
-	for(i=0;i<npar;i++){ this->top->FA->opt_par[i] = genetoic(&this->top->gene_lim[i],random_dice()); }
+	for(i=0;i<npar;i++){ this->top->FA->opt_par[i] = genetoic(&this->top->gene_lim[i],roll_die()); }
 
 	for(i=0;i<npar;i++)
 	{
@@ -857,7 +848,7 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_CartesianCoo
         ++m;
 	}
 	norm = sqrtf(norm);
-   	for(i = 0; i < this->nDimensions; ++i) vChrom[i] /= norm;
+//   	for(i = 0; i < this->nDimensions; ++i) vChrom[i] /= norm;
 	return vChrom;
 }
 
@@ -909,13 +900,45 @@ void RandomProjectedNeighborsAndDensities::swap_element_in_vectors(std::vector<f
 	int tIndex = *xIndex; *xIndex = *yIndex; *yIndex = tIndex;
 }
 
-// This function generates a RandomInt32 who can be used as *genes->to_int32 value
-int RandomProjectedNeighborsAndDensities::Dice()
+void RandomProjectedNeighborsAndDensities::output_projected_distance(char* end_strfile, char* tmp_end_strfile)
 {
-	unsigned int tt = static_cast<unsigned int>(time(0));
-	srand(tt);
-	RNGType rng(tt);
-	boost::uniform_int<> one_to_max_int32( 0, MAX_RANDOM_VALUE );
-	boost::variate_generator< RNGType, boost::uniform_int<> > dice(rng, one_to_max_int32);
-	return dice();
+	char sufix[25];
+	sprintf(sufix, "__%d.projDist", this->minSplitSize);
+	strcpy(tmp_end_strfile, end_strfile);
+	strcat(tmp_end_strfile,sufix);
+	FILE* outfile;
+	if(!OpenFile_B(tmp_end_strfile,"w",&outfile))
+	{
+		Terminate(5);
+	}
+	else
+	{
+		for(int i = 0; i < this->N; ++i)
+		{
+            for(int j = 0; j < this->nProject1D; ++j)
+			{
+                std::vector<float> & it = this->projectedPoints.at(j);
+				fprintf(outfile, "%6f", it[i]);
+                if(j < this->nProject1D-1) fprintf(outfile, "\t");
+                else fprintf(outfile, "\n");
+            }
+		}
+	}
+	CloseFile_B(&outfile,"w");;//fclose(outfile);
+}
+
+// This function generates a RandomInt32 who can be used as *genes->to_int32 value
+// int RandomProjectedNeighborsAndDensities::Dice()
+// {
+// 	unsigned int tt = static_cast<unsigned int>(time(0));
+// 	srand(tt);
+// 	RNGType rng(tt);
+// 	boost::uniform_int<> one_to_max_int32( 0, MAX_RANDOM_VALUE );
+// 	boost::variate_generator< RNGType, boost::uniform_int<> > dice(rng, one_to_max_int32);
+// 	return dice();
+// }
+
+int roll_die() {
+    boost::random::uniform_int_distribution<> dist(0, MAX_RANDOM_VALUE);
+    return dist(gen);
 }
