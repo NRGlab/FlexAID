@@ -28,31 +28,32 @@ struct ClusterOrdering
 
 	inline bool const operator==(const ClusterOrdering& rhs);
 	inline bool const operator< (const ClusterOrdering& rhs);
+	inline bool const operator> (const ClusterOrdering& rhs);
 
 };
 
 struct ClusterOrderingComparator
 {
 	// inline int operator() ( const ClusterOrdering& pose1, const ClusterOrdering& pose2 )
-	inline int operator() ( const ClusterOrdering& pose1, const ClusterOrdering& pose2 )
+	inline bool operator() ( const ClusterOrdering& pose1, const ClusterOrdering& pose2 )
 	{
-		if(pose1.reachability > pose2.reachability)
-			return 1;
-		else if(pose1.reachability < pose2.reachability)
-			return -1;
-		if(pose1.objectID > pose2.objectID)
-			return -1;
-		else if(pose1.objectID < pose2.objectID)
-			return 1;
-
-		// if(pose1.reachability > pose2.reachability || isUndefinedDist(pose1.reachability))
-		// 	return true;
+		// if(pose1.reachability > pose2.reachability)
+		// 	return 1;
 		// else if(pose1.reachability < pose2.reachability)
-		// 	return false;
+		// 	return -1;
 		// if(pose1.objectID > pose2.objectID)
-		// 	return false;
+		// 	return -1;
 		// else if(pose1.objectID < pose2.objectID)
-		// 	return true;
+		// 	return 1;
+
+		if(pose1.reachability > pose2.reachability || isUndefinedDist(pose1.reachability))
+			return true;
+		else if(pose1.reachability < pose2.reachability)
+			return false;
+		if(pose1.objectID > pose2.objectID)
+			return false;
+		else if(pose1.objectID < pose2.objectID)
+			return true;
 
 		// if nothing else is true, return 0
 		return 0;

@@ -23,7 +23,7 @@ float normalize_IC_interval(const genlim* gene_lim, float value)
 	float end = gene_lim->max;
 	float width = end - start;
 	float offsetValue = value - start; // value relative to 0
-	return ( offsetValue - ( floor( offsetValue / width) * width) ) + start;
+	return ( offsetValue - ( std::floor( offsetValue / width) * width) ) + start;
 }
 
 ClusterOrdering::ClusterOrdering(int id, int predID, float reach) : objectID(id), predecessorID(predID), reachability(reach)
@@ -51,6 +51,20 @@ inline bool const ClusterOrdering::operator< (const ClusterOrdering& rhs)
 			return false;
 		// if nothing else is true, return 0
 		return 0;
+}
+
+inline bool const ClusterOrdering::operator> (const ClusterOrdering& rhs)
+{
+	if(this->reachability > rhs.reachability || isUndefinedDist(this->reachability))
+		return true;
+	else if(this->reachability < rhs.reachability)
+			return false;
+	if(this->objectID > rhs.objectID)
+		return false;
+	else if(this->objectID < rhs.objectID)
+		return true;
+	// if nothing else is true, return 0
+	return 0;
 }
 /*****************************************\
 				FastOPTICS
@@ -126,14 +140,17 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
 	MultiPartition.getNeighbors(this->neighbors);
     
 	// Compute OPTICS ordering
-	for(int ipt = 0; ipt < this->N; ipt++)
+	for(int ipt = 0; ipt < this->N; ipt++) 		// starting from 0
+//	for(int ipt = this->N-1; ipt >= 0; --ipt)	// starting from this->N-1
     {
-		if(!this->processed[ipt]/* && ipt < this->N*/) this->ExpandClusterOrder(ipt);
+		if(!this->processed[ipt]) this->ExpandClusterOrder(ipt);
     }
     
+    // output the projected distances
     MultiPartition.output_projected_distance(end_strfile, tmp_end_strfile);
+    
     // Would it be useful to normalize 'reachability distance' ?
-//    this->normalizeDistances();
+   	// this->normalizeDistances();
     
 	// Order chromosome and their reachDist in OPTICS
     //  points pairs contain :
@@ -141,36 +158,31 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
     //   second -> float reachDist
 	for(int i = 0; i < this->N; ++i)
 	{
-		//
-		if( (this->points[i]).first != NULL && (this->points[i].first)->app_evalue < CLASH_THRESHOLD )
+		if( (this->points[i]).first != NULL )// && (this->points[i].first)->app_evalue < 100 )
 		{
+			// Calling Pose constructor for the current chromosome
 			Pose::Pose Pose((this->points[i]).first, i, this->order[i], this->reachDist[i], this->Population->Temperature, (this->points[i]).second);
 			// OPTICS.push(Pose);
             this->OPTICS.push_back(Pose);
 		}
 	}
-    std::sort(this->OPTICS.begin(),this->OPTICS.end(),PoseClassifier::PoseClassifier());
-    // std::make_heap(this->OPTICS.begin(), this->OPTICS.end(), PoseClassifier::PoseClassifier());
+    std::sort(this->OPTICS.begin(), this->OPTICS.end(), PoseClassifier::PoseClassifier());
 
 	// Build BindingModes (aggregation of Poses in BindingModes)
     int i = 0; // used to have an idea of the number of loop completed (iterators are less convenient for that information while debugging)
- 	BindingMode::BindingMode current(this->Population);
+ 	BindingMode::BindingMode Current(this->Population);
 	for(std::vector< Pose >::iterator it = this->OPTICS.begin(); it != this->OPTICS.end(); ++i, ++it)
 	{
-        // std::vector<Pose>::const_iterator rep = current.elect_Representative(false);
 
-        if(isUndefinedDist(it->reachDist) && it->order == 0) { current.add_Pose(*it); }
-//        else if(it->reachDist < 0.33) current.add_Pose(*it);
-        else if(it->reachDist <= this->FA->cluster_rmsd) { current.add_Pose(*it); }
+        if(isUndefinedDist(it->reachDist) && it->order == 0) { Current.add_Pose(*it); }
+        else if(it->reachDist <= this->FA->cluster_rmsd*(1 + RandomProjectedNeighborsAndDensities::sizeTolerance)) { Current.add_Pose(*it); }
 
-//         if(it->reachDist >= 0.4 || isUndefinedDist(it->reachDist))
-       	if(it->reachDist > this->FA->cluster_rmsd || isUndefinedDist(it->reachDist))
+       	if(it->reachDist > this->FA->cluster_rmsd*(1 + RandomProjectedNeighborsAndDensities::sizeTolerance) || isUndefinedDist(it->reachDist))
         {
-			// if(current.get_BindingMode_size() > this->minPoints)
-			if(current.get_BindingMode_size() > this->minPoints)
+			if(Current.get_BindingMode_size() >= this->minPoints)
 			{
-				this->Population->add_BindingMode(current);
-                current.clear_Poses();
+				this->Population->add_BindingMode(Current);
+                Current.clear_Poses();
             }
         }
 	}
@@ -382,6 +394,10 @@ void FastOPTICS::ExpandClusterOrder(int ipt)
 			tmp = ClusterOrdering::ClusterOrdering(iNeigh, currPt, nrdist);
 			queue.push(tmp);
 		}
+//        std::make_heap(const_cast<ClusterOrdering*>(&queue.top()),
+//                       const_cast<ClusterOrdering*>(&queue.top() + queue.size()),
+//                       ClusterOrderingComparator::ClusterOrderingComparator()
+//                       );
 	}
 }
 
@@ -475,7 +491,7 @@ void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > &
 	{
         //std::vector<float> currentRp = this->Randomized_InternalCoord_Vector();
         std::vector<float> currentRp(this->Randomized_CartesianCoord_Vector());
-        cout << currentRp[0] << " " << currentRp[1] << " " << currentRp[2] << endl;
+        
 		int k = 0;
 		std::vector<int>::iterator it = ptList.begin();
 		while(it != ptList.end())
@@ -485,15 +501,10 @@ void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > &
 			std::vector<float> vecPt(this->points[(*it)].second);
 			std::vector<float>::iterator currPro = (this->projectedPoints[j]).begin();
 			for(int m = 0; m < this->nDimensions; ++m)
-			{
-				float a = currentRp[m];
-				float b = vecPt[m];
+                sum += currentRp[m] * vecPt[m];
 
-				sum += a * b;
-				// sum += currentRp[m] * vecPt[m];
-			}
 			currPro[k] = sum;
-//            std::cout << currPro[k] << std::endl;
+
 			++k;
             ++it;
 		}
@@ -576,8 +587,8 @@ void RandomProjectedNeighborsAndDensities::SplitUpNoSort(std::vector< int >& ind
 				if(minInd == maxInd) break;
 				
 				int currInd = ind[minInd];
-				ind[minInd]=ind[maxInd];
-				ind[maxInd]=currInd;
+				ind[minInd] = ind[maxInd];
+				ind[maxInd] = currInd;
 				maxInd--;
 			}
 			minInd++;
@@ -626,7 +637,7 @@ void RandomProjectedNeighborsAndDensities::getInverseDensities(std::vector< floa
 		{
 			int ind = pinSet[i];
 			if(ind == indoff) continue;
-			// CHOOSE BETWEEN OF THE 2 CALLS BELOW FOR compute_distance() IMPLEMENTATION
+			
 			float dist = this->top->compute_distance(this->points[ind],this->points[oldind]);
 			inverseDensities[oldind] += dist;
 			nDists[oldind]++;
@@ -647,8 +658,6 @@ void RandomProjectedNeighborsAndDensities::getNeighbors(std::vector< std::vector
 	for(int l = 0; l < this->N; l++)
 	{
 		std::vector<int> list;
-		// std::vector<int> list(this->N,0);
-		// list.reserve(this->N);
 		neighs.push_back(list);
 	}
 
@@ -675,10 +684,6 @@ void RandomProjectedNeighborsAndDensities::getNeighbors(std::vector< std::vector
 			// if(itPos == cneighs.end()) //element not found in cneigh
 			if( !std::binary_search(cneighs.begin(), cneighs.end(), oldind) )
 			{
-				// if(*itPos > cneighs.size())
-				// 	cneighs.push_back(oldind);
-				// else
-				// 	cneighs.insert(itPos, oldind);
 				cneighs.push_back(oldind);
 				std::sort(cneighs.begin(),cneighs.end());
 				cneighs.erase(std::unique(cneighs.begin(), cneighs.end()), cneighs.end());
@@ -689,10 +694,6 @@ void RandomProjectedNeighborsAndDensities::getNeighbors(std::vector< std::vector
 			// if(itPos == cneighs2.end()) // element not found in cneighs2
 			if( !std::binary_search(cneighs2.begin(), cneighs2.end(), ind) )
 			{
-				// if(*itPos > cneighs2.size())
-				// 	cneighs2.push_back(ind);
-				// else
-				// 	cneighs2.insert(itPos, ind);
 				cneighs2.push_back(oldind);
 				std::sort(cneighs2.begin(),cneighs2.end());
 				cneighs2.erase(std::unique(cneighs2.begin(), cneighs2.end()), cneighs2.end());
