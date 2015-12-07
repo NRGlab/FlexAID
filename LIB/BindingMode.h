@@ -32,18 +32,18 @@ struct Pose
 
 struct PoseClassifier
 {
-   inline bool operator() ( const Pose* Pose1, const Pose* Pose2 )
+   inline bool operator() ( const Pose& Pose1, const Pose& Pose2 )
    {
-       	if(Pose1->order < Pose2->order) return true;
-       	else if(Pose1->order > Pose2->order) return false;
-		if(Pose1->reachDist < Pose2->reachDist) return true;
-		else if(Pose1->reachDist > Pose2->reachDist) return false;
-		if(Pose1->CF < Pose2->CF) return true;
-		else if(Pose1->CF > Pose2->CF) return false;
-		if(Pose1->chrom_index < Pose2->chrom_index) return true;
-		else if(Pose1->chrom_index > Pose2->chrom_index) return false;
+       	if(Pose1.order < Pose2.order) return true;
+       	else if(Pose1.order > Pose2.order) return false;
+		if(Pose1.reachDist < Pose2.reachDist) return true;
+		else if(Pose1.reachDist > Pose2.reachDist) return false;
+		if(Pose1.chrom_index < Pose2.chrom_index) return true;
+		else if(Pose1.chrom_index > Pose2.chrom_index) return false;
 		
 		return false;
+
+		
    }
 };
 /*****************************************\
@@ -55,25 +55,25 @@ class BindingMode // aggregation of poses (Cluster)
 	
 	public:
 		explicit 						BindingMode(BindingPopulation*); // public constructor (explicitely needs a pointer to a BindingPopulation of type BindingPopulation*)
-									   ~BindingMode();
-			void						add_Pose(Pose*);
+
+			void						add_Pose(Pose&);
 			void						clear_Poses();
-			unsigned long int 			get_BindingMode_size() const;
+			int							get_BindingMode_size() const;
 			double						compute_energy() const;
 			double						compute_entropy() const;
 			double						compute_enthalpy() const;
-	 std::vector<Pose*>::const_iterator elect_Representative(bool useOPTICSordering) const;
+			std::vector<Pose>::const_iterator elect_Representative(bool useOPTICSordering) const;
 			inline bool const 			operator<(const BindingMode&);
 
  	protected:
-		std::vector<Pose*> Poses;
+		std::vector<Pose> Poses;
 		BindingPopulation* Population; // used to access the BindingPopulation
 
 		void	set_energy();
 
 	private:
-		void 	output_BindingMode(int num_result, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp);
-		void	output_dynamic_BindingMode(int nBindingMode, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp);
+		void 	output_BindingMode(int num_result, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints);
+		void	output_dynamic_BindingMode(int nBindingMode, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints);
 		double energy;
 };
 
@@ -92,9 +92,9 @@ class BindingPopulation
 			// add new binding mode to population
 			void	add_BindingMode(BindingMode&);
 			// return the number of BindinMonde (size getter)
-			unsigned long get_Population_size();
+			int		get_Population_size();
 			// output BindingMode up to nResults results
-			void	output_Population(int nResults, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp);
+			void	output_Population(int nResults, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints);
 
 	protected:
 		double PartitionFunction;	// sum of all Boltzmann_weight

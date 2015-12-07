@@ -169,7 +169,7 @@ typedef struct VC_Global_struct VC_Global;
 
 int     Vcontacts(FA_Global*,atom*,resid*,VC_Global*,double*,bool);
 
-cfstr   ic2cf(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*);
+cfstr   ic2cf(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*); // non-const parameters
 double  vcfunction(FA_Global*,VC_Global*,atom*,resid*,vector< pair<int,int> > &,bool*);
 float   xs2cf(FA_Global*,VC_Global*,atom*,resid*,int,int*);
 float   pb2cf(FA_Global*,VC_Global*,atom*,resid*,rot*,int,int*, int);

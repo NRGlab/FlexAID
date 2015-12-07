@@ -7,7 +7,7 @@
  *  isFirst : manages the HEADER + HEAD REMARKS
  *  isLast  : manages the CONECT + END records
  ******************************************************************************/
-int write_MODEL_pdb(bool isFirst, bool isLast, int nModel, int nBindingMode, FA_Global* FA,atom *atoms, resid* residue,char outfile[], char remark[])
+int write_MODEL_pdb(bool isFirst, bool isLast, int nModel, FA_Global* FA,atom *atoms, resid* residue,char outfile[], char remark[])
 {
 	char field[7];
 	int rot;
