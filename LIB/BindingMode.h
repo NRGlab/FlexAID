@@ -100,13 +100,13 @@ class BindingPopulation
 		int nChroms;				// n_chrom_snapshot input to clustergin function
 
 		// FlexAID pointer
-		FA_Global* 	FA;		// pointer to FA_Global struct
-		GB_Global* 	GB;		// pointer to GB_Global struct
-		VC_Global* 	VC;		// pointer to VC_Global struct
-		chromosome* chroms;	// pointer to chromosomes' array
+		FA_Global* 	FA;			// pointer to FA_Global struct
+		GB_Global* 	GB;			// pointer to GB_Global struct
+		VC_Global* 	VC;			// pointer to VC_Global struct
+		chromosome* chroms;		// pointer to chromosomes' array
 		genlim* gene_lim;		// pointer to gene_lim genlim array (useful for bondaries defined for each gene)
-		atom* atoms;				// pointer to atoms' array
-		resid* residue;				// pointer to residues' array
+		atom* atoms;			// pointer to atoms' array
+		resid* residue;			// pointer to residues' array
 		gridpoint* cleftgrid;	// pointer to gridpoints' array (defining the total search space of the simulation)
 	
 	private:

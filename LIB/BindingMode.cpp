@@ -277,19 +277,19 @@ void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, 
 		// 5. write_pdb(FA,atoms,residue,tmp_end_strfile,remark)
 		if(Pose == this->Poses.begin() && Pose+1 == this->Poses.end())
 		{
-			write_MODEL_pdb(true, true, nModel, num_result, this->Population->FA,this->Population->atoms,this->Population->residue,tmp_end_strfile,remark);
+			write_MODEL_pdb(true, true, nModel, this->Population->FA,this->Population->atoms,this->Population->residue,tmp_end_strfile,remark);
 		}
 		else if(Pose == this->Poses.begin())
 		{
-			write_MODEL_pdb(true, false, nModel, num_result, this->Population->FA,this->Population->atoms,this->Population->residue,tmp_end_strfile,remark);
+			write_MODEL_pdb(true, false, nModel, this->Population->FA,this->Population->atoms,this->Population->residue,tmp_end_strfile,remark);
 		}
 		else if(Pose+1 == this->Poses.end())
 		{
-			write_MODEL_pdb(false, true, nModel, num_result, this->Population->FA,this->Population->atoms,this->Population->residue,tmp_end_strfile,remark);
+			write_MODEL_pdb(false, true, nModel, this->Population->FA,this->Population->atoms,this->Population->residue,tmp_end_strfile,remark);
 		}
 		else
 		{
-			write_MODEL_pdb(false, false, nModel, num_result, this->Population->FA,this->Population->atoms,this->Population->residue,tmp_end_strfile,remark);
+			write_MODEL_pdb(false, false, nModel, this->Population->FA,this->Population->atoms,this->Population->residue,tmp_end_strfile,remark);
 		}
     }
 }

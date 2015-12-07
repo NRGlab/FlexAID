@@ -134,7 +134,7 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
     }
 	
 	// Build object, compute projections, density estimates and density neighborhoods (in serial order of function calls below)
-	RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities MultiPartition(this->points, this->minPoints, this);
+	RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities MultiPartition(this->points, this->minPoints, this); // use minPoints amount of random projections
 	MultiPartition.computeSetBounds(ptInd);
 	MultiPartition.getInverseDensities(this->inverseDensities);
 	MultiPartition.getNeighbors(this->neighbors);
@@ -146,11 +146,11 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
 		if(!this->processed[ipt]) this->ExpandClusterOrder(ipt);
     }
     
-    // output the projected distances
-    MultiPartition.output_projected_distance(end_strfile, tmp_end_strfile);
-    
     // Would it be useful to normalize 'reachability distance' ?
    	// this->normalizeDistances();
+    
+    // output the projected distances
+    MultiPartition.output_projected_distance(end_strfile, tmp_end_strfile);
     
 	// Order chromosome and their reachDist in OPTICS
     //  points pairs contain :
@@ -207,13 +207,110 @@ void FastOPTICS::output_OPTICS(char* end_strfile, char* tmp_end_strfile)
         fprintf(outfile, "#ORDER\t#INDEX\t#reachDist\t#CF\t#prevRMSD\t#nextRMSD\n");
 		for(std::vector<Pose>::iterator it = this->OPTICS.begin(); it != this->OPTICS.end(); ++it)
 		{
-			float prevDist = (it == this->OPTICS.begin()) ? 0.0f : this->compute_vect_distance(it->vPose, (it-1)->vPose);
+			float prevDist = (it == this->OPTICS.begin()) 	? 0.0f : this->compute_vect_distance(it->vPose, (it-1)->vPose);
 			float nextDist = ((it+1) == this->OPTICS.end()) ? 0.0f : this->compute_vect_distance(it->vPose, (it+1)->vPose);
-            if(!isUndefinedDist(it->reachDist)) fprintf(outfile, "%d\t%d\t%8g\t%8g\t%8g\t%8g\n", it->order, it->chrom_index, it->reachDist, it->CF, prevDist, nextDist);
+            if(!isUndefinedDist(it->reachDist))	fprintf(outfile, "%d\t%d\t%8g\t%8g\t%8g\t%8g\n", it->order, it->chrom_index, it->reachDist, it->CF, prevDist, nextDist);
             else fprintf(outfile, "%d\t%d\t%8g\t%8g\t%8g\t%8g\n", it->order, it->chrom_index, UNDEFINED_DIST, it->CF, prevDist, nextDist);
 		}
    }
    CloseFile_B(&outfile,"w");;//fclose(outfile);
+}
+
+void FastOPTICS::output_3d_OPTICS_ordering(char* end_strfile, char* tmp_end_strfile)
+{
+	// File and Output variables declarations
+    cfstr CF; /* complementarity function value */
+    resid *pRes = NULL;
+    cfstr* pCF = NULL;
+	char sufix[25];
+    char remark[MAX_REMARK];
+	char tmpremark[MAX_REMARK];
+
+	sprintf(sufix, "__%d.optics.pdb", this->minPoints);
+	strcpy(tmp_end_strfile, end_strfile);
+	strcat(tmp_end_strfile,sufix);
+	FILE* outfile;
+	if(!OpenFile_B(tmp_end_strfile, "w", &outfile))
+	{
+		Terminate(5);
+	}
+	else
+	{
+        int nModel = 1;
+		for(std::vector<Pose>::iterator Pose = this->OPTICS.begin(); Pose != this->OPTICS.end(); ++Pose, ++nModel)
+		{
+			for(int k = 0; k < this->GB->num_genes; ++k) this->FA->opt_par[k] = Pose->chrom->genes[k].to_ic;
+			CF = ic2cf(this->FA, this->VC, this->atoms, this->residue, this->cleftgrid, this->GB->num_genes, this->FA->opt_par);
+			strcpy(remark,"REMARK optimized structure\n");
+			sprintf(tmpremark,"REMARK Fast OPTICS clustering algorithm used to order Poses in OPTICS\n");
+			strcat(remark,tmpremark);
+			sprintf(tmpremark,"REMARK CF=%8.5f\n",get_cf_evalue(&CF));
+			strcat(remark,tmpremark);
+			sprintf(tmpremark,"REMARK CF.app=%8.5f\n",get_apparent_cf_evalue(&CF));
+			strcat(remark,tmpremark);
+
+			for(int j = 0; j < this->FA->num_optres; ++j)
+			{
+				pRes = &this->residue[this->FA->optres[j].rnum];
+				pCF  = &this->FA->optres[j].cf;
+		        
+		        sprintf(tmpremark,"REMARK optimizable residue %s %c %d\n", pRes->name, pRes->chn, pRes->number);
+		        strcat(remark,tmpremark);
+		        
+		        sprintf(tmpremark ,"REMARK CF.com=%8.5f\n", pCF->com);
+		        strcat(remark, tmpremark);
+		        sprintf(tmpremark ,"REMARK CF.sas=%8.5f\n", pCF->sas);
+		        strcat(remark, tmpremark);
+		        sprintf(tmpremark ,"REMARK CF.wal=%8.5f\n", pCF->wal);
+		        strcat(remark, tmpremark);
+		        sprintf(tmpremark ,"REMARK CF.con=%8.5f\n", pCF->con);
+		        strcat(remark, tmpremark);
+		        sprintf(tmpremark, "REMARK Residue has an overall SAS of %.3f\n", pCF->totsas);
+		        strcat(remark, tmpremark);
+			}
+		    
+		    for(int j=0; j < this->FA->npar; ++j)
+			{
+				sprintf(tmpremark, "REMARK [%8.3f]\n",this->FA->opt_par[j]);
+				strcat(remark,tmpremark);
+			}
+
+			// 4. if(REF) prints RMSD to REF
+			if(this->FA->refstructure == 1)
+			{
+				bool Hungarian = false;
+				sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure (no symmetry correction)\n",
+				calc_rmsd(this->FA,this->atoms,this->residue,this->cleftgrid,this->FA->npar,this->FA->opt_par, Hungarian));
+				strcat(remark,tmpremark);
+				Hungarian = true;
+				sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure     (symmetry corrected)\n",
+				calc_rmsd(this->FA,this->atoms,this->residue,this->cleftgrid,this->FA->npar,this->FA->opt_par, Hungarian));
+				strcat(remark,tmpremark);
+			}
+	        
+			// 5. write_pdb(FA,atoms,residue,tmp_end_strfile,remark)
+			if(Pose == this->OPTICS.begin() && Pose+1 == this->OPTICS.end())
+			{
+				// case where there is only one pose to write (Pose == OPTICS.begin() && Pose++ == OPTICS.end())
+				write_MODEL_pdb(true, true, nModel, this->FA,this->atoms,this->residue,tmp_end_strfile,remark);
+			}
+			else if(Pose == this->OPTICS.begin())
+			{
+				// first MODEL to be written
+				write_MODEL_pdb(true, false, nModel, this->FA,this->atoms,this->residue,tmp_end_strfile,remark);
+			}
+			else if(Pose+1 == this->OPTICS.end())
+			{
+				// last MODEL to be written
+				write_MODEL_pdb(false, true, nModel, this->FA,this->atoms,this->residue,tmp_end_strfile,remark);
+			}
+			else
+			{
+				// any MODEL in between to be written
+				write_MODEL_pdb(false, false, nModel, this->FA,this->atoms,this->residue,tmp_end_strfile,remark);
+			}
+		}
+	}
 }
 
 std::vector<float> FastOPTICS::Vectorized_Chromosome(chromosome* chrom)
@@ -383,7 +480,7 @@ void FastOPTICS::ExpandClusterOrder(int ipt)
 			int iNeigh = *it;
 			if(this->processed[iNeigh] == true) continue;
 
-			float nrdist = this->compute_distance(points[iNeigh], points[currPt]);
+			float nrdist = this->compute_distance(this->points[iNeigh], this->points[currPt]);
 
 			if(coredist > nrdist)
 				nrdist = coredist;
@@ -394,10 +491,10 @@ void FastOPTICS::ExpandClusterOrder(int ipt)
 			tmp = ClusterOrdering::ClusterOrdering(iNeigh, currPt, nrdist);
 			queue.push(tmp);
 		}
-//        std::make_heap(const_cast<ClusterOrdering*>(&queue.top()),
-//                       const_cast<ClusterOrdering*>(&queue.top() + queue.size()),
-//                       ClusterOrderingComparator::ClusterOrderingComparator()
-//                       );
+        std::make_heap(const_cast<ClusterOrdering*>(&queue.top()),
+                       const_cast<ClusterOrdering*>(&queue.top() + queue.size()),
+                       ClusterOrderingComparator::ClusterOrderingComparator()
+                       );
 	}
 }
 
@@ -489,7 +586,7 @@ void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > &
 	// perform projection of points
 	for(int j = 0; j<this->nProject1D; ++j)
 	{
-        //std::vector<float> currentRp = this->Randomized_InternalCoord_Vector();
+        // std::vector<float> currentRp = this->Randomized_InternalCoord_Vector();
         std::vector<float> currentRp(this->Randomized_CartesianCoord_Vector());
         
 		int k = 0;
@@ -754,7 +851,7 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_InternalCoor
 		}
 	}
 	sum = sqrtf(sum);
-	for(int k = 0; k < this->nDimensions; ++k) { vChrom[k]/=sum; }
+	// for(int k = 0; k < this->nDimensions; ++k) { vChrom[k]/=sum; }
 
     
 	return vChrom;
@@ -904,7 +1001,7 @@ void RandomProjectedNeighborsAndDensities::swap_element_in_vectors(std::vector<f
 void RandomProjectedNeighborsAndDensities::output_projected_distance(char* end_strfile, char* tmp_end_strfile)
 {
 	char sufix[25];
-	sprintf(sufix, "__%d.projDist", this->minSplitSize);
+	sprintf(sufix, "__%d.projDist", this->top->minPoints);
 	strcpy(tmp_end_strfile, end_strfile);
 	strcat(tmp_end_strfile,sufix);
 	FILE* outfile;
@@ -939,7 +1036,8 @@ void RandomProjectedNeighborsAndDensities::output_projected_distance(char* end_s
 // 	return dice();
 // }
 
-int roll_die() {
+int roll_die()
+{
     boost::random::uniform_int_distribution<> dist(0, MAX_RANDOM_VALUE);
     return dist(gen);
 }

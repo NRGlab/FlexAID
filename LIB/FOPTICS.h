@@ -71,6 +71,7 @@ class FastOPTICS
 		explicit 	FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, BindingPopulation&, int nPoints); // Constructor (publicly called from FlexAID's *_cluster.cxx)
 		void 		Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile);
         void 		output_OPTICS(char* end_strfile, char* tmp_end_strfile);
+        void 		output_3d_OPTICS_ordering(char* end_strfile, char* tmp_end_strfile);
 		float 		compute_distance(std::pair< chromosome*,std::vector<float> > &, std::pair< chromosome*,std::vector<float> > &);
 		float 		compute_vect_distance(std::vector<float> a, std::vector<float> b);
 		int 		get_minPoints();
@@ -102,13 +103,13 @@ class FastOPTICS
 	protected:
 		// protected methods to be used by RandomProjectedNeighborsAndDensities::methods()
 			  FA_Global* FA;		// pointer to FA_Global struct
-		const GB_Global* GB;		// pointer to GB_Global struct
-		const VC_Global* VC;		// pointer to VC_Global struct
-		const chromosome* chroms;	// pointer to chromosomes' array
-		const genlim* gene_lim;		// pointer to gene_lim genlim array (useful for bondaries defined for each gene)
+		/*const*/GB_Global* GB;		// pointer to GB_Global struct
+		/*const*/VC_Global* VC;		// pointer to VC_Global struct
+		/*const*/chromosome* chroms;	// pointer to chromosomes' array
+		/*const*/genlim* gene_lim;		// pointer to gene_lim genlim array (useful for bondaries defined for each gene)
 		atom* atoms;				// pointer to atoms' array
 		resid* residue;				// pointer to residues' array
-		const gridpoint* cleftgrid;	// pointer to gridpoints' array (defining the total search space of the simulation)
+		/*const*/gridpoint* cleftgrid;	// pointer to gridpoints' array (defining the total search space of the simulation)
 		std::vector<float> 			Vectorized_Chromosome(chromosome* chrom);
 		std::vector<float>			Vectorized_Cartesian_Coordinates(int chrom_index);
 };

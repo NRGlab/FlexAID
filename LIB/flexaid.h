@@ -525,7 +525,7 @@ void   create_rebuild_list(FA_Global* FA,atom* atoms,resid* residue);           
 void   bondedlist(atom* atoms,int anum, int nloops, int* nlist_ptr, int* blist, int* nnbr); // determines bonded atoms for cffunction
 void   assign_shift(atom* atoms,resid* residue,int rnum, int natm, int *list, int **fdihlist);      // assigns shift atoms internally
 int    write_pdb(FA_Global* FA,atom *atoms,resid* residue,char outfile[], char remark[]);           // writes PDB files
-int    write_MODEL_pdb(bool isFirst, bool isLast, int nModel, int nBindingMode, FA_Global* FA,atom *atoms, resid* residue,char outfile[], char remark[]); // write multi-MODEL PDB files as result
+int    write_MODEL_pdb(bool isFirst, bool isLast, int nModel, FA_Global* FA,atom *atoms, resid* residue,char outfile[], char remark[]); // write multi-MODEL PDB files as result
 void   write_contributions(FA_Global* FA, FILE* outfile_ptr, bool positive);
 const char* get_element(int type);
 void   write_grid(FA_Global* FA, const gridpoint* cleftgrid,char filename[]);                        // writes starting grid to PDB viewable format with 'grid' ext. PYTHON function
