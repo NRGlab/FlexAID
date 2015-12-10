@@ -4,7 +4,14 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int_distribution.hpp>
 boost::random::mt19937 gen;
-// 
+
+struct RNG 
+{
+    int operator() (int n) {
+        return std::rand() / (1.0 + RAND_MAX) * n;
+    }
+};
+
 bool definitelyGreaterThan(float a, float b, float epsilon)
 {
     return (a - b) > ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
@@ -624,7 +631,8 @@ void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > &
 //			tempProj.push_back(this->projectedPoints[i]);
             tempProj[i] = this->projectedPoints[i];
         }
-        std::random_shuffle(projInd.begin(), projInd.end(), [](int n) { return rand() % n; });
+//        std::random_shuffle(projInd.begin(), projInd.end(), ([](int n) { return rand() % n; }) );
+        std::random_shuffle(projInd.begin(), projInd.end());
 		
 		int i = 0;
         for(std::vector<int>::iterator it = projInd.begin(); it != projInd.end(); ++it, i++)
@@ -1040,4 +1048,9 @@ int roll_die()
 {
     boost::random::uniform_int_distribution<> dist(0, MAX_RANDOM_VALUE);
     return dist(gen);
+}
+int roll_rand_die()
+{
+	int n;
+	return rand()%n;
 }
