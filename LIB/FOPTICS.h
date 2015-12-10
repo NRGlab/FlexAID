@@ -73,19 +73,9 @@ class FastOPTICS
         void 		output_OPTICS(char* end_strfile, char* tmp_end_strfile);
         void 		output_3d_OPTICS_ordering(char* end_strfile, char* tmp_end_strfile);
 		float 		compute_distance(std::pair< chromosome*,std::vector<float> > &, std::pair< chromosome*,std::vector<float> > &);
-
-	protected:
-		// protected methods to be used by RandomProjectedNeighborsAndDensities::methods()
-	/*const*/ FA_Global* FA;		// pointer to FA_Global struct
-		const GB_Global* GB;		// pointer to GB_Global struct
-		const VC_Global* VC;		// pointer to VC_Global struct
-		const chromosome* chroms;	// pointer to chromosomes' array
-		const genlim* gene_lim;		// pointer to gene_lim genlim array (useful for bondaries defined for each gene)
-		atom* atoms;				// pointer to atoms' array
-		resid* residue;				// pointer to residues' array
-		const gridpoint* cleftgrid;	// pointer to gridpoints' array (defining the total search space of the simulation)
 		float 		compute_vect_distance(std::vector<float> a, std::vector<float> b);
 		int 		get_minPoints();
+
 	private:
 		// FlexAID specific attributes
 		int N;			// N : number of chromosomes to cluster
