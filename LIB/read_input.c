@@ -136,15 +136,16 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 			{
 				FA->beta = (double) (1.0 / FA->temperature);
 			}
-			else
-			{
-				fprintf(stderr,"ERROR: Invalid temperature given in input parameter.\n");
-				Terminate(2);
-			}
+			else FA->beta = 0;
 		}
 		if(strcmp(field,"CLUSTA") == 0)
 		{
-			sscanf(buffer, "%s %s", field, FA->clustering_algorithm);
+			if(FA->temperature > 0) sscanf(buffer, "%s %s", field, FA->clustering_algorithm);
+			else
+			{
+				fprintf(stdout,"Overriding the clustering algorithm to CF as the Temperature given in input parameter does not allow the consideration of conformational entropy.\n");
+				strcpy(FA->clustering_algorithm, "CF");
+			}
 			
 			if(strncmp(FA->clustering_algorithm,"FO",2) != 0 && strncmp(FA->clustering_algorithm,"DP",2) != 0 && strncmp(FA->clustering_algorithm,"CF",2) != 0)
 			{

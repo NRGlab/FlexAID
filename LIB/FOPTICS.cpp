@@ -99,7 +99,6 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
     this->nDimensions = this->FA->num_het_atm*3;	// use with Vectorized_Cartesian_Coordinates()
     // this->nDimensions = this->FA->npar + 2; 	// use with Vectorized_Chromosome()
     
-    this->minPoints = static_cast<int>( floor(this->N * 0.005) );
     this->minPoints = nPoints;
     
     // FastOPTICS::iOrder = 0;
