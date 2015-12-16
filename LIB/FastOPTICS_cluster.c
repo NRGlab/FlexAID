@@ -2,7 +2,7 @@
 
 void FastOPTICS_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
 {
-    int minPoints = static_cast<int>( std::floor(0.002 * nChrom) );
+    int minPoints = 10;
     // (minPoints < 3*FA->num_het_atm) ? minPoints = minPoints : minPoints = 3*FA->num_het_atm;
 	
     // BindingPopulation() : BindingPopulation constructor *non-overridable*
@@ -14,13 +14,13 @@ void FastOPTICS_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome*
     
     // FastOPTICS() : calling FastOPTICS constructors
     FastOPTICS::FastOPTICS Algo1(FA, GB, VC, chrom, gene_lim, atoms, residue, cleftgrid, nChrom, Population1, minPoints);
-    minPoints = std::floor(minPoints * 1.5);
+    minPoints = std::floor(minPoints * 2);
     FastOPTICS::FastOPTICS Algo2(FA, GB, VC, chrom, gene_lim, atoms, residue, cleftgrid, nChrom, Population2, minPoints);
-    minPoints = std::floor(minPoints * 1.5);
+    minPoints = std::floor(minPoints * 2);
     FastOPTICS::FastOPTICS Algo3(FA, GB, VC, chrom, gene_lim, atoms, residue, cleftgrid, nChrom, Population3, minPoints);
-    minPoints = std::floor(minPoints * 1.5);
+    minPoints = std::floor(minPoints * 2);
     FastOPTICS::FastOPTICS Algo4(FA, GB, VC, chrom, gene_lim, atoms, residue, cleftgrid, nChrom, Population4, minPoints);
-    minPoints = std::floor(minPoints * 1.5);
+    minPoints = std::floor(minPoints * 2);
     FastOPTICS::FastOPTICS Algo5(FA, GB, VC, chrom, gene_lim, atoms, residue, cleftgrid, nChrom, Population5, minPoints);
     
     // 	1. Partition Sets using Random Vectorial Projections
