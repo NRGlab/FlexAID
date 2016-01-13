@@ -98,7 +98,8 @@ double BindingMode::compute_entropy() const
 
 double BindingMode::compute_energy() const
 { 
-	return ( this->compute_enthalpy() - ( this->Population->Temperature * this->compute_entropy() ) );
+	double energy = ( this->compute_enthalpy() - ( this->Population->Temperature * this->compute_entropy() ) );
+	return energy;
 }
 
 

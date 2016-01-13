@@ -157,7 +157,7 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
     // this->normalizeDistances();
     // output the projected distances
     
-    MultiPartition.output_projected_distance(end_strfile, tmp_end_strfile);
+    // MultiPartition.output_projected_distance(end_strfile, tmp_end_strfile);
     
 	// Order chromosome and their reachDist in OPTICS
     //  points pairs contain :
