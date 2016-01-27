@@ -51,6 +51,12 @@ struct ClusterOrderingComparator
 			return true;
 		else if(pose1.reachability < pose2.reachability)
 			return false;
+
+		if(pose1.predecessorID > pose2.predecessorID)
+			return true;
+		else if(pose1.predecessorID < pose2.predecessorID)
+			return false;
+
 		if(pose1.objectID > pose2.objectID)
 			return false;
 		else if(pose1.objectID < pose2.objectID)
@@ -67,7 +73,8 @@ struct ClusterOrderingComparator
 class FastOPTICS
 {
 	friend class RandomProjectedNeighborsAndDensities;
-	
+	friend class BindingMode;
+    friend class BindingPopulation;
 	public:
 		explicit 	FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, BindingPopulation&, int nPoints); // Constructor (publicly called from FlexAID's *_cluster.cxx)
 		void 		Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile);
