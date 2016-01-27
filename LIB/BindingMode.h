@@ -52,6 +52,7 @@ struct PoseClassifier
 class BindingMode // aggregation of poses (Cluster)
 {
 	friend class BindingPopulation;
+	friend class FastOPTICS;
 	
 	public:
 		explicit 						BindingMode(BindingPopulation*); // public constructor (explicitely needs a pointer to a BindingPopulation of type BindingPopulation*)
@@ -83,6 +84,7 @@ class BindingMode // aggregation of poses (Cluster)
 class BindingPopulation
 {
 	friend class BindingMode;
+    friend class FastOPTICS;
 	public:
 		// Temperature is used for energy calculations of BindingModes
 		unsigned int Temperature;
@@ -109,12 +111,10 @@ class BindingPopulation
 		atom* atoms;			// pointer to atoms' array
 		resid* residue;			// pointer to residues' array
 		gridpoint* cleftgrid;	// pointer to gridpoints' array (defining the total search space of the simulation)
-	
+        void 						Entropize(); 	// Sort BindinModes according to their observation frequency
 	private:
-
 		std::vector< BindingMode > 	BindingModes;	// BindingMode container
 		
-		void 						Entropize(); 	// Sort BindinModes according to their observation frequency
 		
 		struct EnergyComparator
 		{
