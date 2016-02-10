@@ -195,8 +195,8 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
 	{
 
         if(isUndefinedDist(it->reachDist) && it->order == 0) { Current.add_Pose(*it); }
-        else if(it->reachDist <= this->FA->cluster_rmsd*(1 + (1-RandomProjectedNeighborsAndDensities::sizeTolerance))) { Current.add_Pose(*it); }
-        else if( (it != this->OPTICS.begin()) && this->compute_vect_distance(it->vPose, (it-1)->vPose) <= this->FA->cluster_rmsd*(1 + (1-RandomProjectedNeighborsAndDensities::sizeTolerance)))
+        else if(it->reachDist <= this->FA->cluster_rmsd*(1 + RandomProjectedNeighborsAndDensities::sizeTolerance)) { Current.add_Pose(*it); }
+        else if( (it != this->OPTICS.begin()) && this->compute_vect_distance(it->vPose, (it-1)->vPose) <= this->FA->cluster_rmsd*(1 + RandomProjectedNeighborsAndDensities::sizeTolerance))
         {
             // it->reachDist =  this->compute_vect_distance(it->vPose, (it-1)->vPose);
             Current.add_Pose(*it);
@@ -817,7 +817,7 @@ void RandomProjectedNeighborsAndDensities::getNeighbors(std::vector< std::vector
 		{
 			ind = pinSet[i];
 
-			// The following block of code uses an iterator to check 
+			// The following block of code uses an iterator to add all points as neighbors to the middle point
 			std::vector<int> & cneighs = neighs.at(ind);
 			if( !std::binary_search(cneighs.begin(), cneighs.end(), oldind) ) //only add point if not a neighbor already
 			{
@@ -825,7 +825,7 @@ void RandomProjectedNeighborsAndDensities::getNeighbors(std::vector< std::vector
 				std::sort(cneighs.begin(),cneighs.end());
 				// cneighs.erase(std::unique(cneighs.begin(), cneighs.end()), cneighs.end());
 			}
-
+			// The following block of code adds the middle point as neighbor to all other points in set
 			std::vector<int> & cneighs2 = neighs.at(oldind);
 			if( !std::binary_search(cneighs2.begin(), cneighs2.end(), ind) ) //only add point if not a neighbor already
 			{
