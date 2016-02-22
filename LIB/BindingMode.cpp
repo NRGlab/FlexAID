@@ -92,7 +92,7 @@ double BindingMode::compute_entropy() const
 		double boltzmann_prob = pose->boltzmann_weight / this->Population->PartitionFunction;
 		entropy += boltzmann_prob * log(boltzmann_prob);
 	}
-	return -entropy; // returning a S value instead of ∆S value. Rendering it negative as in Shannon Entropy (no reference state)
+	return -entropy; // returning a S value instead of ∆S value. Rendering it negative as in Gibbs Entropy (no reference state)
 }
 
 

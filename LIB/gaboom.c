@@ -368,6 +368,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	printf("removing duplicates\n");
 	n_chrom_snapshot = remove_dups((*chrom_snapshot),n_chrom_snapshot,GB->num_genes);
 	
+	
 	/*	
 		printf("Save snapshot == END ==\n");
 		print_par((*chrom_snapshot),(*gene_lim),n_chrom_snapshot,GB->num_genes);
@@ -1335,6 +1336,12 @@ void read_gainputs(FA_Global* FA,GB_Global* GB,int* gen_int,int* sz_part,char fi
 			//POPINIMT IPFILE file.dat
 			if(strcmp(GB->pop_init_method,"IPFILE") == 0){
 				strcpy(GB->pop_init_file,&buffer[16]);
+			}
+			//012345678901234567890123456789
+			//POPINIMT IDEALPOP N
+			// N = number of decoys clusters
+			else if(strcmp(GB->pop_init_method,"IDEALPOP") == 0){
+				GB->num_decoy_clusters = sprintf("%d",&buffer[16]);
 			}
 		}else if(strncmp(buffer,"FITMODEL",8) == 0){
 			sscanf(buffer,"%s %s",field,GB->fitness_model);

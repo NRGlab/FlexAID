@@ -92,11 +92,11 @@ class BindingPopulation
 		// explicit 	BindingPopulation(unsigned int);// public constructor (explicitely needs an int representative of Temperature)
 		explicit 	BindingPopulation(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom);
 			// add new binding mode to population
-			void	add_BindingMode(BindingMode&);
+		void	add_BindingMode(BindingMode&);
 			// return the number of BindinMonde (size getter)
-			int		get_Population_size();
+		int		get_Population_size();
 			// output BindingMode up to nResults results
-			void	output_Population(int nResults, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints);
+		void	output_Population(int nResults, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints);
 
 	protected:
 		double PartitionFunction;	// sum of all Boltzmann_weight

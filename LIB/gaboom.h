@@ -102,10 +102,11 @@ struct GB_Global_struct{
 	int          rrg_skip;
 
 	int          num_print;
-	int	     	print_int;
+	int	     	 print_int;
 
 	char         pop_init_method[9];
 	char         pop_init_file[MAX_PATH__];
+	int 		 num_decoy_clusters; // used with pop_init_method == IDEALPOP to generate an ideal population for clustering
 	char         fitness_model[9];
 	char         rep_model[9];
 	int          duplicates;
