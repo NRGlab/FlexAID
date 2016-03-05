@@ -109,7 +109,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	
 	long int at = 0;
     
-	if(strcmp(GB->pop_init_method,"RANDOM") == 0){
+	if(strcmp(GB->pop_init_method,"RANDOM") == 0 || strcmp(GB->pop_init_method,"IDEALPOP") == 0){
 		set_gene_lim(FA, GB, (*gene_lim));
 		set_bins((*gene_lim),GB->num_genes);
         
@@ -1046,8 +1046,8 @@ void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* 
                           boost::variate_generator< RNGType, boost::uniform_int<> > & dice,
 	                  map<string, int> & duplicates){
 	
-	int i,j;
-	
+	int i,j,k;
+	int rot;
 	/*
 	RNGType rng;
 	
@@ -1134,6 +1134,17 @@ void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* 
 	
 	//------------------------------------------------------------------------------
 	
+
+	//------------------------------------------------------------------------------
+
+	if(strcmp(method,"IDEALPOP")==0)
+	{
+		
+	}
+
+	//------------------------------------------------------------------------------
+
+
 	// calculate evalue for each chromosome
 	for(i=popoffset;i<GB->num_chrom;i++){
 		chrom[i].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[i].genes,target);
@@ -1870,4 +1881,136 @@ double RandomDouble(boost::int32_t gene){
 
 double RandomDouble(){
 	return rand()/((double)RAND_MAX+1.0);
+}
+
+/***********************************************************************/
+/*        1         2         3         4         5         6          */
+/*234567890123456789012345678901234567890123456789012345678901234567890*/
+/*        1         2         3         4         5         6         7*/
+/***********************************************************************/
+int generate_single_gene_variants(FA_Global* FA, GB_Global* GB, atom* atoms, resid* residue,chromosome* chrom, gridpoint* cleftgrid, const genlim* gene_lim, const chromosome* center, int geneID, int nChroms)
+{
+    int i,j;
+	// 1. iterate 
+	for(; nChroms < )
+	{
+		// 0. copy the genes of the reference into chrom[nChroms]
+		for(i = 0; i < FA->npar; ++i) { chrom[nChroms].genes[i] = center->genes[i]; }
+	}
+
+	// return the current number of chromosomes in the population
+	return nChroms;
+}
+
+int generate_true_positive_cluster(FA_Global* FA, GB_Global* GB, atom* atoms, resid* residue,chromosome* chrom, gridpoint* cleftgrid, const genlim* gene_lim)
+{
+	// 0. variables declarations
+	int i,j,k,l;
+	int gpa,anchorIndex,ref;
+	int nChroms = 0;
+	// float dist = 0.0f, lowestDist = 1e16;
+	double gene;
+
+	// 0. Assert that coordinates are available for the reference
+	if(!FA->refstructure)
+	{
+		fprintf(stderr,"generating an ideal population is impossible without the coordinates of the reference\n");
+        Terminate(1);
+	}
+
+	// 1. find ligand rnum and buildic()
+	buildic_reference(FA,atoms,residue,FA->resligand->number);
+
+	// 2. iterate over the flexible parameters (AKA genes) to have the gene value -> chrom[i].genes
+	for(l = 0, gene = 0.0; l < FA->npar; ++l)
+	{
+		// if/elsif for parameter types
+		if(FA->map_par[l].typ == -1)
+		{
+			// 1.* Translate the CC of the REF into genes to build a TP chrom
+			gpa = residue[FA->resligand->number].gpa[0]; // gpa is the atom number of the ligand's anchor
+			if(atoms[gpa].coor_ref == NULL)
+			{
+				fprintf(stderr,"the generation of an ideal population is impossible without the coordinates of the pose of reference\n");
+				Terminate(1);
+			}
+			else
+			{
+				// find the grid_index of the anchor among all anchor points
+				for(k = 0, anchorIndex = -1; k < FA->MIN_CLEFTGRID_POINTS; ++k)
+				{
+					// using the CC (slower)
+					// dist = sqrdist(atoms[gpa].coor_ref, cleftgrid[k].coor);
+					// if(dist < lowestDist)
+					// {
+					// 	lowestDist = dist;
+					// 	anchorIndex = k;
+					// }
+					
+					// using the IC (faster but may be prone to numerical errors in comparions)
+					if(cleftgrid[k].dis == atoms[gpa].dis && cleftgrid[k].ang == atoms[gpa].ang && cleftgrid[k].dih == cleftgrid[k].dih)
+					{
+						anchorIndex = k;
+						break;
+					}
+				}
+				// anchorIndex now contains the index of the closest gridpoint to the position of the anchor atom of the reference
+				gene = (double)anchorIndex;
+			}
+		}
+		// distance
+		if(FA->map_par[l].typ == 0)
+		{
+			gene = (double) atoms[FA->map_par[l].atm].dis;
+		}
+		
+		// angle
+		if(FA->map_par[l].typ == 1)
+		{
+			gene = (double) atoms[FA->map_par[l].atm].ang;
+		}
+		
+		// dihedral angle
+		if(FA->map_par[l].typ == 2)
+		{
+			gene = (double) atoms[FA->map_par[l].atm].dih;
+		}
+
+		// normal mode (should not be observed yet..)
+		if(FA->map_par[l].typ == 3) {}
+		
+		// rotamer
+		if(FA->map_par[l].typ == 4)
+		{
+			gene = (double) ((double)residue[atoms[FA->map_par[l].atm].ofres].rot - 0.5);
+		}
+		// process the information contained in the double gene *before* the next loop iteration
+		chrom[nChroms].genes[l].to_ic = gene;
+	}
+	ref = nChroms;
+	nChroms++;
+
+	// 2. Populate the TP cluster with nChroms/nDecoyCenters chromosomes
+	l = FA->npar - 1; // l will serve as a pointer to the current gene to be processeed
+	while( nChroms < std::round( 1 + ((GB->num_chrom - 1) / GB->num_decoy_clusters)) && l >= 0 )
+	{
+		// 1. generate +/- ∆gene variants for each single gene 'l'
+		nChroms = generate_single_gene_variants(FA, GB, atoms, residue, chrom, cleftgrid, gene_lim, &chrom[0], l, nChroms);
+		--l;
+	}
+    return nChroms;
+}
+
+int generate_true_negatives_clusters(FA_Global* FA, GB_Global* GB, atom* atoms, resid* residue,chromosome* chrom, gridpoint* cleftgrid, const genlim* gene_lim, boost::variate_generator< RNGType, boost::uniform_int<> > & dice, int nChroms)
+{
+	// 0. variables definitions
+
+	// 1. Build N_DECOYS_CLUSTER centers
+
+	// 2. Populate the N_DECOYS_CENTER clusters with a total of N_CHROMOSOMES 
+	
+	// 3.
+    
+    // return the current number of chromosomes
+    return nChroms;
 }

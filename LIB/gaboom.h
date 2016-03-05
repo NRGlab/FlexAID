@@ -162,14 +162,14 @@ int   deelig_search(struct deelig_node_struct* root_node, int* deelig_list, int 
 int   filter_deelig(FA_Global* FA, GB_Global* GB, chromosome* chrom, gene* genes, int ci, atom* atoms, const genlim* gene_lim,
 		   boost::variate_generator< RNGType, boost::uniform_int<> > & dice);
 
-void   set_gene_lim(FA_Global* FA, GB_Global* GB, genlim* gene_lim);
+void   	set_gene_lim(FA_Global* FA, GB_Global* GB, genlim* gene_lim);
 long int read_pop_init_file(FA_Global* FA, GB_Global* GB, genlim* gene_lim, char* pop_init_file);
-void  set_bins(genlim* gene_lim);
-void  set_bins(genlim* gene_lim, int num_genes);
-double calc_poss(genlim* gene_lim, int num_genes);
-void validate_dups(GB_Global* GB, genlim* gene_lim, int num_genes);
-double genetoic(const genlim* gene_lim, boost::int32_t gene);
-int ictogene(const genlim* gene_lim, double ic);
+void  	set_bins(genlim* gene_lim);
+void  	set_bins(genlim* gene_lim, int num_genes);
+double 	calc_poss(genlim* gene_lim, int num_genes);
+void	validate_dups(GB_Global* GB, genlim* gene_lim, int num_genes);
+double 	genetoic(const genlim* gene_lim, boost::int32_t gene);
+int 	ictogene(const genlim* gene_lim, double ic);
 
 int 	RandomInt(double frac);
 double 	RandomDouble();
@@ -183,8 +183,7 @@ FILE* 	get_update_file_ptr(FA_Global* FA);
 void 	close_update_file_ptr(FA_Global* FA, FILE* outfile_ptr);
 string 	generate_sig(gene genes[], int num_genes);
 
-void  	generate_random_individual(FA_Global* FA, GB_Global* GB, atom* atoms, gene* genes, const genlim* gene_lim,
-				 boost::variate_generator< RNGType, boost::uniform_int<> > &, int from_gene, int to_gene);
+void  	generate_random_individual(FA_Global* FA, GB_Global* GB, atom* atoms, gene* genes, const genlim* gene_lim,boost::variate_generator< RNGType, boost::uniform_int<> > &, int from_gene, int to_gene);
 void  	populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chrom, const genlim* gene_lim, atom* atoms,resid* residue,gridpoint* cleftgrid,char method[], cfstr (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*), char file[], long int at, int offset, int print, boost::variate_generator< RNGType, boost::uniform_int<> > &, map<string, int> &);
 cfstr 	eval_chromosome(FA_Global* FA,GB_Global* GB,VC_Global* VC,const genlim* gene_lim,atom* atoms,resid* residue,gridpoint* cleftgrid,gene* john, cfstr (*function)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*));
 void  	calculate_fitness(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* chrom, const genlim* gene_lim,atom* atoms,resid* residue,gridpoint* cleftgrid,char method[],int pop_size, int print, cfstr (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int, double*));
@@ -225,5 +224,13 @@ void 	swap_elements(ClusterChrom* Chrom, ClusterChrom* ChromX, ClusterChrom* Chr
 float 	calculate_stddev(ClusterChrom* Chrom, int num_chrom);
 float 	calculate_mean(ClusterChrom* Chrom, int num_chrom);
 int 	DistanceComparator(const void*, const void*);
+
+
+// Ideal Population generation functions
+int generate_single_gene_variants(FA_Global* FA, GB_Global* GB, atom* atoms, resid* residue,chromosome* chrom, gridpoint* cleftgrid, const genlim* gene_lim, const chromosome* center, int geneID, int nChroms);
+// // generate a chromosome from the reference and populate a cluster of TP with nChroms/nDecoyCluster individual. Returns the number of chromosome generated
+int generate_true_positive_cluster(FA_Global* FA, GB_Global* GB, atom* atoms, resid* residue, chromosome* chrom, gridpoint* cleftgrid, const genlim* gene_lim);
+// generate a random distant chromosome from the reference and populate a cluster of TP with nChroms/nDecoyCluster individual. Returns the number of chromosome generated
+int generate_true_negatives_clusters(FA_Global* FA, GB_Global* GB, atom* atoms, resid* residue, chromosome* chrom, gridpoint* cleftgrid, const genlim* gene_lim,boost::variate_generator< RNGType, boost::uniform_int<> > &, int chrom_index);
 
 #endif // include guard

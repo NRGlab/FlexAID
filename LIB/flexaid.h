@@ -516,6 +516,7 @@ void   calc_cleftic(FA_Global* FA,gridpoint* cleftgrid);                        
 void   buildlist(FA_Global* FA,atom* atoms,resid* residue,int rnum, int bnum, int *tot, int lout[]);// creates list of atoms that need to be rebuilt
 void   buildcc(FA_Global* FA,atom* atoms,int tot,int list[]);                        // creates cartesian coordinates from internal coords.
 void   buildic(FA_Global* FA,atom* atoms,resid* residue,int rnum);                   // creates internal coordinates from cartesian.
+void   buildic_reference(FA_Global* FA,atom* atoms,resid* residue,int rnum);                   // creates internal coordinates from cartesian coordinates of the reference.
 void   add2_optimiz_vec(FA_Global* FA,atom* atoms,resid* residue,int val[], char chain, const char* extras);            // adds atoms that need to be optimized
 void   realloc_par(FA_Global* FA, int* MIN_PAR); // reallocs memory for par in add2 function
 void   read_lig(FA_Global* FA,atom** atoms,resid** residue,char ligfile[]);                           // reads ligands

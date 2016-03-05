@@ -11,7 +11,7 @@ int read_rmsdst(FA_Global* FA,atom* atoms,resid* residue,char rmsdst_file[]){
 	char field[7];           /* field names on INPUT file */
 	
 	char rres_[4], rnum_[5], anum_[6], rchn_, coor_[9];
-	int rnum, anum;
+	int rnum, anum; 		/* rnum : residue numnber ; anum : atom number */
 	int i,j,k,l;
 	int rmsd_atoms = 0;
 
