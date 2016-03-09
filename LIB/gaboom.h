@@ -166,7 +166,7 @@ void   	set_gene_lim(FA_Global* FA, GB_Global* GB, genlim* gene_lim);
 long int read_pop_init_file(FA_Global* FA, GB_Global* GB, genlim* gene_lim, char* pop_init_file);
 void  	set_bins(genlim* gene_lim);
 void  	set_bins(genlim* gene_lim, int num_genes);
-double 	calc_poss(genlim* gene_lim, int num_genes);
+double 	calc_poss(const genlim* gene_lim, int num_genes);
 void	validate_dups(GB_Global* GB, genlim* gene_lim, int num_genes);
 double 	genetoic(const genlim* gene_lim, boost::int32_t gene);
 int 	ictogene(const genlim* gene_lim, double ic);
@@ -227,7 +227,7 @@ int 	DistanceComparator(const void*, const void*);
 
 
 // Ideal Population generation functions
-int generate_single_gene_variants(FA_Global* FA, GB_Global* GB, atom* atoms, resid* residue,chromosome* chrom, gridpoint* cleftgrid, const genlim* gene_lim, const chromosome* center, int geneID, int nChroms);
+int generate_genetic_variants(FA_Global* FA, GB_Global* GB, atom* atoms, resid* residue,chromosome* chrom, gridpoint* cleftgrid, const genlim* gene_lim, const chromosome* center, int centerIndex, int nIndividuals, int nChroms);
 // // generate a chromosome from the reference and populate a cluster of TP with nChroms/nDecoyCluster individual. Returns the number of chromosome generated
 int generate_true_positive_cluster(FA_Global* FA, GB_Global* GB, atom* atoms, resid* residue, chromosome* chrom, gridpoint* cleftgrid, const genlim* gene_lim);
 // generate a random distant chromosome from the reference and populate a cluster of TP with nChroms/nDecoyCluster individual. Returns the number of chromosome generated
