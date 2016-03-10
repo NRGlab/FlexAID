@@ -227,7 +227,7 @@ int 	DistanceComparator(const void*, const void*);
 
 
 // Ideal Population generation functions
-int generate_genetic_variants(FA_Global* FA, GB_Global* GB, atom* atoms, resid* residue,chromosome* chrom, gridpoint* cleftgrid, const genlim* gene_lim, const chromosome* center, int centerIndex, int nIndividuals, int nChroms);
+int generate_genetic_variants(FA_Global* FA, GB_Global* GB, atom* atoms, resid* residue,chromosome* chrom, gridpoint* cleftgrid, const genlim* gene_lim, std::vector<int>& cCenters, int nIndividuals, int nChroms);
 // // generate a chromosome from the reference and populate a cluster of TP with nChroms/nDecoyCluster individual. Returns the number of chromosome generated
 int generate_true_positive_cluster(FA_Global* FA, GB_Global* GB, atom* atoms, resid* residue, chromosome* chrom, gridpoint* cleftgrid, const genlim* gene_lim);
 // generate a random distant chromosome from the reference and populate a cluster of TP with nChroms/nDecoyCluster individual. Returns the number of chromosome generated

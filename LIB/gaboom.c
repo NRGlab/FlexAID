@@ -1888,14 +1888,26 @@ double RandomDouble(){
 /*234567890123456789012345678901234567890123456789012345678901234567890*/
 /*        1         2         3         4         5         6         7*/
 /***********************************************************************/
-int generate_genetic_variants(FA_Global* FA, GB_Global* GB, atom* atoms, resid* residue,chromosome* chrom, gridpoint* cleftgrid, const genlim* gene_lim, const chromosome* center, int centerIndex, int nIndividuals, int nChroms)
+int generate_genetic_variants(FA_Global* FA, GB_Global* GB, atom* atoms, resid* residue,chromosome* chrom, gridpoint* cleftgrid, const genlim* gene_lim, std::vector<int>& cCenters, int nIndividuals, int nChroms)
 {
     int i,j,k,nGenerated = 0;
+    int centerIndex = -1;
     float rmsd = 0.0f;
     double gene = 0.0;
 	bool done = false;
 	float sizeTolerance = (float)(2.0f/3.0f);
 	
+	// 0. get the closest center in cCenters (last element)
+	if(!cCenters.empty()) 
+	{
+		centerIndex = cCenters.back();
+	}
+	else if(centerIndex < 0 || cCenters.empty()) 
+	{
+		return 0;
+	}
+	
+
 	// 1. iterate 
 	int geneID = FA->npar - 1;
 	while(nIndividuals > 0 && !done)
@@ -1906,7 +1918,7 @@ int generate_genetic_variants(FA_Global* FA, GB_Global* GB, atom* atoms, resid* 
 			Terminate(1);
 		}
 		// 0. copy the genes of the reference into chrom[nChroms]
-		copy_chrom(&chrom[nChroms], center, GB->num_genes);
+		copy_chrom(&chrom[nChroms], &chrom[centerIndex], GB->num_genes);
 
 		// 1. modify the geneID-th gene
 		j =  (int)( (chrom[nChroms].genes[geneID].to_ic - gene_lim[geneID].min) / gene_lim[geneID].del );
@@ -1915,7 +1927,7 @@ int generate_genetic_variants(FA_Global* FA, GB_Global* GB, atom* atoms, resid* 
 			chrom[nChroms].genes[geneID].to_ic += gene_lim[geneID].del * (double)j;
 			if(chrom[nChroms].genes[geneID].to_ic > gene_lim[geneID].max) { chrom[nChroms].genes[geneID].to_ic = gene_lim[geneID].min; }
 		}
-		if(chrom[nChroms].genes[geneID].to_ic == center->genes[geneID].to_ic)
+		if(chrom[nChroms].genes[geneID].to_ic == chrom[centerIndex].genes[geneID].to_ic)
 		{
 			--geneID;
 			continue; // the original gene value has been retrieved for geneID-th gene
@@ -1929,7 +1941,7 @@ int generate_genetic_variants(FA_Global* FA, GB_Global* GB, atom* atoms, resid* 
 				--nIndividuals;
 				++nGenerated;
 				++nChroms;
-				if(nGenerated >= (int) calc_poss(gene_lim,GB->num_genes)) { done = true; }
+				if(nGenerated >= (int) calc_poss(gene_lim,GB->num_genes) || nIndividuals <= 0) { done = true; break; }
 			}
 			else
 			{
@@ -1946,12 +1958,13 @@ int generate_genetic_variants(FA_Global* FA, GB_Global* GB, atom* atoms, resid* 
 int generate_true_positive_cluster(FA_Global* FA, GB_Global* GB, atom* atoms, resid* residue,chromosome* chrom, gridpoint* cleftgrid, const genlim* gene_lim)
 {
 	// 0. variables declarations
-	int i,j,k,l;
-	int gpa,anchorIndex,ref;
+	int i,k,l;
+	int gpa,anchorIndex;
 	int nChroms = 0;
 	int nIndividuals = std::round( 1 + ((GB->num_chrom - 1) / GB->num_decoy_clusters)) - 1; // the -1 is a lazy way to save code snippet for the *no-overflow ceiling* rounding. Really, I am now ;
 	// float dist = 0.0f, lowestDist = 1e16;
 	double gene;
+	std::vector<int> cCenters;
 
 	// 0. Assert that coordinates are available for the reference
 	if(!FA->refstructure)
@@ -2030,11 +2043,11 @@ int generate_true_positive_cluster(FA_Global* FA, GB_Global* GB, atom* atoms, re
 		chrom[nChroms].genes[l].to_ic = gene;
 		chrom[nChroms].genes[l].to_int32 = ictogene(&gene_lim[l],gene);
 	}
-	ref = nChroms;
+    cCenters.push_back(nChroms);
 	nChroms++;
 
 	// 2. Populate the TP cluster with nChroms/nDecoyCenters chromosomes
- 	nChroms = generate_genetic_variants(FA, GB, atoms, residue, chrom, cleftgrid, gene_lim, &chrom[0], 0, nIndividuals, nChroms);
+ 	nChroms = generate_genetic_variants(FA, GB, atoms, residue, chrom, cleftgrid, gene_lim, cCenters, nIndividuals, nChroms);
 	
     return nChroms;
 }
@@ -2043,39 +2056,31 @@ int generate_true_negatives_clusters(FA_Global* FA, GB_Global* GB, atom* atoms, 
 {
 	// 0. variables definitions
 	bool flag;
-	int i,j,k,l;
-	std::vector<int> cCenters;
+	int i,j;
 	int centerIndex;
-	int gpa,anchorIndex,ref;
 	// int* chrom_centers;
+	std::vector<int> cCenters;
+	std::vector<int>::iterator it;
+	// int gpa,anchorIndex,ref;
 	int nIndividuals = std::round( 1 + ((GB->num_chrom - 1) / GB->num_decoy_clusters)) - 1; // the -1 is a lazy way to save code snippet for the *no-overflow ceiling* rounding. Really, I am now 
 	float sizeTolerance = (float)(2.0f/3.0f);
 
-	// 0. memory allocation for the array of int chrom_centers (will need to be passed to generate_genetic_variants() function)
-	// chrom_centers = (int*) malloc(GB->num_decoy_clusters+1 * sizeof(int));
-	// if(chrom_centers == NULL)
-	// {
-	// 	fprintf(stderr,"ERROR: memory allocation error for chrom_centers");
-	// 	Terminate(2);
-	// }
 
-	for(i = 0; i < GB->num_decoy_clusters+1; ++i)
-	{
-		if(i == 0) 	{chrom_centers[i] =  0;} // setting the TP center in the chrom_centers array at the first position
-		else		{chrom_centers[i] = -1;} // setting a -1 value (uninitialised value)
-	}
+	// 0.1 initialization if the centers in cCenters
+	cCenters.push_back(0);
+
 
 	// 1. Build N_DECOYS_CLUSTER centers
-	for(i = 0; i < GB->num_decoy_clusters; ++i)
+	for(i = 0; i < GB->num_decoy_clusters;)
 	{
 		// 1.1 generate a new chromosome center randomly
-		
+		generate_random_individual(FA, GB, atoms, chrom[nChroms].genes, gene_lim, dice, 0, GB->num_genes);
+
 		// 1.2 Check that all other centers are distant (including the chrom[0] representing the TP cluster's center)
 		flag = false;
-		for(j = 0; j < GB->num_decoy_clusters+1; ++j)
+		for(it = cCenters.begin(); it != cCenters.end(); ++it)
 		{
-			centerIndex = chrom_centers[j];
-			if(centerIndex == -1) continue;
+			centerIndex = *it;
 
 			if( calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes, centerIndex, nChroms, NULL, NULL, true) < (2 * sizeTolerance * FA->cluster_rmsd) )
 			{
@@ -2085,10 +2090,12 @@ int generate_true_negatives_clusters(FA_Global* FA, GB_Global* GB, atom* atoms, 
 		}
 		// 1.3 Populate the most recent chrom_center cluster with a total of nIndividuals chromosomes 
 		//   * only if flag is false because a true value means that the cen
-		if(!flag)
+		if(flag) continue;
+		else if(!flag)
 		{
-			chrom_centers[i] = nChroms; // pushing the index value of the currently created center into chrom_centers[]
-			// nChroms = generate_genetic_variants(FA, GB, atoms, residue, chrom, cleftgrid, gene_lim, *CENTERS, 0, nIndividuals, nChroms);
+			cCenters.push_back(nChroms); 	// pushing the index value of the currently created center into chrom_centers[]
+			++i; 							// i counts the number of decoy centers createde 
+			nChroms = generate_genetic_variants(FA, GB, atoms, residue, chrom, cleftgrid, gene_lim, cCenters, nIndividuals, nChroms);
 		}
 	}
 	
