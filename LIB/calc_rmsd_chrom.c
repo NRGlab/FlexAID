@@ -51,7 +51,7 @@ float calc_rmsd_chrom(FA_Global* FA, GB_Global* GB, const chromosome* chrom, con
       
 			if(FA->map_par[i].typ==-1) 
 			{ //by index
-				grd_idx = (uint)FA->opt_par[i];
+				grd_idx = (unsigned int) FA->opt_par[i];
 				//printf("FA->opt_par(index): %d\n", grd_idx);
 				//PAUSE;
 				atoms[FA->map_par[i].atm].dis = cleftgrid[grd_idx].dis;

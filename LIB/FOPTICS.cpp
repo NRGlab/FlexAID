@@ -177,7 +177,7 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
     //   second -> float reachDist
 	for(int i = 0; i < this->N; ++i)
 	{
-		if( (this->points[i]).first != NULL && (this->points[i].first)->app_evalue < 250 )
+		if( (this->points[i]).first != NULL /*&& (this->points[i].first)->app_evalue < 250 */)
 		{
 			// Calling Pose constructor for the current chromosome
 			Pose::Pose Pose((this->points[i]).first, i, this->order[i], this->reachDist[i], this->Population->Temperature, (this->points[i]).second);
@@ -203,7 +203,8 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
         }
         else
        	{
-	   		if(it->reachDist > this->FA->cluster_rmsd*(1 + RandomProjectedNeighborsAndDensities::sizeTolerance) || isUndefinedDist(it->reachDist))
+            if(this->compute_vect_distance(it->vPose, (it-1)->vPose) > this->FA->cluster_rmsd*(1 + RandomProjectedNeighborsAndDensities::sizeTolerance) || isUndefinedDist(it->reachDist))
+//	   		if(it->reachDist > this->FA->cluster_rmsd*(1 + RandomProjectedNeighborsAndDensities::sizeTolerance) || isUndefinedDist(it->reachDist))
 	        {
 				if(Current.get_BindingMode_size() >= this->minPoints)
 				{
@@ -220,12 +221,12 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
 	        }
 	    }
 	}
-	for(std::vector< Pose >::iterator it = Outliers.Poses.begin(); it != Outliers.Poses.end(); ++it )
-	{
-		BindingMode::BindingMode Outlier(this->Population);
-		Outlier.add_Pose(*it);
-		this->Population->add_BindingMode(Outlier);
-	}
+//	for(std::vector< Pose >::iterator it = Outliers.Poses.begin(); it != Outliers.Poses.end(); ++it )
+//	{
+//		BindingMode::BindingMode Outlier(this->Population);
+//		Outlier.add_Pose(*it);
+//		this->Population->add_BindingMode(Outlier);
+//	}
 	this->Population->Entropize();
 }
 
