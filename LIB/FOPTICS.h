@@ -11,9 +11,9 @@
 #include <cmath>
 
 
+
+// random die &&  Float comparators
 int roll_die();
-int roll_rand_die();
-// Float comparators
 bool definitelyGreaterThan(float a, float b, float epsilon);
 bool definitelyLessThan(float a, float b, float epsilon);
 

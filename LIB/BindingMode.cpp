@@ -32,7 +32,7 @@ void BindingPopulation::Entropize()
 }
 
 
-int BindingPopulation::get_Population_size() { return this->BindingModes.size(); }
+int BindingPopulation::get_Population_size() { return static_cast<int>(this->BindingModes.size()); }
 
 
 // output BindingMode up to nResults results
@@ -103,7 +103,7 @@ double BindingMode::compute_energy() const
 }
 
 
-int BindingMode::get_BindingMode_size() const { return this->Poses.size(); }
+int BindingMode::get_BindingMode_size() const { return static_cast<int>(this->Poses.size()); }
 
 
 void BindingMode::clear_Poses() { this->Poses.clear(); }

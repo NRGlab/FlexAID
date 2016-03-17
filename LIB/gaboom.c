@@ -167,31 +167,56 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 		(*chrom)[i].fitnes = 0.0;
 		(*chrom)[i].status = ' ';
 	}
-
-	// *** chrom_snapshot
-	(*chrom_snapshot) = (chromosome*)malloc((GB->num_chrom*GB->max_generations)*sizeof(chromosome));
-	if(!(*chrom_snapshot))
+	if(GB->max_generations > 0)
 	{
-		fprintf(stderr,"ERROR: memory allocation error for chrom_snapshot.\n");
-		Terminate(2);
+		// *** chrom_snapshot
+		(*chrom_snapshot) = (chromosome*)malloc((GB->num_chrom*GB->max_generations)*sizeof(chromosome));
+		if(!(*chrom_snapshot))
+		{
+			fprintf(stderr,"ERROR: memory allocation error for chrom_snapshot.\n");
+			Terminate(2);
+		}
+		
+		for(i=0;i<(GB->num_chrom*GB->max_generations);++i)
+		{
+			(*chrom_snapshot)[i].genes = (gene*)malloc(GB->num_genes*sizeof(gene));
+
+			if(!(*chrom_snapshot)[i].genes){
+				fprintf(stderr,"ERROR: memory allocation error for chrom_snapshot[%d].genes.\n",i);	
+				Terminate(2);
+			}
+
+			(*chrom_snapshot)[i].app_evalue = 0.0;
+			(*chrom_snapshot)[i].evalue = 0.0;
+			(*chrom_snapshot)[i].fitnes = 0.0;
+			(*chrom_snapshot)[i].status = ' ';
+			//printf("chrom_snapshot[%d] allocated at address %p!\n", i, &(*chrom_snapshot)[i]);
+		}
 	}
-	
-	for(i=0;i<(GB->num_chrom*GB->max_generations);++i)
+	else if(GB->max_generations == 0)
 	{
-		(*chrom_snapshot)[i].genes = (gene*)malloc(GB->num_genes*sizeof(gene));
-
-		if(!(*chrom_snapshot)[i].genes){
-			fprintf(stderr,"ERROR: memory allocation error for chrom_snapshot[%d].genes.\n",i);	
+		// *** chrom_snapshot
+		(*chrom_snapshot) = (chromosome*)malloc(GB->num_chrom*sizeof(chromosome));
+		if(!*(chrom_snapshot))
+		{
+			fprintf(stderr, "ERROR: memory allocation error for chrom_snapshot.\n");
 			Terminate(2);
 		}
 
-		(*chrom_snapshot)[i].app_evalue = 0.0;
-		(*chrom_snapshot)[i].evalue = 0.0;
-		(*chrom_snapshot)[i].fitnes = 0.0;
-		(*chrom_snapshot)[i].status = ' ';
-		//printf("chrom_snapshot[%d] allocated at address %p!\n", i, &(*chrom_snapshot)[i]);
+		for(i = 0; i < GB->num_chrom; ++i)
+		{
+			(*chrom_snapshot)[i].genes = (gene*)malloc(GB->num_genes*sizeof(gene));
+			if(!(*chrom_snapshot)[i].genes)
+			{
+				fprintf(stderr,"ERROR: memory allocation error for chrom_snapshot[%d].genes.\n",i);	
+				Terminate(2);
+			}
+			(*chrom_snapshot)[i].app_evalue = 0.0;
+			(*chrom_snapshot)[i].evalue = 0.0;
+			(*chrom_snapshot)[i].fitnes = 0.0;
+			(*chrom_snapshot)[i].status = ' ';
+		}
 	}
-	
 	printf("alpha %lf peaks %lf scale %lf\n",GB->alpha,GB->peaks,GB->scale);
 	GB->sig_share=0.0;
   
@@ -232,7 +257,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	////////////////////////////////
 	////// Genetic Algorithm ///////
 	////////////////////////////////
-	for(i=0;i<GB->max_generations;i++)
+	if(GB->max_generations > 0) for(i=0;i<GB->max_generations;i++)
 	{
 		///////////////////////////////////////////////////
 
@@ -345,6 +370,12 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 		
 	}
 	
+	if(GB->max_generations == 0)
+	{
+		save_snapshot((*chrom_snapshot),(*chrom),GB->num_chrom,GB->num_genes);
+		n_chrom_snapshot += save_num_chrom;
+	}
+
 	printf("%d ligand conformers rejected\n", nrejected);
 	
 	QuickSort((*chrom),0,GB->num_chrom-1,true);
@@ -1046,8 +1077,7 @@ void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* 
                           boost::variate_generator< RNGType, boost::uniform_int<> > & dice,
 	                  map<string, int> & duplicates){
 	
-	int i,j,k;
-	int rot;
+	int i,j;
 	/*
 	RNGType rng;
 	
@@ -1908,7 +1938,7 @@ int generate_single_gene_variants(FA_Global* FA, GB_Global* GB, atom* atoms, res
 	int i,j;
 	float rmsd = 0.0f, sizeTolerance = (float)(2.0f/3.0f);
 	int centerIndex = -1;
-	double n_poss = gene_lim[geneID].nbin;
+//	double n_poss = gene_lim[geneID].nbin;
 	double gene = 0.0;
 	
 	// 0. get the closest center in cCenters (last element)

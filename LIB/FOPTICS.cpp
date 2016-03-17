@@ -331,17 +331,17 @@ void FastOPTICS::output_3d_OPTICS_ordering(char* end_strfile, char* tmp_end_strf
 			}
 	        
 			// 5. write_pdb(FA,atoms,residue,tmp_end_strfile,remark)
-			if(Pose == this->OPTICS.begin() && Pose+1 == this->OPTICS.end())
+			if( Pose == this->OPTICS.begin() && (Pose+1) == this->OPTICS.end() )
 			{
 				// case where there is only one pose to write (Pose == OPTICS.begin() && Pose++ == OPTICS.end())
 				write_MODEL_pdb(true, true, nModel, this->FA,this->atoms,this->residue,tmp_end_strfile,remark);
 			}
-			else if(Pose == this->OPTICS.begin())
+			else if( Pose == this->OPTICS.begin() )
 			{
 				// first MODEL to be written
 				write_MODEL_pdb(true, false, nModel, this->FA,this->atoms,this->residue,tmp_end_strfile,remark);
 			}
-			else if(Pose+1 == this->OPTICS.end())
+			else if( (Pose+1) == this->OPTICS.end() )
 			{
 				// last MODEL to be written
 				write_MODEL_pdb(false, true, nModel, this->FA,this->atoms,this->residue,tmp_end_strfile,remark);
@@ -600,7 +600,7 @@ RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities(std::
 	else
 	{
         this->points = inPoints;
-		this->N = this->points.size();
+		this->N = static_cast<int>(this->points.size());
 		this->nDimensions = this->top->nDimensions;
 		
 		// this->nPointsSetSplits = static_cast<int>(RandomProjectedNeighborsAndDensities::logOProjectionConstant * log(this->N * (this->top->FA->npar+2) + 1)/log(2));
@@ -678,7 +678,7 @@ void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > &
 		}
 
 		//split points set
-		int nPoints = ptList.size();
+		int nPoints = static_cast<int>(ptList.size());
 		std::vector<int> ind(nPoints);
 		ind.reserve(nPoints);
 		for(int l = 0; l < nPoints; ++l)
@@ -691,7 +691,7 @@ void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > &
 
 void RandomProjectedNeighborsAndDensities::SplitUpNoSort(std::vector< int >& ind, int dim)
 {
-	int nElements = ind.size();
+	int nElements = static_cast<int>(ind.size());
 	dim = dim % this->nProject1D;
 	std::vector<float>::iterator tProj = (this->projectedPoints[dim]).begin();
 	int splitPos;
@@ -749,7 +749,7 @@ void RandomProjectedNeighborsAndDensities::SplitUpNoSort(std::vector< int >& ind
 		
         std::vector<int> ind3(nElements - splitPos);
 //        ind2 = std::vector<int>( nElements-splitPos );
-		for(int l = 0; l < nElements-splitPos; ++l)
+		for(int l = 0; l < (nElements-splitPos); ++l)
 		{
 			 ind3[l] = ind[l+splitPos];
 //			ind3.push_back(ind[l+splitPos]);
@@ -770,7 +770,7 @@ void RandomProjectedNeighborsAndDensities::getInverseDensities(std::vector< floa
         std::vector<int> & pinSet = this->splitsets.at(i);
 		
 //		int len = it1->size();
-        int len = pinSet.size();
+        int len = static_cast<int>(pinSet.size());
 		int indoff = static_cast<int>(round(len/2));
 		int oldind = pinSet[indoff];
 		for(int i = 0; i < len; ++i)
@@ -806,7 +806,7 @@ void RandomProjectedNeighborsAndDensities::getNeighbors(std::vector< std::vector
 	{
 		// for each set (each projected line)
 		std::vector<int>::iterator pinSet = it1->begin();
-		int len = it1->size();
+		int len = static_cast<int>(it1->size());
 		int ind = pinSet[0];
 		int indoff = static_cast<int>(round(len/2));
 		int oldind = pinSet[indoff];
@@ -824,7 +824,7 @@ void RandomProjectedNeighborsAndDensities::getNeighbors(std::vector< std::vector
 			{
 				cneighs.push_back(oldind);
 				std::sort(cneighs.begin(),cneighs.end());
-				// cneighs.erase(std::unique(cneighs.begin(), cneighs.end()), cneighs.end());
+//                cneighs.erase(std::unique(cneighs.begin(), cneighs.end()), cneighs.end());
 			}
 			// The following block of code adds the middle point as neighbor to all other points in set
 			std::vector<int> & cneighs2 = neighs.at(oldind);
@@ -832,7 +832,7 @@ void RandomProjectedNeighborsAndDensities::getNeighbors(std::vector< std::vector
 			{
 				cneighs2.push_back(ind);
 				std::sort(cneighs2.begin(),cneighs2.end());
-				// cneighs2.erase(std::unique(cneighs2.begin(), cneighs2.end()), cneighs2.end());
+//				cneighs2.erase(std::unique(cneighs2.begin(), cneighs2.end()), cneighs2.end());
 			}
 		}
 
@@ -898,7 +898,7 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_InternalCoor
 
 std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_CartesianCoord_Vector()
 {
-    float norm = 0.0f;
+//    =float norm = 0.0f;
 
     int i = 0,j = 0,l = 0,m = 0;
 	int cat;
@@ -980,11 +980,11 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_CartesianCoo
 		for(j=0;j<3;j++)
 		{
 			vChrom[m*3+j] = this->top->atoms[i].coor[j];
-			norm += vChrom[m*3+j]*vChrom[m*3+j];
+            // norm += vChrom[m*3+j]*vChrom[m*3+j];
 		}
         ++m;
 	}
-	norm = sqrtf(norm);
+    // norm = sqrtf(norm);
   	// for(i = 0; i < this->nDimensions; ++i) vChrom[i] /= norm;
 	return vChrom;
 }
@@ -1056,7 +1056,7 @@ void RandomProjectedNeighborsAndDensities::output_projected_distance(char* end_s
 			{
                 std::vector<float> & it = this->projectedPoints.at(j);
 				fprintf(outfile, "%6f", it[i]);
-                if(j < this->nProject1D-1) fprintf(outfile, "\t");
+                if( j < (this->nProject1D-1) ) fprintf(outfile, "\t");
                 else fprintf(outfile, "\n");
 }
 		}
@@ -1079,9 +1079,4 @@ int roll_die()
 {
     boost::random::uniform_int_distribution<> dist(0, MAX_RANDOM_VALUE);
     return dist(gen);
-}
-int roll_rand_die()
-{
-	int n;
-	return rand()%n;
 }
