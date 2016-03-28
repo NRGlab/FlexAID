@@ -1933,9 +1933,9 @@ double RandomDouble(){
 /*234567890123456789012345678901234567890123456789012345678901234567890*/
 /*        1         2         3         4         5         6         7*/
 /***********************************************************************/
-int generate_single_gene_variants(FA_Global* FA, GB_Global* GB, atom* atoms, resid* residue,chromosome* chrom, gridpoint* cleftgrid, const genlim* gene_lim, std::vector<int>& cCenters, int *nIndividuals, int nChroms, int geneID)
+int generate_single_gene_mutants(FA_Global* FA, GB_Global* GB, atom* atoms, resid* residue,chromosome* chrom, gridpoint* cleftgrid, const genlim* gene_lim, std::vector<int>& cCenters, int *nIndividuals, int nChroms, int geneID)
 {
-	int i,j;
+	int j;
 	float rmsd = 0.0f, sizeTolerance = (float)(2.0f/3.0f);
 	int centerIndex = -1;
 //	double n_poss = gene_lim[geneID].nbin;
@@ -1953,7 +1953,7 @@ int generate_single_gene_variants(FA_Global* FA, GB_Global* GB, atom* atoms, res
 
 
 	// 1. loop around all possible variants for the given gene
-	for(gene = gene_lim[geneID].min, i = 0; gene <= gene_lim[geneID].max && *nIndividuals > 0; gene += gene_lim[geneID].del, ++i)
+	for(gene = gene_lim[geneID].min; gene <= gene_lim[geneID].max && *nIndividuals > 0; gene += gene_lim[geneID].del)
 	{
 		// 1.1 copy the genes of the center into the n_poss next chromosomes
 		for(j = 0; j < FA->npar; ++j)
@@ -1964,16 +1964,63 @@ int generate_single_gene_variants(FA_Global* FA, GB_Global* GB, atom* atoms, res
 		}
 		// rmsd is the distance between the individual and the chrom_center contained in centerIndex
 		rmsd = calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes, centerIndex, nChroms, NULL, NULL, true);
-		if(rmsd < sizeTolerance*FA->cluster_rmsd)
+		if(rmsd < (1-sizeTolerance)*FA->cluster_rmsd)
 		{
 			nChroms++;
             (*nIndividuals)--;
 		}
-		else continue; 
 	}
 
-
 	// 2. return the number of chromosomes generated
+	return nChroms;
+}
+
+int generate_multiple_genes_mutants(FA_Global* FA, GB_Global* GB, atom* atoms, resid* residue,chromosome* chrom, gridpoint* cleftgrid, const genlim* gene_lim, std::vector<int>& cCenters, int *nIndividuals, int nChroms)
+{
+	int i;
+	float rmsd = 0.0f, sizeTolerance = (float)(2.0f/3.0f);
+	int centerIndex = -1;
+	std::vector<int> geneID;
+	std::vector<int>::iterator geneIt;
+
+	if(!cCenters.empty()) 
+	{
+		centerIndex = cCenters.back();
+	}
+	else if(centerIndex < 0 || cCenters.empty()) 
+	{
+		return 0;
+	}
+
+	while( (*nIndividuals) > 0 )
+	{
+		for(i = GB->num_genes - 1; i > 0; --i)
+        {
+            if( RandomDouble() <= ( (i/GB->num_genes) + (i/GB->num_genes)*(i/GB->num_genes) ) ) geneID.push_back(i);
+        }
+
+		for(i = 0; i < GB->num_genes; ++i)
+		{
+            if( std::binary_search(geneID.begin(), geneID.end(), i) )
+			{
+				chrom[nChroms].genes[i].to_int32 = RandomInt(RandomDouble());
+				chrom[nChroms].genes[i].to_ic = genetoic(&gene_lim[i],chrom[nChroms].genes[i].to_int32);
+			}
+			else
+			{
+				chrom[nChroms].genes[i].to_int32 = chrom[centerIndex].genes[i].to_int32;
+				chrom[nChroms].genes[i].to_ic = chrom[centerIndex].genes[i].to_ic;
+			}
+		}
+		rmsd = calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes, centerIndex, nChroms, NULL, NULL, true);
+		if(rmsd < (1-sizeTolerance)*FA->cluster_rmsd)
+		{
+			nChroms++;
+            (*nIndividuals)--;
+		}
+		geneID.clear();
+	}
+
 	return nChroms;
 }
 
@@ -1984,9 +2031,10 @@ int generate_genetic_variants(FA_Global* FA, GB_Global* GB, atom* atoms, resid* 
 	// 1. iterate over the genes available
     for( geneID = FA->npar - 1; geneID > 0 && nIndividuals > 0; --geneID )
     {
-        nChroms = generate_single_gene_variants(FA, GB, atoms, residue, chrom, cleftgrid, gene_lim, cCenters, &nIndividuals, nChroms, geneID);
+        nChroms = generate_single_gene_mutants(FA, GB, atoms, residue, chrom, cleftgrid, gene_lim, cCenters, &nIndividuals, nChroms, geneID);
+        
+        if(nIndividuals) nChroms = generate_multiple_genes_mutants(FA, GB, atoms, residue, chrom, cleftgrid, gene_lim, cCenters, &nIndividuals, nChroms);
     }
-
 
 	// return the current number of chromosomes in the population
 	return nChroms;
