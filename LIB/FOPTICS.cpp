@@ -193,14 +193,19 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
     BindingMode::BindingMode Outliers(this->Population);
 	for(std::vector< Pose >::iterator it = this->OPTICS.begin(); it != this->OPTICS.end(); ++i, ++it)
 	{
-
+		// takes care of the first chromosome in OPTICS order and push it into BindingMode::Current
         if(isUndefinedDist(it->reachDist) && it->order == 0) { Current.add_Pose(*it); }
+
+        // pushes the pose if its reachDist is above tolerated threshold 
         else if(it->reachDist <= this->FA->cluster_rmsd*(1 + RandomProjectedNeighborsAndDensities::sizeTolerance)) { Current.add_Pose(*it); }
+
+        // checks if real RMSD between the current pose and the previous one is above tolerated threshold
         else if( (it != this->OPTICS.begin()) && this->compute_vect_distance(it->vPose, (it-1)->vPose) <= this->FA->cluster_rmsd*(1 + RandomProjectedNeighborsAndDensities::sizeTolerance))
         {
             // it->reachDist =  this->compute_vect_distance(it->vPose, (it-1)->vPose);
             Current.add_Pose(*it);
         }
+        // at this point the pose is not similar enough to be added to BindingMode::Current
         else
        	{
             if(this->compute_vect_distance(it->vPose, (it-1)->vPose) > this->FA->cluster_rmsd*(1 + RandomProjectedNeighborsAndDensities::sizeTolerance) || isUndefinedDist(it->reachDist))
@@ -208,17 +213,36 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
 	        {
 				if(Current.get_BindingMode_size() >= this->minPoints)
 				{
-					this->Population->add_BindingMode(Current);
-	                Current.clear_Poses();
+					this->Population->add_BindingMode(Current); // process the currently aggregated BindingMode
+	                Current.clear_Poses();						// clears BindingMode::Current of its Poses
+	                Current.add_Pose(*it);						// adds the current Pose *it
 	            }
                 else
                 {
-                    for(std::vector< Pose >::iterator it = Current.Poses.begin(); it != Current.Poses.end(); ++it )
+                    for(std::vector< Pose >::iterator it2 = Current.Poses.begin(); it2 != Current.Poses.end(); ++it2 )
                     {
-                        Outliers.add_Pose(*it);
+                        Outliers.add_Pose(*it2);
                     }
+                    Current.clear_Poses();
                 }
 	        }
+	    }
+
+	    if( (it+1) == this->OPTICS.end() )
+	    {
+	    	if(Current.get_BindingMode_size() >= this->minPoints)
+	    	{
+		    	this->Population->add_BindingMode(Current);
+		    	Current.clear_Poses();
+	    	}
+	    	else
+	    	{
+	    		for(std::vector< Pose >::iterator it2 = Current.Poses.begin(); it2 != Current.Poses.end(); ++it2 )
+                {
+                    Outliers.add_Pose(*it2);
+                }
+                Current.clear_Poses();
+	    	}
 	    }
 	}
 //	for(std::vector< Pose >::iterator it = Outliers.Poses.begin(); it != Outliers.Poses.end(); ++it )
