@@ -236,6 +236,6 @@ int generate_genetic_variants(FA_Global* FA, GB_Global* GB, atom* atoms, resid* 
 // // generate a chromosome from the reference and populate a cluster of TP with nChroms/nDecoyCluster individual. Returns the number of chromosome generated
 int generate_true_positive_cluster(FA_Global* FA, GB_Global* GB, atom* atoms, resid* residue, chromosome* chrom, gridpoint* cleftgrid, const genlim* gene_lim);
 // generate a random distant chromosome from the reference and populate a cluster of TP with nChroms/nDecoyCluster individual. Returns the number of chromosome generated
-int generate_true_negatives_clusters(FA_Global* FA, GB_Global* GB, atom* atoms, resid* residue, chromosome* chrom, gridpoint* cleftgrid, const genlim* gene_lim,boost::variate_generator< RNGType, boost::uniform_int<> > &, int chrom_index);
+int generate_true_negatives_clusters(FA_Global* FA, GB_Global* GB, VC_Global* VC, atom* atoms, resid* residue, chromosome* chrom, gridpoint* cleftgrid, const genlim* gene_lim,boost::variate_generator< RNGType, boost::uniform_int<> > &,  cfstr (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*), int chrom_index);
 
 #endif // include guard

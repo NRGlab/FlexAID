@@ -161,6 +161,5 @@ class RandomProjectedNeighborsAndDensities
 		std::vector<float> 					Randomized_InternalCoord_Vector();
         std::vector<float>                  Randomized_CartesianCoord_Vector();
         void								output_projected_distance(char* end_strfile, char* tmp_end_strfile);
-		// int 								Dice();
 };
 #endif

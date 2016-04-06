@@ -373,7 +373,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	if(GB->max_generations == 0)
 	{
 		save_snapshot((*chrom_snapshot),(*chrom),GB->num_chrom,GB->num_genes);
-		n_chrom_snapshot += save_num_chrom;
+		n_chrom_snapshot = GB->num_chrom;
 	}
 
 	printf("%d ligand conformers rejected\n", nrejected);
@@ -1171,8 +1171,10 @@ void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* 
 	{
         i = 0;
 		i = generate_true_positive_cluster(FA, GB, atoms, residue, chrom, cleftgrid, gene_lim);
-		i += generate_true_negatives_clusters(FA, GB, atoms, residue, chrom, cleftgrid, gene_lim, dice, i);
+		if(i < GB->num_chrom) i += generate_true_negatives_clusters(FA, GB, VC, atoms, residue, chrom, cleftgrid, gene_lim, dice, target, i);
 		
+        printf("generated %d individuals from file\n", i);
+        
 		// check if population is complete
 		if(i < GB->num_chrom)
 		{
@@ -1953,7 +1955,7 @@ int generate_single_gene_mutants(FA_Global* FA, GB_Global* GB, atom* atoms, resi
 
 
 	// 1. loop around all possible variants for the given gene
-	for(gene = gene_lim[geneID].min; gene <= gene_lim[geneID].max && *nIndividuals > 0; gene += gene_lim[geneID].del)
+	for( gene = gene_lim[geneID].min; gene <= gene_lim[geneID].max && *nIndividuals > 0; gene += gene_lim[geneID].del )
 	{
 		// 1.1 copy the genes of the center into the n_poss next chromosomes
 		for(j = 0; j < FA->npar; ++j)
@@ -1964,7 +1966,7 @@ int generate_single_gene_mutants(FA_Global* FA, GB_Global* GB, atom* atoms, resi
 		}
 		// rmsd is the distance between the individual and the chrom_center contained in centerIndex
 		rmsd = calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes, centerIndex, nChroms, NULL, NULL, true);
-		if(rmsd < (1-sizeTolerance)*FA->cluster_rmsd)
+		if( rmsd < (1-sizeTolerance)*FA->cluster_rmsd )
 		{
 			nChroms++;
             (*nIndividuals)--;
@@ -1978,6 +1980,8 @@ int generate_single_gene_mutants(FA_Global* FA, GB_Global* GB, atom* atoms, resi
 int generate_multiple_genes_mutants(FA_Global* FA, GB_Global* GB, atom* atoms, resid* residue,chromosome* chrom, gridpoint* cleftgrid, const genlim* gene_lim, std::vector<int>& cCenters, int *nIndividuals, int nChroms)
 {
 	int i;
+	int randomGene;
+    double randomDouble,minVal;
 	float rmsd = 0.0f, sizeTolerance = (float)(2.0f/3.0f);
 	int centerIndex = -1;
 	std::vector<int> geneID;
@@ -1994,9 +1998,17 @@ int generate_multiple_genes_mutants(FA_Global* FA, GB_Global* GB, atom* atoms, r
 
 	while( (*nIndividuals) > 0 )
 	{
-		for(i = GB->num_genes - 1; i > 0; --i)
+		for(i = GB->num_genes - 1; i >= 0; --i)
         {
-            if( RandomDouble() <= ( (i/GB->num_genes) + (i/GB->num_genes)*(i/GB->num_genes) ) ) geneID.push_back(i);
+            randomDouble = RandomDouble();
+            minVal = ((double)i/(double)(GB->num_genes));
+            if( randomDouble < minVal ) geneID.push_back(i);
+        }
+
+        while(geneID.size() < std::rand() % (GB->num_genes+1))
+        {
+        	randomGene = (int) (std::rand()%GB->num_genes);
+        	if(!std::binary_search(geneID.begin(), geneID.end(), randomGene)) geneID.push_back(randomGene);
         }
 
 		for(i = 0; i < GB->num_genes; ++i)
@@ -2019,7 +2031,7 @@ int generate_multiple_genes_mutants(FA_Global* FA, GB_Global* GB, atom* atoms, r
             (*nIndividuals)--;
 		}
 		geneID.clear();
-	}
+    }
 
 	return nChroms;
 }
@@ -2029,12 +2041,12 @@ int generate_genetic_variants(FA_Global* FA, GB_Global* GB, atom* atoms, resid* 
 	int geneID;
 
 	// 1. iterate over the genes available
-    for( geneID = FA->npar - 1; geneID > 0 && nIndividuals > 0; --geneID )
+    for( geneID = FA->npar - 1; geneID >= 0 && nIndividuals; --geneID )
     {
-        nChroms = generate_single_gene_mutants(FA, GB, atoms, residue, chrom, cleftgrid, gene_lim, cCenters, &nIndividuals, nChroms, geneID);
+       nChroms = generate_single_gene_mutants(FA, GB, atoms, residue, chrom, cleftgrid, gene_lim, cCenters, &nIndividuals, nChroms, geneID);
         
-        if(nIndividuals) nChroms = generate_multiple_genes_mutants(FA, GB, atoms, residue, chrom, cleftgrid, gene_lim, cCenters, &nIndividuals, nChroms);
     }
+    if(nIndividuals) nChroms = generate_multiple_genes_mutants(FA, GB, atoms, residue, chrom, cleftgrid, gene_lim, cCenters, &nIndividuals, nChroms);
 
 	// return the current number of chromosomes in the population
 	return nChroms;
@@ -2046,10 +2058,13 @@ int generate_true_positive_cluster(FA_Global* FA, GB_Global* GB, atom* atoms, re
 	int k,l;
 	int gpa,anchorIndex;
 	int nChroms = 0;
-	int nIndividuals = std::round( GB->num_chrom / (GB->num_decoy_clusters+1) );
+	int nIndividuals;
 	float dist = 0.0f, lowestDist = 1e16;
 	double gene;
 	std::vector<int> cCenters;
+
+	// determine the number of poses to generate in current cluster
+    nIndividuals = std::round( GB->num_chrom / (GB->num_decoy_clusters+1) ) + (GB->num_chrom % (GB->num_decoy_clusters+1));
 
 	// 0. Assert that coordinates are available for the reference
 	if(!FA->refstructure)
@@ -2123,14 +2138,14 @@ int generate_true_positive_cluster(FA_Global* FA, GB_Global* GB, atom* atoms, re
 	}
     cCenters.push_back(nChroms);
 	nChroms++;
-
+    
 	// 2. Populate the TP cluster with nChroms/nDecoyCenters chromosomes
- 	nChroms = generate_genetic_variants(FA, GB, atoms, residue, chrom, cleftgrid, gene_lim, cCenters, nIndividuals, nChroms);
+ 	nChroms = generate_genetic_variants(FA, GB, atoms, residue, chrom, cleftgrid, gene_lim, cCenters, (--nIndividuals), nChroms);
 	
     return nChroms;
 }
 
-int generate_true_negatives_clusters(FA_Global* FA, GB_Global* GB, atom* atoms, resid* residue,chromosome* chrom, gridpoint* cleftgrid, const genlim* gene_lim, boost::variate_generator< RNGType, boost::uniform_int<> > & dice, int nChroms)
+int generate_true_negatives_clusters(FA_Global* FA, GB_Global* GB, VC_Global *VC, atom* atoms, resid* residue,chromosome* chrom, gridpoint* cleftgrid, const genlim* gene_lim, boost::variate_generator< RNGType, boost::uniform_int<> > & dice, cfstr (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*), int nChroms)
 {
 	// 0. variables definitions
 	bool flag;
@@ -2140,7 +2155,7 @@ int generate_true_negatives_clusters(FA_Global* FA, GB_Global* GB, atom* atoms, 
 	std::vector<int> cCenters;
 	std::vector<int>::iterator it;
 	// int gpa,anchorIndex,ref;
-	int nIndividuals = std::round( GB->num_chrom / (GB->num_decoy_clusters+1) ) - 1;
+	int nIndividuals = std::round( GB->num_chrom / (GB->num_decoy_clusters+1) );
 	float sizeTolerance = (float)(2.0f/3.0f);
 
 
@@ -2153,19 +2168,25 @@ int generate_true_negatives_clusters(FA_Global* FA, GB_Global* GB, atom* atoms, 
 	{
 		// 1.1 generate a new chromosome center randomly
 		generate_random_individual(FA, GB, atoms, chrom[nChroms].genes, gene_lim, dice, 0, GB->num_genes);
-
+		
 		// 1.2 Check that all other centers are distant (including the chrom[0] representing the TP cluster's center)
 		flag = false;
 		for(it = cCenters.begin(); it != cCenters.end(); ++it)
 		{
 			centerIndex = *it;
-
-			if( calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes, centerIndex, nChroms, NULL, NULL, true) < (2 * sizeTolerance * FA->cluster_rmsd) )
+			
+            if( calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes, centerIndex, nChroms, NULL, NULL, true) < (2 * sizeTolerance * FA->cluster_rmsd) )
 			{
 				flag = true;
 				break;
 			}
 		}
+		// chrom[nChroms].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[nChroms].genes,target);
+		// chrom[nChroms].evalue=get_cf_evalue(&chrom[nChroms].cf);
+		// chrom[nChroms].app_evalue=get_apparent_cf_evalue(&chrom[nChroms].cf);
+
+		// if(	chrom[nChroms].app_evalue >= 0 || chrom[nChroms].cf.rclash ) flag = true;
+
 		// 1.3 Populate the most recent chrom_center cluster with a total of nIndividuals chromosomes 
 		//   * only if flag is false because a true value means that the cen
 		if(flag) continue;
@@ -2173,9 +2194,9 @@ int generate_true_negatives_clusters(FA_Global* FA, GB_Global* GB, atom* atoms, 
 		{
 			cCenters.push_back(nChroms); 	// pushing the index value of the currently created center into chrom_centers[]
 			++i; 							// i counts the number of decoy centers created
-			++nChroms;						// increments the chromosome index (the next chrom to be generated won't override this current center)
-			if(i < GB->num_decoy_clusters && nChroms < GB->num_chrom)
-                nChroms = generate_genetic_variants(FA, GB, atoms, residue, chrom, cleftgrid, gene_lim, cCenters, nIndividuals, nChroms);
+//			++nChroms;						// increments the chromosome index (the next chrom to be generated won't override this current center)
+
+			if(i < GB->num_decoy_clusters && nChroms < GB->num_chrom) nChroms = generate_genetic_variants(FA, GB, atoms, residue, chrom, cleftgrid, gene_lim, cCenters, (--nIndividuals), (++nChroms));
 		}
 	}
 	
