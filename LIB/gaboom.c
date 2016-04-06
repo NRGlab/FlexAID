@@ -1171,9 +1171,9 @@ void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* 
 	{
         i = 0;
 		i = generate_true_positive_cluster(FA, GB, atoms, residue, chrom, cleftgrid, gene_lim);
-		if(i < GB->num_chrom) i += generate_true_negatives_clusters(FA, GB, VC, atoms, residue, chrom, cleftgrid, gene_lim, dice, target, i);
+		i = generate_true_negatives_clusters(FA, GB, VC, atoms, residue, chrom, cleftgrid, gene_lim, dice, target, i);
 		
-        printf("generated %d individuals from file\n", i);
+        printf("generated %d individuals from IdealPopulation algorithm using %d TP cluster and %d TN cluster(s)\n", i, 1, GB->num_decoy_clusters);
         
 		// check if population is complete
 		if(i < GB->num_chrom)
@@ -2155,7 +2155,7 @@ int generate_true_negatives_clusters(FA_Global* FA, GB_Global* GB, VC_Global *VC
 	std::vector<int> cCenters;
 	std::vector<int>::iterator it;
 	// int gpa,anchorIndex,ref;
-	int nIndividuals = std::round( GB->num_chrom / (GB->num_decoy_clusters+1) );
+	int nIndividuals = std::round( GB->num_chrom / (GB->num_decoy_clusters+1) ) - 1; // -1 is to avoind counting the center in nIndividuals to generate
 	float sizeTolerance = (float)(2.0f/3.0f);
 
 
@@ -2164,7 +2164,7 @@ int generate_true_negatives_clusters(FA_Global* FA, GB_Global* GB, VC_Global *VC
 
 
 	// 1. Build N_DECOYS_CLUSTER centers
-	for(i = 0; i < GB->num_decoy_clusters;)
+	for(i = 0; i < GB->num_decoy_clusters; )
 	{
 		// 1.1 generate a new chromosome center randomly
 		generate_random_individual(FA, GB, atoms, chrom[nChroms].genes, gene_lim, dice, 0, GB->num_genes);
@@ -2181,11 +2181,11 @@ int generate_true_negatives_clusters(FA_Global* FA, GB_Global* GB, VC_Global *VC
 				break;
 			}
 		}
-		// chrom[nChroms].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[nChroms].genes,target);
-		// chrom[nChroms].evalue=get_cf_evalue(&chrom[nChroms].cf);
-		// chrom[nChroms].app_evalue=get_apparent_cf_evalue(&chrom[nChroms].cf);
+		chrom[nChroms].cf=eval_chromosome(FA,GB,VC,gene_lim,atoms,residue,cleftgrid,chrom[nChroms].genes,target);
+		chrom[nChroms].evalue=get_cf_evalue(&chrom[nChroms].cf);
+		chrom[nChroms].app_evalue=get_apparent_cf_evalue(&chrom[nChroms].cf);
 
-		// if(	chrom[nChroms].app_evalue >= 0 || chrom[nChroms].cf.rclash ) flag = true;
+		if(	chrom[nChroms].app_evalue >= 0 || chrom[nChroms].cf.rclash ) flag = true;
 
 		// 1.3 Populate the most recent chrom_center cluster with a total of nIndividuals chromosomes 
 		//   * only if flag is false because a true value means that the cen
@@ -2193,10 +2193,12 @@ int generate_true_negatives_clusters(FA_Global* FA, GB_Global* GB, VC_Global *VC
 		else if(!flag)
 		{
 			cCenters.push_back(nChroms); 	// pushing the index value of the currently created center into chrom_centers[]
+			
+			// if(i < GB->num_decoy_clusters && nChroms < GB->num_chrom)
+			nChroms = generate_genetic_variants(FA, GB, atoms, residue, chrom, cleftgrid, gene_lim, cCenters, nIndividuals, (++nChroms));
+			
 			++i; 							// i counts the number of decoy centers created
-//			++nChroms;						// increments the chromosome index (the next chrom to be generated won't override this current center)
 
-			if(i < GB->num_decoy_clusters && nChroms < GB->num_chrom) nChroms = generate_genetic_variants(FA, GB, atoms, residue, chrom, cleftgrid, gene_lim, cCenters, (--nIndividuals), (++nChroms));
 		}
 	}
 	
