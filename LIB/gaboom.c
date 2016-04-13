@@ -2048,6 +2048,7 @@ int generate_multiple_genes_mutants(FA_Global* FA, GB_Global* GB, VC_Global* VC,
 		chrom[nChroms].app_evalue=get_apparent_cf_evalue(&chrom[nChroms].cf);
 
 		if(	chrom[nChroms].app_evalue >= 1000 || chrom[nChroms].cf.rclash ) flag = true;
+		
 		if(!flag)
 		{
 			// chrom[nChroms].status='n';
@@ -2165,7 +2166,7 @@ int generate_true_positive_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, 
 	chrom[nChroms].evalue=get_cf_evalue(&chrom[nChroms].cf);
 	chrom[nChroms].app_evalue=get_apparent_cf_evalue(&chrom[nChroms].cf);
 	// chrom[nChroms].status = 'n';
-    cCenters.push_back(++nChroms);
+    cCenters.push_back(nChroms++);
     
 	// 2. Populate the TP cluster with nChroms/nDecoyCenters chromosomes
 	nChroms = generate_genetic_variants(FA, GB, VC, atoms, residue, chrom, cleftgrid, gene_lim, cCenters, (--nIndividuals), nChroms, target);
@@ -2209,14 +2210,15 @@ int generate_true_negatives_clusters(FA_Global* FA, GB_Global* GB, VC_Global *VC
 				break;
 			}
 		}
-		if(!flag)
+		if( !flag )
 		{
 			chrom[nChroms].cf=eval_chromosome(FA, GB, VC, gene_lim, atoms, residue, cleftgrid, chrom[nChroms].genes, target);
 			chrom[nChroms].evalue=get_cf_evalue(&chrom[nChroms].cf);
 			chrom[nChroms].app_evalue=get_apparent_cf_evalue(&chrom[nChroms].cf);
 		}
+		else continue; // continue if flag==true
 
-		if(!flag && chrom[nChroms].app_evalue >= 0 || chrom[nChroms].cf.rclash ) flag = true;
+		if(!flag || chrom[nChroms].app_evalue >= 0 || chrom[nChroms].cf.rclash ) flag = true;
 
 		// 1.3 Populate the most recent chrom_center cluster with a total of nIndividuals chromosomes 
 		//   * only if flag is false because a true value means that the cen
