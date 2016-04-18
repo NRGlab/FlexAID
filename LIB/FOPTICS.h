@@ -63,7 +63,7 @@ struct ClusterOrderingComparator
 			return true;
 
 		// if nothing else is true, return 0
-		return 0;
+		return false;
 	}
 };
 
@@ -75,13 +75,19 @@ class FastOPTICS
 	friend class RandomProjectedNeighborsAndDensities;
 	friend class BindingMode;
     friend class BindingPopulation;
+	
 	public:
-		explicit 	FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, BindingPopulation&, int nPoints); // Constructor (publicly called from FlexAID's *_cluster.cxx)
+		// Constructor (publicly called from FlexAID's *_cluster.cxx)
+		explicit 	FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, BindingPopulation&, int nPoints);
+		// Main FastOPTICS function to execute the algorithm
 		void 		Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile);
+		// output-related methods
         void 		output_OPTICS(char* end_strfile, char* tmp_end_strfile);
         void 		output_3d_OPTICS_ordering(char* end_strfile, char* tmp_end_strfile);
+        // distance computing methods
 		float 		compute_distance(std::pair< chromosome*,std::vector<float> > &, std::pair< chromosome*,std::vector<float> > &);
 		float 		compute_vect_distance(std::vector<float> a, std::vector<float> b);
+		// getters methods
 		int 		get_minPoints();
 
 	private:
@@ -111,7 +117,7 @@ class FastOPTICS
 	
 	protected:
 		// protected methods to be used by RandomProjectedNeighborsAndDensities::methods()
-			  FA_Global* FA;		// pointer to FA_Global struct
+			  	 FA_Global* FA;		// pointer to FA_Global struct
 		/*const*/GB_Global* GB;		// pointer to GB_Global struct
 		/*const*/VC_Global* VC;		// pointer to VC_Global struct
 		/*const*/chromosome* chroms;	// pointer to chromosomes' array
@@ -139,7 +145,7 @@ class RandomProjectedNeighborsAndDensities
 		int N;
 		int nDimensions;
 		int minSplitSize;
-		static const int logOProjectionConstant = 20;
+		static const int logOProjectionConstant = 25;
 		static float sizeTolerance;
 		std::vector< std::pair<chromosome*,std::vector<float> > > points;
 

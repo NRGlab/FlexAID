@@ -63,7 +63,7 @@ inline bool const ClusterOrdering::operator< (const ClusterOrdering& rhs)
 	else if(this->objectID < rhs.objectID)
 		return false;
 	// if nothing else is true, return 0
-	return 0;
+	return false;
 }
 
 inline bool const ClusterOrdering::operator> (const ClusterOrdering& rhs)
@@ -74,16 +74,16 @@ inline bool const ClusterOrdering::operator> (const ClusterOrdering& rhs)
 		return false;
 	
 	if(this->predecessorID > rhs.predecessorID)
-		return true;
-	else if(this->predecessorID < rhs.predecessorID)
 		return false;
+	else if(this->predecessorID < rhs.predecessorID)
+		return true;
 
 	if(this->objectID > rhs.objectID)
 		return false;
 	else if(this->objectID < rhs.objectID)
 		return true;
 		// if nothing else is true, return 0
-	return 0;
+	return false;
 }
 /*****************************************\
 				FastOPTICS
@@ -168,7 +168,6 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
     // Would it be useful to normalize 'reachability distance' ?
     // this->normalizeDistances();
     // output the projected distances
-    
     // MultiPartition.output_projected_distance(end_strfile, tmp_end_strfile);
     
 	// Order chromosome and their reachDist in OPTICS
@@ -251,6 +250,7 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
 //		Outlier.add_Pose(*it);
 //		this->Population->add_BindingMode(Outlier);
 //	}
+	// this->Population->add_BindingMode(Outliers);
 	this->Population->Entropize();
 }
 
@@ -393,21 +393,21 @@ std::vector<float> FastOPTICS::Vectorized_Chromosome(chromosome* chrom)
 				// vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
 				if(i == 0)
 				{
-                    vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
-					// vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].dis);
+                    // vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
+					vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].dis);
 					// vChrom[i] *= vChrom[i];
 				}
 				if(i == 1)
 				{
-					vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
-					// vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].ang);
+					// vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
+					vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].ang);
 					// vChrom[i] = static_cast<float>( RandomDouble( (*chrom).genes[j].to_int32) );
 					// vChrom[i] *= vChrom[i];
 				}
 				if(i == 2)
 				{
-                    vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
-					// vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].dih);
+                    // vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
+					vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].dih);
 					// vChrom[i] = static_cast<float>( genetoic(&this->gene_lim[i],(*chrom).genes[j].to_int32) );
 					// vChrom[i] *= vChrom[i];
 				}
@@ -525,7 +525,7 @@ void FastOPTICS::ExpandClusterOrder(int ipt)
 	ClusterOrdering tmp(ipt,0,1e6f);
 	queue.push(tmp);
 
-    while(!queue.empty())
+    while( !queue.empty() )
 	{
 		ClusterOrdering current = queue.top();
 		queue.pop();
@@ -886,20 +886,20 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_InternalCoor
 				// vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].coor[i] - this->top-÷>FA->ori[i]);
 				if(i == 0)
 				{
-					vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].coor[i] - this->top->FA->ori[i]);
-//					vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].dis);
+					// vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].coor[i] - this->top->FA->ori[i]);
+					vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].dis);
 //                    vChrom[i] *= vChrom[i];
 				}
 				if(i == 1)
 				{
-                    vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].coor[i] - this->top->FA->ori[i]);
-//					vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].ang);
+                    // vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].coor[i] - this->top->FA->ori[i]);
+					vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].ang);
 //                    vChrom[i] *= vChrom[i];
 				}
 				if(i == 2)
 				{
-                    vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].coor[i] - this->top->FA->ori[i]);
-//					vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].dih);
+                    // vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].coor[i] - this->top->FA->ori[i]);
+					vChrom[i] = static_cast<float>(this->top->cleftgrid[static_cast<unsigned int>(doubleGeneIC)].dih);
 //                    vChrom[i] *= vChrom[i];
 				}
 				sum += vChrom[i]*vChrom[i];
@@ -1082,7 +1082,7 @@ void RandomProjectedNeighborsAndDensities::output_projected_distance(char* end_s
 				fprintf(outfile, "%6f", it[i]);
                 if( j < (this->nProject1D-1) ) fprintf(outfile, "\t");
                 else fprintf(outfile, "\n");
-}
+			}
 		}
 	}
 	CloseFile_B(&outfile,"w");;//fclose(outfile);

@@ -185,6 +185,7 @@ void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tm
 		sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure (no symmetry correction)\n",
 		calc_rmsd(this->Population->FA,this->Population->atoms,this->Population->residue,this->Population->cleftgrid,this->Population->FA->npar,this->Population->FA->opt_par, Hungarian));
 		strcat(remark,tmpremark);
+		
 		Hungarian = true;
 		sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure     (symmetry corrected)\n",
 		calc_rmsd(this->Population->FA,this->Population->atoms,this->Population->residue,this->Population->cleftgrid,this->Population->FA->npar,this->Population->FA->opt_par, Hungarian));
@@ -204,8 +205,8 @@ void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, 
 {
     // File and Output variables declarations
     cfstr CF; /* complementarity function value */
-    resid *pRes = NULL;
-    cfstr* pCF = NULL;
+    resid* pRes = NULL;
+    cfstr* pCF  = NULL;
 
     char sufix[25];
     char remark[MAX_REMARK];
@@ -331,6 +332,20 @@ inline bool const Pose::operator< (const Pose& rhs)
 	
 	if(this->chrom_index < rhs.chrom_index) return true;
 	else if(this->chrom_index > rhs.chrom_index) return false;
+	
+	return false;
+}
+
+inline bool const Pose::operator> (const Pose& rhs)
+{
+	if(this->order < rhs.order) return false;
+   	else if(this->order > rhs.order) return true;
+	
+	if(this->reachDist < rhs.reachDist) return false;
+	else if(this->reachDist > rhs.reachDist) return true;
+	
+	if(this->chrom_index < rhs.chrom_index) return false;
+	else if(this->chrom_index > rhs.chrom_index) return true;
 	
 	return false;
 }

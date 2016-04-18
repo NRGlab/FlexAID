@@ -28,6 +28,7 @@ struct Pose
 	double boltzmann_weight;
 	std::vector<float> vPose;
 	inline bool const operator< (const Pose& rhs);
+	inline bool const operator> (const Pose& rhs);
 };
 
 struct PoseClassifier
@@ -36,8 +37,10 @@ struct PoseClassifier
    {
        	if(Pose1.order < Pose2.order) return true;
        	else if(Pose1.order > Pose2.order) return false;
+		
 		if(Pose1.reachDist < Pose2.reachDist) return true;
 		else if(Pose1.reachDist > Pose2.reachDist) return false;
+		
 		if(Pose1.chrom_index < Pose2.chrom_index) return true;
 		else if(Pose1.chrom_index > Pose2.chrom_index) return false;
 		
@@ -55,16 +58,17 @@ class BindingMode // aggregation of poses (Cluster)
 	friend class FastOPTICS;
 	
 	public:
-		explicit 						BindingMode(BindingPopulation*); // public constructor (explicitely needs a pointer to a BindingPopulation of type BindingPopulation*)
+		explicit 								BindingMode(BindingPopulation*); // public constructor (explicitely needs a pointer to a BindingPopulation of type BindingPopulation*)
 
-			void						add_Pose(Pose&);
-			void						clear_Poses();
-			int							get_BindingMode_size() const;
-			double						compute_energy() const;
-			double						compute_entropy() const;
-			double						compute_enthalpy() const;
-			std::vector<Pose>::const_iterator elect_Representative(bool useOPTICSordering) const;
-			inline bool const 			operator<(const BindingMode&);
+			void								add_Pose(Pose&);
+			void								clear_Poses();
+			int									get_BindingMode_size() const;
+			double								compute_energy() const;
+			double								compute_entropy() const;
+			double								compute_enthalpy() const;
+			std::vector<Pose>::const_iterator 	elect_Representative(bool useOPTICSordering) const;
+			inline bool const 					operator<(const BindingMode&);
+
 
  	protected:
 		std::vector<Pose> Poses;
