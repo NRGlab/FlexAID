@@ -2066,11 +2066,11 @@ int generate_genetic_variants(FA_Global* FA, GB_Global* GB, VC_Global* VC, atom*
 	int geneID;
 
 	// 1. iterate over the genes available
-    for( geneID = FA->npar - 1; geneID >= 0 && nIndividuals; --geneID )
-    {
-       nChroms = generate_single_gene_mutants(FA, GB, VC, atoms, residue, chrom, cleftgrid, gene_lim, cCenters, &nIndividuals, nChroms, geneID, target);
+    // for( geneID = FA->npar - 1; geneID >= 0 && nIndividuals; --geneID )
+    // {
+    //    nChroms = generate_single_gene_mutants(FA, GB, VC, atoms, residue, chrom, cleftgrid, gene_lim, cCenters, &nIndividuals, nChroms, geneID, target);
         
-    }
+    // }
     if(nIndividuals) nChroms = generate_multiple_genes_mutants(FA, GB, VC, atoms, residue, chrom, cleftgrid, gene_lim, cCenters, &nIndividuals, nChroms, target);
 
 	// return the current number of chromosomes in the population

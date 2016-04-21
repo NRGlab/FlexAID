@@ -62,7 +62,7 @@ inline bool const ClusterOrdering::operator< (const ClusterOrdering& rhs)
 		return true;
 	else if(this->objectID < rhs.objectID)
 		return false;
-	// if nothing else is true, return 0
+	// if nothing else is true, return false
 	return false;
 }
 
@@ -82,7 +82,7 @@ inline bool const ClusterOrdering::operator> (const ClusterOrdering& rhs)
 		return false;
 	else if(this->objectID < rhs.objectID)
 		return true;
-		// if nothing else is true, return 0
+		// if nothing else is true, return false
 	return false;
 }
 /*****************************************\
@@ -146,12 +146,15 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
 {
 	// vector of point indexes 
 	std::vector< int > ptInd;
+	std::vector<int> mixedPts;
     ptInd.reserve(this->N);
+    mixedPts.reserve(this->N);
     for(int k = 0; k < this->N; ++k)
     {
         ptInd.push_back(k);
+        mixedPts.push_back(k);
     }
-	
+	std::random_shuffle(mixedPts.begin(),mixedPts.end());
 	// Build object, compute projections, density estimates and density neighborhoods (in serial order of function calls below)
 	RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities MultiPartition(this->points, this->minPoints, this); // use minPoints amount of random projections
 	MultiPartition.computeSetBounds(ptInd);
@@ -159,16 +162,19 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
 	MultiPartition.getNeighbors(this->neighbors);
     
 	// Compute OPTICS ordering
-	for(int ipt = 0; ipt < this->N; ipt++) 		// starting from 0
-//	for(int ipt = this->N-1; ipt >= 0; --ipt)	// starting from this->N-1
+	// for(int ipt = 0; ipt < this->N; ipt++) 		// starting from 0
+//	for(int ipt = this->N-1; ipt >= 0; --ipt)	// starting from (this->N)-1
+	for(std::vector<int>::iterator it = mixedPts.begin(); it != mixedPts.end(); ++it)
     {
+    	int ipt = *it;
 		if(!this->processed[ipt]) this->ExpandClusterOrder(ipt);
     }
     
     // Would it be useful to normalize 'reachability distance' ?
     // this->normalizeDistances();
+   
     // output the projected distances
-    // MultiPartition.output_projected_distance(end_strfile, tmp_end_strfile);
+     // MultiPartition.output_projected_distance(end_strfile, tmp_end_strfile);
     
 	// Order chromosome and their reachDist in OPTICS
     //  points pairs contain :
@@ -270,13 +276,13 @@ void FastOPTICS::output_OPTICS(char* end_strfile, char* tmp_end_strfile)
 	}
 	else
 	{
-        fprintf(outfile, "#ORDER\t#INDEX\t#reachDist\t#CF\t#prevRMSD\t#nextRMSD\n");
+        fprintf(outfile, "#ORDER\t#INDEX\t#reachDist\t#inverseDensities\t#CF\t#prevRMSD\t#nextRMSD\n");
 		for(std::vector<Pose>::iterator it = this->OPTICS.begin(); it != this->OPTICS.end(); ++it)
 		{
 			float prevDist = (it == this->OPTICS.begin()) 	? 0.0f : this->compute_vect_distance(it->vPose, (it-1)->vPose);
 			float nextDist = ((it+1) == this->OPTICS.end()) ? 0.0f : this->compute_vect_distance(it->vPose, (it+1)->vPose);
-            if(!isUndefinedDist(it->reachDist))	fprintf(outfile, "%d\t%d\t%8g\t%8g\t%8g\t%8g\n", it->order, it->chrom_index, it->reachDist, it->CF, prevDist, nextDist);
-            else fprintf(outfile, "%d\t%d\t%8g\t%8g\t%8g\t%8g\n", it->order, it->chrom_index, UNDEFINED_DIST, it->CF, prevDist, nextDist);
+            if(!isUndefinedDist(it->reachDist))	fprintf(outfile, "%d\t%d\t%8g\t%8g\t%8g\t%8g\t%8g\n", it->order, it->chrom_index, it->reachDist, this->inverseDensities[it->chrom_index], it->CF, prevDist, nextDist);
+            else fprintf(outfile, "%d\t%d\t%8g\t%8g\t%8g\t%8g\t%8g\n", it->order, it->chrom_index, UNDEFINED_DIST, this->inverseDensities[it->chrom_index], it->CF, prevDist, nextDist);
 		}
    }
    CloseFile_B(&outfile,"w");;//fclose(outfile);
@@ -535,28 +541,30 @@ void FastOPTICS::ExpandClusterOrder(int ipt)
 		
 		this->order[this->iOrder] = currPt;
 		// incrementing STATIC rank ordering ()
-		// FastOPTICS::iOrder++;
 		this->iOrder++;
 		this->processed[currPt] = true;
 		
 		float coredist = this->inverseDensities[currPt];
+
 		for( std::vector<int>::iterator it = this->neighbors[currPt].begin(); it != this->neighbors[currPt].end(); ++it)
 		{
 			int iNeigh = *it;
 			if(this->processed[iNeigh] == true) continue;
 
 			float nrdist = this->compute_distance(this->points[iNeigh], this->points[currPt]);
+                            
+            if(coredist > nrdist) nrdist = coredist;
 
-			if(coredist > nrdist)
-				nrdist = coredist;
+			if(nrdist > this->FA->cluster_rmsd*(1+RandomProjectedNeighborsAndDensities::sizeTolerance)) continue;
+
 			if(isUndefinedDist(this->reachDist[iNeigh]))
 				this->reachDist[iNeigh] = nrdist;
 			else if(nrdist < this->reachDist[iNeigh])
 				this->reachDist[iNeigh] = nrdist;
 			tmp = ClusterOrdering::ClusterOrdering(iNeigh, currPt, nrdist);
 			queue.push(tmp);
+	        // std::make_heap(const_cast<ClusterOrdering*>(&queue.top()), const_cast<ClusterOrdering*>(&queue.top() + queue.size()), ClusterOrderingComparator::ClusterOrderingComparator());
 		}
-        std::make_heap(const_cast<ClusterOrdering*>(&queue.top()), const_cast<ClusterOrdering*>(&queue.top() + queue.size()), ClusterOrderingComparator::ClusterOrderingComparator());
 	}
 }
 
@@ -572,16 +580,6 @@ float FastOPTICS::compute_distance(std::pair< chromosome*,std::vector<float> > &
 	}
 
 	return sqrtf(distance);
-   	
-   	// if(boost::math::isfinite(distance))
-   	// {
-   	// 		return sqrtf(distance);
-   	// }
-    // else if( boost::math::isinf(distance) && distance > FLT_EPSILON )
-    // {
-    //     	return UNDEFINED_DIST;
-    // }
-    // else 	return 0.0f;
 }
 
 float FastOPTICS::compute_vect_distance(std::vector<float> a, std::vector<float> b)
@@ -596,6 +594,14 @@ float FastOPTICS::compute_vect_distance(std::vector<float> a, std::vector<float>
     }
 
 	return sqrtf(distance);
+}
+
+void FastOPTICS::normalizeDistances()
+{
+	float max = 0.0f;
+	std::vector<float> & Distances = this->reachDist;
+	for(std::vector<float>::iterator it = Distances.begin(); it != Distances.end(); ++it) if(*it > max && !isUndefinedDist(*it)) max = *it;
+	for(std::vector<float>::iterator it = Distances.begin(); it != Distances.end(); ++it) if(!isUndefinedDist(*it)) *it /= max;
 }
 
 int FastOPTICS::get_minPoints() { return this->minPoints; }
@@ -650,10 +656,11 @@ void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > &
 {
 	std::vector< std::vector<float> > tempProj(this->nProject1D);
 	// perform projection of points
-	for(int j = 0; j<this->nProject1D; ++j)
+	for(int j = 0; j < this->nProject1D; ++j)
 	{
-        // std::vector<float> currentRp = this->Randomized_InternalCoord_Vector();
-        std::vector<float> currentRp(this->Randomized_CartesianCoord_Vector());
+        // std::vector<float> currentRp( this->Randomized_InternalCoord_Vector() );
+        std::vector<float> currentRp( this->Randomized_CartesianCoord_Vector() );
+        // std::vector<float> currentRp( this->Randomly_Selected_Chromosome() );
         
 		int k = 0;
 		std::vector<int>::iterator it = ptList.begin();
@@ -663,11 +670,11 @@ void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > &
 			// std::vector<float>::iterator vecPt = this->points[(*it)].second.begin();
 			std::vector<float> vecPt(this->points[(*it)].second);
 			std::vector<float>::iterator currPro = (this->projectedPoints[j]).begin();
+			
 			for(int m = 0; m < this->nDimensions; ++m)
 				sum += currentRp[m] * vecPt[m];
 
 			currPro[k] = sum;
-
 			++k;
             ++it;
 		}
@@ -716,7 +723,8 @@ void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > &
 void RandomProjectedNeighborsAndDensities::SplitUpNoSort(std::vector< int >& ind, int dim)
 {
 	int nElements = static_cast<int>(ind.size());
-	dim = dim % this->nProject1D;
+	// dim = dim % this->nProject1D;
+	dim = rand() % this->nProject1D;
 	std::vector<float>::iterator tProj = (this->projectedPoints[dim]).begin();
 	int splitPos;
 
@@ -731,14 +739,15 @@ void RandomProjectedNeighborsAndDensities::SplitUpNoSort(std::vector< int >& ind
 		}
 		// sprting cpro[] && ind[] concurrently
 		this->quicksort_concurrent_Vectors(cpro, ind, 0, nElements-1);
-		this->splitsets.push_back(ind);
+		if(this->accept_intraset_distance(ind)) this->splitsets.push_back(ind);
 	}
 
 	// compute splitting element
 	if(nElements > this->minSplitSize)
 	{
 		//pick random splitting element based on position
-		int randInt = static_cast<int>(std::floor( (RandomDouble()*static_cast<double>(nElements)) ));
+		// int randInt = static_cast<int>(std::floor( (RandomDouble()*static_cast<double>(nElements)) ));
+		int randInt = rand() % nElements;
 		float rs = tProj[ind[randInt]];
 		int minInd = 0;
 		int maxInd = nElements - 1;
@@ -841,7 +850,7 @@ void RandomProjectedNeighborsAndDensities::getNeighbors(std::vector< std::vector
 		for(int i = 0; i < len; ++i)
 		{
 			ind = pinSet[i];
-
+			if(this->top->compute_distance(this->points[ind], this->points[oldind]) >= ( (2 - this->sizeTolerance)*this->top->FA->cluster_rmsd ) ) continue;
 			// The following block of code uses an iterator to add all points as neighbors to the middle point
 			std::vector<int> & cneighs = neighs.at(ind);
 			if( !std::binary_search(cneighs.begin(), cneighs.end(), oldind) ) //only add point if not a neighbor already
@@ -863,12 +872,24 @@ void RandomProjectedNeighborsAndDensities::getNeighbors(std::vector< std::vector
 	}
 }
 
-void FastOPTICS::normalizeDistances()
+bool RandomProjectedNeighborsAndDensities::accept_intraset_distance(std::vector<int> ind)
 {
-	float max = 0.0f;
-	std::vector<float> & Distances = this->reachDist;
-	for(std::vector<float>::iterator it = Distances.begin(); it != Distances.end(); ++it) if(*it > max && !isUndefinedDist(*it)) max = *it;
-	for(std::vector<float>::iterator it = Distances.begin(); it != Distances.end(); ++it) if(!isUndefinedDist(*it)) *it /= max;
+	bool accept = true;
+	for(std::vector<int>::iterator it1 = ind.begin(); it1 != ind.end(); ++it1)
+	{
+		for(std::vector<int>::iterator it2 = ind.begin(); it2 != ind.end(); ++it2)
+		{
+			if((*it1) != (*it2))
+			{
+				if( this->top->compute_distance( this->top->points[(*it1)], this->top->points[(*it2)] ) >= (1+RandomProjectedNeighborsAndDensities::sizeTolerance)*this->top->FA->cluster_rmsd )
+				{
+					accept = false;
+					break;
+				}
+			}
+		}
+	}
+	return accept;
 }
 
 std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_InternalCoord_Vector()
@@ -922,7 +943,7 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_InternalCoor
 
 std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_CartesianCoord_Vector()
 {
-//    =float norm = 0.0f;
+   // float norm = 0.0f;
 
     int i = 0,j = 0,l = 0,m = 0;
 	int cat;
@@ -933,11 +954,14 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_CartesianCoo
 	int rot_idx=0;
 
     std::vector<float> vChrom(this->nDimensions);
-
+    
+    // set the numper of parameters
 	int npar = this->top->GB->num_genes;
 
+    // generate random ic for each DoF
 	for(i=0;i<npar;i++){ this->top->FA->opt_par[i] = genetoic(&this->top->gene_lim[i],roll_die()); }
 
+    // copy randomly generated parameters above to FA->atoms structure prior to builc cartesian coordinates (cc) for the randomized individual
 	for(i=0;i<npar;i++)
 	{
   
@@ -988,7 +1012,8 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_CartesianCoo
 		}
   
 	}
-
+    
+    // process normal modes (if used in the simulation)
 	if(normalmode > -1) alter_mode(this->top->atoms,this->top->residue,this->top->FA->normal_grid[normalmode],this->top->FA->res_cnt,this->top->FA->normal_modes);
 
 	/* rebuild cartesian coordinates of optimized residues*/
@@ -999,7 +1024,7 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_CartesianCoo
 
 	rot=this->top->residue[l].rot;
     m=0;
-	for(i=this->top->residue[l].fatm[rot];i<=this->top->residue[l].latm[rot];i++)
+	for(i = this->top->residue[l].fatm[rot]; i <= this->top->residue[l].latm[rot]; i++)
 	{
 		for(j=0;j<3;j++)
 		{
@@ -1008,8 +1033,15 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_CartesianCoo
 		}
         ++m;
 	}
-    // norm = sqrtf(norm);
+   //  norm = sqrtf(norm);
   	// for(i = 0; i < this->nDimensions; ++i) vChrom[i] /= norm;
+	return vChrom;
+}
+
+std::vector<float> RandomProjectedNeighborsAndDensities::Randomly_Selected_Chromosome()
+{
+	int ind = rand() % this->N;
+    std::vector<float> vChrom(this->top->Vectorized_Cartesian_Coordinates(ind));
 	return vChrom;
 }
 

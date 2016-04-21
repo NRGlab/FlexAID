@@ -145,7 +145,7 @@ class RandomProjectedNeighborsAndDensities
 		int N;
 		int nDimensions;
 		int minSplitSize;
-		static const int logOProjectionConstant = 25;
+		static const int logOProjectionConstant = 20;
 		static float sizeTolerance;
 		std::vector< std::pair<chromosome*,std::vector<float> > > points;
 
@@ -166,6 +166,8 @@ class RandomProjectedNeighborsAndDensities
 		void								getNeighbors(std::vector< std::vector< int > > &);
 		std::vector<float> 					Randomized_InternalCoord_Vector();
         std::vector<float>                  Randomized_CartesianCoord_Vector();
+        std::vector<float>                  Randomly_Selected_Chromosome();
+        bool 								accept_intraset_distance(std::vector<int>);
         void								output_projected_distance(char* end_strfile, char* tmp_end_strfile);
 };
 #endif
