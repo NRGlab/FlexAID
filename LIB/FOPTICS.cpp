@@ -125,7 +125,6 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 	for(int i = 0; i < this->N; ++i)
 	{
 		// need to transform the chromosomes into vector f
-		// std::vector<float> vChrom(this->FastOPTICS::Vectorized_Chromosome(&chrom[i])); // Copy constructor
 		std::vector<float> vChrom( this->Vectorized_Cartesian_Coordinates(i) ); // Copy constructor
 		if(vChrom.size() == this->nDimensions)
 		{
@@ -202,10 +201,10 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
         if(isUndefinedDist(it->reachDist) && it->order == 0) { Current.add_Pose(*it); }
 
         // pushes the pose if its reachDist is above tolerated threshold 
-        else if(it->reachDist <= this->FA->cluster_rmsd*(1 + RandomProjectedNeighborsAndDensities::sizeTolerance)) { Current.add_Pose(*it); }
+        else if(it->reachDist <= this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsAndDensities::sizeTolerance)) { Current.add_Pose(*it); }
 
         // checks if real RMSD between the current pose and the previous one is above tolerated threshold
-        else if( (it != this->OPTICS.begin()) && this->compute_vect_distance(it->vPose, (it-1)->vPose) <= this->FA->cluster_rmsd*(1 + RandomProjectedNeighborsAndDensities::sizeTolerance))
+        else if( (it != this->OPTICS.begin()) && this->compute_vect_distance(it->vPose, (it-1)->vPose) <= this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsAndDensities::sizeTolerance))
         {
             // it->reachDist =  this->compute_vect_distance(it->vPose, (it-1)->vPose);
             Current.add_Pose(*it);
@@ -213,7 +212,7 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
         // at this point the pose is not similar enough to be added to BindingMode::Current
         else
        	{
-            if(this->compute_vect_distance(it->vPose, (it-1)->vPose) > this->FA->cluster_rmsd*(1 + RandomProjectedNeighborsAndDensities::sizeTolerance) || isUndefinedDist(it->reachDist))
+            if(this->compute_vect_distance(it->vPose, (it-1)->vPose) > this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsAndDensities::sizeTolerance) || isUndefinedDist(it->reachDist))
 //	   		if(it->reachDist > this->FA->cluster_rmsd*(1 + RandomProjectedNeighborsAndDensities::sizeTolerance) || isUndefinedDist(it->reachDist))
 	        {
 				if(Current.get_BindingMode_size() >= this->minPoints)
@@ -528,7 +527,7 @@ std::vector<float> FastOPTICS::Vectorized_Cartesian_Coordinates(int chrom_index)
 void FastOPTICS::ExpandClusterOrder(int ipt)
 {
     std::priority_queue< ClusterOrdering, std::vector<ClusterOrdering>, ClusterOrderingComparator::ClusterOrderingComparator > queue;
-	ClusterOrdering tmp(ipt,0,1e6f);
+	ClusterOrdering tmp(ipt,0,UNDEFINED_DIST);
 	queue.push(tmp);
 
     while( !queue.empty() )
@@ -536,15 +535,19 @@ void FastOPTICS::ExpandClusterOrder(int ipt)
 		ClusterOrdering current = queue.top();
 		queue.pop();
 		int currPt = current.objectID;
-		
+
 		if(this->processed[currPt] == true) continue;
 		
 		this->order[this->iOrder] = currPt;
 		// incrementing STATIC rank ordering ()
 		this->iOrder++;
 		this->processed[currPt] = true;
-		
-		float coredist = this->inverseDensities[currPt];
+
+		float coredist = this->inverseDensities[ currPt];
+
+        this->update_ClusterOrdering_PriorityQueue_elements(currPt, queue);
+
+		if( current.reachability > this->reachDist[currPt] && !isUndefinedDist(this->reachDist[currPt]) ) this->reachDist[currPt] = current.reachability;
 
 		for( std::vector<int>::iterator it = this->neighbors[currPt].begin(); it != this->neighbors[currPt].end(); ++it)
 		{
@@ -553,9 +556,9 @@ void FastOPTICS::ExpandClusterOrder(int ipt)
 
 			float nrdist = this->compute_distance(this->points[iNeigh], this->points[currPt]);
                             
-            if(coredist > nrdist) nrdist = coredist;
-
 			if(nrdist > this->FA->cluster_rmsd*(1+RandomProjectedNeighborsAndDensities::sizeTolerance)) continue;
+
+            if(coredist > nrdist) nrdist = coredist;
 
 			if(isUndefinedDist(this->reachDist[iNeigh]))
 				this->reachDist[iNeigh] = nrdist;
@@ -563,9 +566,67 @@ void FastOPTICS::ExpandClusterOrder(int ipt)
 				this->reachDist[iNeigh] = nrdist;
 			tmp = ClusterOrdering::ClusterOrdering(iNeigh, currPt, nrdist);
 			queue.push(tmp);
-	        // std::make_heap(const_cast<ClusterOrdering*>(&queue.top()), const_cast<ClusterOrdering*>(&queue.top() + queue.size()), ClusterOrderingComparator::ClusterOrderingComparator());
 		}
 	}
+}
+
+void FastOPTICS::update_ClusterOrdering_PriorityQueue_elements(int currPt, std::priority_queue< ClusterOrdering, std::vector<ClusterOrdering>, ClusterOrderingComparator::ClusterOrderingComparator > & queue)
+{
+	std::vector<int> queued_points;		// vector utilisé pour 
+	std::vector<ClusterOrdering> & Queue = Container(queue);
+
+	// 1. Vérifier que tous les points dans la queue ont un prédécesseur dans la queue
+	// 	1.1 ajouter tous les points présents dans queue
+	for(std::vector<ClusterOrdering>::iterator it = Queue.begin(); it != Queue.end(); ++it)		queued_points.push_back(it->objectID);
+
+	queued_points.push_back(currPt);
+
+	std::sort(queued_points.begin(), queued_points.end());
+
+	// 2. Update les prédecesseurs+distance des points dont les prédécesseurs ne sont plus en queue
+	// 		pour ajouter currPt comme préd SI il est voisin
+	// 		chercher parmi les neighbors unprocessed du point pour vérifier lequel ajouter comme préd SINON
+	for(std::vector<ClusterOrdering>::iterator it = Queue.begin(); it != Queue.end(); ++it)
+	{
+		// FORCED UPDATE
+		if(it->objectID != currPt && it->predecessorID != currPt)
+		{
+			it->predecessorID = currPt;
+			it->reachability = this->compute_distance(this->points[it->objectID], this->points[currPt]);
+			this->reachDist[it->objectID] = it->reachability;
+		}
+
+		// check only cases where predID is not found in the queue anymore
+		// if( !std::binary_search(queued_points.begin(), queued_points.end(), it->predecessorID) )
+		// {
+		// 	// check if currPt if neighbor of (*it)
+		// 	//  * case where (*it) is neighbor 
+		// 	if(std::binary_search( this->neighbors[it->objectID].begin(), this->neighbors[it->objectID].end(), currPt))
+		// 	{
+		// 		// update (*it) with predID and reachDist
+		// 		it->predecessorID = currPt;
+		// 		it->reachability = this->compute_distance(this->points[it->objectID], this->points[currPt]);
+		// 	}
+		// 	// case where currPt is not neighbor of (*it)
+		// 	else
+		// 	{
+		// 		for(std::vector<int>::iterator neigh = this->neighbors[it->objectID].begin(); neigh != this->neighbors[it->objectID].end(); ++neigh)
+		// 		{
+		// 			if(!std::binary_search(queued_points.begin(), queued_points.end(), *neigh)) continue;
+
+		// 			float distance = this->compute_distance(this->points[it->objectID], this->points[*neigh]);
+		// 			if(distance < it->reachability && !isUndefinedDist(distance))
+		// 			{
+		// 				it->predecessorID = *neigh;
+		// 				it->reachability = distance;
+		// 			}
+		// 		}
+		// 	}
+		// }
+	}
+
+	// 3. restor heap properties
+	std::make_heap(const_cast<ClusterOrdering*>(&queue.top()), const_cast<ClusterOrdering*>(&queue.top() + queue.size()), ClusterOrderingComparator::ClusterOrderingComparator());
 }
 
 float FastOPTICS::compute_distance(std::pair< chromosome*,std::vector<float> > & a, std::pair< chromosome*,std::vector<float> > & b)
@@ -739,7 +800,10 @@ void RandomProjectedNeighborsAndDensities::SplitUpNoSort(std::vector< int >& ind
 		}
 		// sprting cpro[] && ind[] concurrently
 		this->quicksort_concurrent_Vectors(cpro, ind, 0, nElements-1);
+		
+		// push back the split points set
 		if(this->accept_intraset_distance(ind)) this->splitsets.push_back(ind);
+		// this->splitsets.push_back(ind);
 	}
 
 	// compute splitting element
@@ -850,7 +914,7 @@ void RandomProjectedNeighborsAndDensities::getNeighbors(std::vector< std::vector
 		for(int i = 0; i < len; ++i)
 		{
 			ind = pinSet[i];
-			if(this->top->compute_distance(this->points[ind], this->points[oldind]) >= ( (2 - this->sizeTolerance)*this->top->FA->cluster_rmsd ) ) continue;
+			if(this->top->compute_distance(this->points[ind], this->points[oldind]) > ( (1 + this->sizeTolerance)*this->top->FA->cluster_rmsd ) ) continue;
 			// The following block of code uses an iterator to add all points as neighbors to the middle point
 			std::vector<int> & cneighs = neighs.at(ind);
 			if( !std::binary_search(cneighs.begin(), cneighs.end(), oldind) ) //only add point if not a neighbor already
@@ -879,9 +943,9 @@ bool RandomProjectedNeighborsAndDensities::accept_intraset_distance(std::vector<
 	{
 		for(std::vector<int>::iterator it2 = ind.begin(); it2 != ind.end(); ++it2)
 		{
-			if((*it1) != (*it2))
+			if((*it1) != (*it2)) // skip comparing the distance between an element and itself
 			{
-				if( this->top->compute_distance( this->top->points[(*it1)], this->top->points[(*it2)] ) >= (1+RandomProjectedNeighborsAndDensities::sizeTolerance)*this->top->FA->cluster_rmsd )
+				if( this->top->compute_distance( this->top->points[(*it1)], this->top->points[(*it2)] ) >= (1 + RandomProjectedNeighborsAndDensities::sizeTolerance)*this->top->FA->cluster_rmsd )
 				{
 					accept = false;
 					break;

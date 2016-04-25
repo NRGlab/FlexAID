@@ -38,24 +38,15 @@ struct ClusterOrderingComparator
 	// inline int operator() ( const ClusterOrdering& pose1, const ClusterOrdering& pose2 )
 	inline bool operator() ( const ClusterOrdering& pose1, const ClusterOrdering& pose2 )
 	{
-		// if(pose1.reachability > pose2.reachability)
-		// 	return 1;
-		// else if(pose1.reachability < pose2.reachability)
-		// 	return -1;
-		// if(pose1.objectID > pose2.objectID)
-		// 	return -1;
-		// else if(pose1.objectID < pose2.objectID)
-		// 	return 1;
-
 		if(pose1.reachability > pose2.reachability || isUndefinedDist(pose1.reachability))
 			return true;
 		else if(pose1.reachability < pose2.reachability)
 			return false;
 
-		if(pose1.predecessorID > pose2.predecessorID)
-			return true;
-		else if(pose1.predecessorID < pose2.predecessorID)
-			return false;
+		// if(pose1.predecessorID > pose2.predecessorID)
+		// 	return true;
+		// else if(pose1.predecessorID < pose2.predecessorID)
+		// 	return false;
 
 		if(pose1.objectID > pose2.objectID)
 			return false;
@@ -67,12 +58,27 @@ struct ClusterOrderingComparator
 	}
 };
 
+// priority_queue container alllowing iterations throught the priority_queue
+template <class T, class S, class C>S& Container(priority_queue<T, S, C>& q)
+{
+    struct HackedQueue : private priority_queue<T, S, C>
+    {
+        static S& Container(priority_queue<T, S, C>& q)
+        {
+            return q.*&HackedQueue::c;
+        }
+    };
+    return HackedQueue::Container(q);
+}
+
 /*****************************************\
 				FastOPTICS
 \*****************************************/
 class FastOPTICS
 {
+	// multiple random projections partitioning algorithm
 	friend class RandomProjectedNeighborsAndDensities;
+	// entropy-related classes to integrate with FlexAID
 	friend class BindingMode;
     friend class BindingPopulation;
 	
@@ -81,6 +87,7 @@ class FastOPTICS
 		explicit 	FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, BindingPopulation&, int nPoints);
 		// Main FastOPTICS function to execute the algorithm
 		void 		Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile);
+		void		update_ClusterOrdering_PriorityQueue_elements(int, std::priority_queue< ClusterOrdering, std::vector<ClusterOrdering>, ClusterOrderingComparator::ClusterOrderingComparator > &);
 		// output-related methods
         void 		output_OPTICS(char* end_strfile, char* tmp_end_strfile);
         void 		output_3d_OPTICS_ordering(char* end_strfile, char* tmp_end_strfile);
