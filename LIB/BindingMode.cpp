@@ -21,7 +21,6 @@ void BindingPopulation::add_BindingMode(BindingMode& mode)
 //	this->Entropize();
 }
 
-
 void BindingPopulation::Entropize()
 {
 	for(std::vector<BindingMode>::iterator it = this->BindingModes.begin(); it != this->BindingModes.end(); ++it)
@@ -69,6 +68,43 @@ void BindingMode::add_Pose(Pose& pose)
 	this->Poses.push_back(pose);
 }
 
+bool BindingMode::isPoseAggregable(const Pose& pose) const
+{
+	bool accept = true;
+	float sizeTolerance = static_cast<float>(2.0f/3.0f);
+	if(!this->get_BindingMode_size()) return accept;
+	
+	for(std::vector<Pose>::const_iterator it = this->Poses.begin(); it != this->Poses.end(); ++it)
+		if( this->compute_distance((*it),pose) > ((1+sizeTolerance) * this->Population->FA->cluster_rmsd) ) accept = false;
+	
+	return accept;
+}
+
+bool BindingMode::isHomogenic() const
+{
+	bool accept = true;
+	float sizeTolerance = static_cast<float>(2.0f/3.0f);
+	for(std::vector<Pose>::const_iterator it1 = this->Poses.begin(); it1 != this->Poses.end(); ++it1)
+	{
+		for(std::vector<Pose>::const_iterator it2 = this->Poses.begin(); it2 != this->Poses.end(); ++it2)
+		{
+			if ((*it1) == (*it2)) continue;
+			else if( this->compute_distance((*it1),(*it2)) > ((1+sizeTolerance) * this->Population->FA->cluster_rmsd) ) accept = false;
+		}
+	}
+	return accept;
+}
+
+float BindingMode::compute_distance(const Pose& pose1, const Pose& pose2) const
+{
+	float distance = 0.0f;
+	for(int i = 0; i < pose1.vPose.size(); ++i)
+	{
+		float temp = pose1.vPose[i] - pose2.vPose[i];
+		distance += temp * temp;
+	}
+	return sqrtf(distance);
+}
 
 double BindingMode::compute_enthalpy() const
 {
@@ -348,4 +384,15 @@ inline bool const Pose::operator> (const Pose& rhs)
 	else if(this->chrom_index > rhs.chrom_index) return true;
 	
 	return false;
+}
+
+inline bool const Pose::operator==(const Pose& rhs)
+{
+	if(this->chrom_index == rhs.chrom_index) return true;
+	else return false;
+}
+inline bool const operator==(const Pose& lhs, const Pose& rhs)
+{
+	if(lhs.chrom_index == rhs.chrom_index) return true;
+	else return false;
 }

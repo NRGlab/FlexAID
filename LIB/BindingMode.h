@@ -29,8 +29,9 @@ struct Pose
 	std::vector<float> vPose;
 	inline bool const operator< (const Pose& rhs);
 	inline bool const operator> (const Pose& rhs);
+	inline bool const operator==(const Pose& rhs);
 };
-
+inline bool const operator==(const Pose& lhs, const Pose& rhs);
 struct PoseClassifier
 {
    inline bool operator() ( const Pose& Pose1, const Pose& Pose2 )
@@ -45,8 +46,6 @@ struct PoseClassifier
 		else if(Pose1.chrom_index > Pose2.chrom_index) return false;
 		
 		return false;
-
-		
    }
 };
 /*****************************************\
@@ -58,11 +57,17 @@ class BindingMode // aggregation of poses (Cluster)
 	friend class FastOPTICS;
 	
 	public:
-		explicit 								BindingMode(BindingPopulation*); // public constructor (explicitely needs a pointer to a BindingPopulation of type BindingPopulation*)
+												// public constructor (explicitely needs a pointer to a BindingPopulation of type BindingPopulation*)
+		explicit 								BindingMode(BindingPopulation*);
 
 			void								add_Pose(Pose&);
+												//	tells if a Pose can be added to a BidingMode
+			bool 								isPoseAggregable(const Pose& pose) const;
+												//	tells if the BindingMode contains one *homogenic* population
+			bool 								isHomogenic() const;
 			void								clear_Poses();
 			int									get_BindingMode_size() const;
+			float 								compute_distance(const Pose& pose1, const Pose& pose2) const;
 			double								compute_energy() const;
 			double								compute_entropy() const;
 			double								compute_enthalpy() const;
@@ -93,13 +98,16 @@ class BindingPopulation
 		// Temperature is used for energy calculations of BindingModes
 		unsigned int Temperature;
 		
-		// explicit 	BindingPopulation(unsigned int);// public constructor (explicitely needs an int representative of Temperature)
 		explicit 	BindingPopulation(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom);
-			// add new binding mode to population
+			// 	add new binding mode to population
 		void	add_BindingMode(BindingMode&);
-			// return the number of BindinMonde (size getter)
+			// 	classify the Pose into the appropriate BindingMode in the BindingPopulation
+		void 	Classify_Pose(Pose& pose);
+			// 	classify the whole BindingPopulation into BindingModes (this method might call Classify_Pose())
+		void 	Classify_Population();
+			// 	return the number of BindinMonde (size getter)
 		int		get_Population_size();
-			// output BindingMode up to nResults results
+			// 	output BindingMode up to nResults results
 		void	output_Population(int nResults, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints);
 
 	protected:
