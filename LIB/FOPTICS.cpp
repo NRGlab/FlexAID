@@ -124,22 +124,22 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
     
 	for(int i = 0; i < this->N; ++i)
 	{
-		// need to transform the chromosomes into vector f
-		std::vector<float> vChrom( this->Vectorized_Cartesian_Coordinates(i) ); // Copy constructor
+		// need to transform the chromosomes into vectors for FastOPTICS algo
+		std::vector<float> vChrom( this->Vectorized_Cartesian_Coordinates(i) ); // Copy constructor (default vector constructor used)
 		if(vChrom.size() == this->nDimensions)
 		{
-			// std::pair<first, second> is pushed to this->points[]
-			// 	first  -> chromosome* pChrom (pointer to chromosome)
-			// 	second -> vChrom[FA->npar+n] (vectorized chromosome)
+			// default values initialization
 			this->order.push_back(-1);
 			this->reachDist.push_back(UNDEFINED_DIST);
 			this->processed.push_back(false);
 			this->inverseDensities.push_back(0.0f);
+			// std::pair<first, second> is pushed to this->points[]
+			// 	first  -> chromosome* pChrom (pointer to chromosome)
+			// 	second -> vChrom[FA->npar+n] (vectorized chromosome)
 			this->points.push_back( std::make_pair( (chromosome*)&chrom[i], vChrom) ) ;
 		}
 	}
-
-};
+}
 
 void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
 {
@@ -193,22 +193,21 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
 }
 
 
-void FastOPTICS::Classify_Pose(Pose& pose)
+bool FastOPTICS::Classify_Pose(Pose& pose)
 {
-	// classification of a pose that has been 
+	bool isClassified = false;
+	// in order to classify the Pose
 	for(std::vector< BindingMode >::iterator mode = this->Population->BindingModes.begin(); mode != this->Population->BindingModes.end(); ++mode)
 	{
-        if(this->compute_vect_distance(pose.vPose, (mode->elect_Representative(false))->vPose) < this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsAndDensities::sizeTolerance))
+        if(	this->compute_vect_distance(pose.vPose, ( mode->elect_Representative(false))->vPose ) < this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsAndDensities::sizeTolerance) ||
+        	this->compute_vect_distance(pose.vPose, ( mode->elect_Representative(true ))->vPose ) < this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsAndDensities::sizeTolerance) )
         {
-        	mode->add_Pose(pose);
-        	break;
-        }
-        else if(this->compute_vect_distance(pose.vPose, (mode->elect_Representative(true))->vPose) < this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsAndDensities::sizeTolerance))
-        {
-        	mode->add_Pose(pose);
-        	break;
+        	mode->add_Pose(pose); // add pose to the BindingMode mode
+        	isClassified = true; // pose isClassified == true
+        	break; // do not continue distance calculations if pose isClassified
         }
 	}
+	return isClassified;
 }
 
 void FastOPTICS::Classify_Population()
@@ -217,9 +216,9 @@ void FastOPTICS::Classify_Population()
  	BindingMode::BindingMode Current(this->Population);
     BindingMode::BindingMode Outliers(this->Population);
 
-		/*#####################################################################################################
-		  #########################    Population Classification Algorithm    #################################
-		  #####################################################################################################*/
+/*#####################################################################################################
+  #########################    Population Classification Algorithm    #################################
+  #####################################################################################################*/
 
 	for(std::vector< Pose >::iterator it = this->OPTICS.begin(); it != this->OPTICS.end(); ++it)
 	{
@@ -248,13 +247,35 @@ void FastOPTICS::Classify_Population()
         }
 
 	}
-    // push the Current BindingMode if next iteration is last
+    // push the Current BindingMode if it was still being populated during the iteration above
 	if( Current.get_BindingMode_size() ) this->Population->add_BindingMode(Current);
 
 	// OUTLIERS processing (re-classify them)
 	for(std::vector< Pose >::iterator it = Outliers.Poses.begin(); it != Outliers.Poses.end(); ++it )
 	{
-		this->Classify_Pose(*it);
+		// this->Classify_Pose(Pose&) will try to push the Pose into a BindingMode where
+		// distance(Pose&, BindingMode.representative) < (2-sizeTol)*FA->cluster_rmsd
+		if( !this->Classify_Pose(*it) )
+		{
+			// check all binding modes
+			for(std::vector< BindingMode >::iterator iMode = this->Population->BindingModes.begin(); iMode != this->Population->BindingModes.end(); iMode++)
+			{
+				for(std::vector<Pose>::iterator iPose = iMode->Poses.begin(); iPose != iMode->Poses.end(); ++iPose)
+				{
+					float distance = this->compute_vect_distance(iPose->vPose, it->vPose);
+					if(distance < this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsAndDensities::sizeTolerance))
+					{
+						iMode->add_Pose(*it);
+						break;
+					}
+				}
+			}
+			// at this point, the pose has not been classified yet,
+			// Current.clear_Poses();
+			// Current.add_Pose(*it);
+			// this->Population->add_BindingMode(Current);
+		}
+
 	}
 	// this->Population->add_BindingMode(Outliers);
 	this->Population->Entropize();

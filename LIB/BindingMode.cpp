@@ -27,6 +27,7 @@ void BindingPopulation::Entropize()
 	{
 		it->set_energy();
 	}
+	// sort BindingModes using customly defined BindingPopulation::EnergyComparator's comparator=
 	std::sort(this->BindingModes.begin(), this->BindingModes.end(), BindingPopulation::EnergyComparator::EnergyComparator());
 }
 
@@ -72,10 +73,14 @@ bool BindingMode::isPoseAggregable(const Pose& pose) const
 {
 	bool accept = true;
 	float sizeTolerance = static_cast<float>(2.0f/3.0f);
+
+	// automatically accep if the BindingMode is empty
 	if(!this->get_BindingMode_size()) return accept;
 	
 	for(std::vector<Pose>::const_iterator it = this->Poses.begin(); it != this->Poses.end(); ++it)
+	{
 		if( this->compute_distance((*it),pose) > ((1+sizeTolerance) * this->Population->FA->cluster_rmsd) ) accept = false;
+	}
 	
 	return accept;
 }
@@ -84,6 +89,7 @@ bool BindingMode::isHomogenic() const
 {
 	bool accept = true;
 	float sizeTolerance = static_cast<float>(2.0f/3.0f);
+	
 	for(std::vector<Pose>::const_iterator it1 = this->Poses.begin(); it1 != this->Poses.end(); ++it1)
 	{
 		for(std::vector<Pose>::const_iterator it2 = this->Poses.begin(); it2 != this->Poses.end(); ++it2)
@@ -92,17 +98,20 @@ bool BindingMode::isHomogenic() const
 			else if( this->compute_distance((*it1),(*it2)) > ((1+sizeTolerance) * this->Population->FA->cluster_rmsd) ) accept = false;
 		}
 	}
+
 	return accept;
 }
 
 float BindingMode::compute_distance(const Pose& pose1, const Pose& pose2) const
 {
 	float distance = 0.0f;
+	// perform distance^2 calculation
 	for(int i = 0; i < pose1.vPose.size(); ++i)
 	{
 		float temp = pose1.vPose[i] - pose2.vPose[i];
 		distance += temp * temp;
 	}
+	// return square-root of distance^2
 	return sqrtf(distance);
 }
 
@@ -391,6 +400,7 @@ inline bool const Pose::operator==(const Pose& rhs)
 	if(this->chrom_index == rhs.chrom_index) return true;
 	else return false;
 }
+
 inline bool const operator==(const Pose& lhs, const Pose& rhs)
 {
 	if(lhs.chrom_index == rhs.chrom_index) return true;

@@ -29,9 +29,12 @@ struct Pose
 	std::vector<float> vPose;
 	inline bool const operator< (const Pose& rhs);
 	inline bool const operator> (const Pose& rhs);
+	// in-class 1 argument operator=== (this, rhs)
 	inline bool const operator==(const Pose& rhs);
 };
+// publicly accessible 2 argumentss operator== (lhs, rhs)
 inline bool const operator==(const Pose& lhs, const Pose& rhs);
+
 struct PoseClassifier
 {
    inline bool operator() ( const Pose& Pose1, const Pose& Pose2 )
@@ -101,10 +104,6 @@ class BindingPopulation
 		explicit 	BindingPopulation(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom);
 			// 	add new binding mode to population
 		void	add_BindingMode(BindingMode&);
-			// 	classify the Pose into the appropriate BindingMode in the BindingPopulation
-		void 	Classify_Pose(Pose& pose);
-			// 	classify the whole BindingPopulation into BindingModes (this method might call Classify_Pose())
-		void 	Classify_Population();
 			// 	return the number of BindinMonde (size getter)
 		int		get_Population_size();
 			// 	output BindingMode up to nResults results

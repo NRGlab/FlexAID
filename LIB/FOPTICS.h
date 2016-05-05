@@ -89,8 +89,10 @@ class FastOPTICS
 		void 		Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile);
 		void		update_ClusterOrdering_PriorityQueue_elements(int, std::priority_queue< ClusterOrdering, std::vector<ClusterOrdering>, ClusterOrderingComparator::ClusterOrderingComparator > &);
 		// population classification methods (linked to BindingPopulation* Population)
-		void		Classify_Pose(Pose& pose);
-		void		Classify_Population();
+				// 	classify the Pose into the appropriate BindingMode in the BindingPopulation
+		bool 		Classify_Pose(Pose& pose);
+				// 	classify the whole BindingPopulation into BindingModes (this method might call Classify_Pose())
+		void 		Classify_Population();
 		// output-related methods
         void 		output_OPTICS(char* end_strfile, char* tmp_end_strfile);
         void 		output_3d_OPTICS_ordering(char* end_strfile, char* tmp_end_strfile);
