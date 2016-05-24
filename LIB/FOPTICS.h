@@ -61,14 +61,14 @@ struct ClusterOrderingComparator
 // priority_queue container alllowing iterations throught the priority_queue
 template <class T, class S, class C>S& Container(priority_queue<T, S, C>& q)
 {
-    struct HackedQueue : private priority_queue<T, S, C>
+    struct IterableQueue : private priority_queue<T, S, C>
     {
         static S& Container(priority_queue<T, S, C>& q)
         {
-            return q.*&HackedQueue::c;
+            return q.*&IterableQueue::c;
         }
     };
-    return HackedQueue::Container(q);
+    return IterableQueue::Container(q);
 }
 
 /*****************************************\
@@ -104,10 +104,10 @@ class FastOPTICS
 
 	private:
 		// FlexAID specific attributes
-		int N;			// N : number of chromosomes to cluster
-		int minPoints;	// minPts : minimal number of neighbors (only parameter in FOPTICS)
-		int nDimensions;
-		
+		int 	N;			// N : number of chromosomes to cluster
+		int 	minPoints;	// minPts : minimal number of neighbors (only parameter in FOPTICS)
+		int 	nDimensions;
+		float 	dist_threshold;
 		// FOPTICS algorithm attributes
 		int iOrder;
 		std::vector< int > order;

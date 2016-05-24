@@ -21,6 +21,61 @@ void BindingPopulation::add_BindingMode(BindingMode& mode)
 //	this->Entropize();
 }
 
+bool BindingPopulation::merge_BindingModes(std::vector< BindingMode >::iterator mode1, std::vector< BindingMode >::iterator mode2)
+{
+	// assign BindingMode* pointers to mode1 and mode 2
+	BindingMode::BindingMode Current(this);
+	// std::vector<BindingMode> toRemove;
+	// if necessary, exchange pointers in order to merge Poses into the lowest energy BindingMpde
+    for(std::vector< Pose >::iterator itp = mode1->Poses.begin(); itp != mode1->Poses.end(); ++itp)
+    {
+    	Current.add_Pose(*itp);
+    }
+    for(std::vector< Pose >::iterator itp = mode2->Poses.begin(); itp != mode2->Poses.end(); ++itp)
+    {
+    	Current.add_Pose(*itp);
+    }
+    if(Current.isHomogenic())
+    {
+    	for(std::vector<Pose>::iterator itp = mode2->Poses.begin(); itp != mode2->Poses.end(); ++itp) mode1->add_Pose(*itp);
+    	this->remove_BindingMode(mode2);
+    	return true;
+    }
+    else
+    {
+    	return false;
+    }
+}
+
+void BindingPopulation::remove_BindingMode(std::vector<BindingMode>::iterator mode)
+{
+	this->BindingModes.erase(mode);
+	// for(std::vector< BindingMode >::iterator itp = this->BindingModes.begin(); itp != this->BindingModes.end(); ++itp)
+	// {
+	// 	if( (*mode) == (*itp) )
+	// 	{
+	// 		this->BindingModes.erase(itp);
+	// 	}
+	// }
+}
+
+void BindingPopulation::Classify_BindingModes()
+{
+	float sizeTolerance = (2-static_cast<float>(2.0f/3.0f)) * this->FA->cluster_rmsd;
+	for(std::vector<BindingMode>::iterator it1 = this->BindingModes.begin(); it1 != this->BindingModes.end(); ++it1)
+	{
+		for(std::vector<BindingMode>::iterator it2 = this->BindingModes.begin(); it2 != this->BindingModes.end(); ++it2)
+		{
+			if((*it1) == (*it2)) continue;
+
+			else if(this->compute_distance((*it1->elect_Representative(false)), (*it2->elect_Representative(false))) <= sizeTolerance) 
+			{
+				this->merge_BindingModes(it1, it2);
+			}
+		}
+	}
+}
+
 void BindingPopulation::Entropize()
 {
 	for(std::vector<BindingMode>::iterator it = this->BindingModes.begin(); it != this->BindingModes.end(); ++it)
@@ -31,6 +86,18 @@ void BindingPopulation::Entropize()
 	std::sort(this->BindingModes.begin(), this->BindingModes.end(), BindingPopulation::EnergyComparator::EnergyComparator());
 }
 
+float BindingPopulation::compute_distance(const Pose& pose1, const Pose& pose2) const
+{
+	float distance = 0.0f;
+	// perform distance^2 calculation
+	for(int i = 0; i < pose1.vPose.size(); ++i)
+	{
+		float temp = pose1.vPose[i] - pose2.vPose[i];
+		distance += temp * temp;
+	}
+	// return square-root of distance^2
+	return sqrtf(distance);
+}
 
 int BindingPopulation::get_Population_size() { return static_cast<int>(this->BindingModes.size()); }
 
@@ -58,9 +125,7 @@ void BindingPopulation::output_Population(int nResults, char* end_strfile, char*
 \*****************************************/
 
 // public constructor *non-overloadable*
-BindingMode::BindingMode(BindingPopulation* pop) : Population(pop), energy(0.0)
-{
-}
+BindingMode::BindingMode(BindingPopulation* pop) : Population(pop), energy(0.0) {}
 
 
 // public method for pose addition
@@ -353,8 +418,25 @@ std::vector<Pose>::const_iterator BindingMode::elect_Representative(bool useOPTI
 }
 
 
-inline bool const BindingMode::operator< (const BindingMode& rhs) { return (this->compute_energy() < rhs.compute_energy()); }
+inline bool const BindingMode::operator< (const BindingMode& rhs) { return ( this->compute_energy() < rhs.compute_energy() ); }
 
+inline bool const BindingMode::operator==(const BindingMode& rhs)
+{
+	if( this->get_BindingMode_size() == rhs.get_BindingMode_size() && this->elect_Representative(false) == rhs.elect_Representative(false) )
+	{
+		return true;
+	}
+	return false;
+}
+
+inline bool const operator==(const BindingMode& lhs, const BindingMode& rhs)
+{
+	if(lhs.get_BindingMode_size() == rhs.get_BindingMode_size() && lhs.elect_Representative(false) == rhs.elect_Representative(false) )
+	{
+		return true;
+	}
+	return false;
+}
 
 /*****************************************\
 				  Pose

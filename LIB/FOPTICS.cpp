@@ -1,13 +1,12 @@
 #include "FOPTICS.h"
 #include "gaboom.h"
 
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int_distribution.hpp>
 boost::random::mt19937 gen;
 
 struct RNG 
 {
-    int operator() (int n) {
+    int operator() (int n)
+    {
         return std::rand() / (1.0 + RAND_MAX) * n;
     }
 };
@@ -106,7 +105,7 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
     this->chroms = chrom;
     this->gene_lim = gen_lim;
 	this->N = nChrom;
-    
+	this->dist_threshold = this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsAndDensities::sizeTolerance);
 	// FastOPTICS
     this->nDimensions = this->FA->num_het_atm*3;	// use with Vectorized_Cartesian_Coordinates()
     // this->nDimensions = this->FA->npar + 2; 	// use with Vectorized_Chromosome()
@@ -186,6 +185,7 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
             this->OPTICS.push_back(Pose);
 		}
 	}
+	// this line sorts this->OPTICS using PoseClassifier(pose1, pose2) comparison struct
     std::sort(this->OPTICS.begin(), this->OPTICS.end(), PoseClassifier::PoseClassifier());
 
 	// Build BindingModes (aggregation of Poses in BindingModes)
@@ -199,8 +199,8 @@ bool FastOPTICS::Classify_Pose(Pose& pose)
 	// in order to classify the Pose
 	for(std::vector< BindingMode >::iterator mode = this->Population->BindingModes.begin(); mode != this->Population->BindingModes.end(); ++mode)
 	{
-        if(	this->compute_vect_distance(pose.vPose, ( mode->elect_Representative(false))->vPose ) < this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsAndDensities::sizeTolerance) ||
-        	this->compute_vect_distance(pose.vPose, ( mode->elect_Representative(true ))->vPose ) < this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsAndDensities::sizeTolerance) )
+        if(	this->compute_vect_distance(pose.vPose, ( mode->elect_Representative(false))->vPose ) < this->dist_threshold ||
+        	this->compute_vect_distance(pose.vPose, ( mode->elect_Representative(true ))->vPose ) < this->dist_threshold )
         {
         	mode->add_Pose(pose); // add pose to the BindingMode mode
         	isClassified = true; // pose isClassified == true
@@ -236,12 +236,12 @@ void FastOPTICS::Classify_Population()
     		if( Current.isPoseAggregable(*it) ) Current.add_Pose(*it);
         }
 
-        else if(distance <= this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsAndDensities::sizeTolerance))
+        else if( distance <= this->dist_threshold )
         {
         	if( Current.isPoseAggregable(*it) ) Current.add_Pose(*it);
         }
 
-        else if(distance > this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsAndDensities::sizeTolerance))
+        else if( distance > this->dist_threshold )
         {
         	Outliers.add_Pose(*it);
         }
@@ -263,21 +263,16 @@ void FastOPTICS::Classify_Population()
 				for(std::vector<Pose>::iterator iPose = iMode->Poses.begin(); iPose != iMode->Poses.end(); ++iPose)
 				{
 					float distance = this->compute_vect_distance(iPose->vPose, it->vPose);
-					if(distance < this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsAndDensities::sizeTolerance))
+					if(distance < this->dist_threshold)
 					{
 						iMode->add_Pose(*it);
 						break;
 					}
 				}
 			}
-			// at this point, the pose has not been classified yet,
-			// Current.clear_Poses();
-			// Current.add_Pose(*it);
-			// this->Population->add_BindingMode(Current);
 		}
-
 	}
-	// this->Population->add_BindingMode(Outliers);
+	this->Population->Classify_BindingModes();
 	this->Population->Entropize();
 }
 
@@ -395,7 +390,7 @@ void FastOPTICS::output_3d_OPTICS_ordering(char* end_strfile, char* tmp_end_strf
 			else if( (Pose+1) == this->OPTICS.end() )
 			{
 				// last MODEL to be written
-				write_MODEL_pdb(false, true, nModel, this->FA,this->atoms,this->residue,tmp_end_strfile,remark);
+				write_MODEL_pdb(false, true, nModel, this->FA, this->atoms,this->residue,tmp_end_strfile,remark);
 			}
 			else
 			{
@@ -565,7 +560,7 @@ void FastOPTICS::ExpandClusterOrder(int ipt)
 		this->iOrder++;
 		this->processed[currPt] = true;
 
-		float coredist = this->inverseDensities[ currPt];
+		float coredist = this->inverseDensities[currPt];
 
         // this->update_ClusterOrdering_PriorityQueue_elements(currPt, queue);
 
@@ -689,6 +684,7 @@ void FastOPTICS::normalizeDistances()
 
 int FastOPTICS::get_minPoints() { return this->minPoints; }
 /*****************************************\
+
 			RandomProjections
 \*****************************************/
 
@@ -936,7 +932,6 @@ void RandomProjectedNeighborsAndDensities::getNeighbors(std::vector< std::vector
 		for(int i = 0; i < len; ++i)
 		{
 			ind = pinSet[i];
-			// if(this->top->compute_distance(this->points[ind], this->points[oldind]) > ( (1 + this->sizeTolerance)*this->top->FA->cluster_rmsd ) ) continue;
 			// The following block of code uses an iterator to add all points as neighbors to the middle point
 			std::vector<int> & cneighs = neighs.at(ind);
 			if( !std::binary_search(cneighs.begin(), cneighs.end(), oldind) ) //only add point if not a neighbor already
@@ -1100,7 +1095,7 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_CartesianCoo
 	}
     
     // process normal modes (if used in the simulation)
-	if(normalmode > -1) alter_mode(this->top->atoms,this->top->residue,this->top->FA->normal_grid[normalmode],this->top->FA->res_cnt,this->top->FA->normal_modes);
+	if(normalmode > -1) alter_mode(this->top->atoms, this->top->residue, this->top->FA->normal_grid[normalmode], this->top->FA->res_cnt, this->top->FA->normal_modes);
 
 	/* rebuild cartesian coordinates of optimized residues*/
     for(i=0;i<this->top->FA->nors;i++) buildcc(this->top->FA,this->top->atoms,this->top->FA->nmov[i],this->top->FA->mov[i]);
@@ -1184,7 +1179,7 @@ void RandomProjectedNeighborsAndDensities::output_projected_distance(char* end_s
 	char sufix[25];
 	sprintf(sufix, "__%d.projDist", this->top->minPoints);
 	strcpy(tmp_end_strfile, end_strfile);
-	strcat(tmp_end_strfile,sufix);
+	strcat(tmp_end_strfile, sufix);
 	FILE* outfile;
 	if(!OpenFile_B(tmp_end_strfile,"w",&outfile))
 	{

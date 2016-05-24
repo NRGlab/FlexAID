@@ -29,7 +29,6 @@ struct Pose
 	std::vector<float> vPose;
 	inline bool const operator< (const Pose& rhs);
 	inline bool const operator> (const Pose& rhs);
-	// in-class 1 argument operator=== (this, rhs)
 	inline bool const operator==(const Pose& rhs);
 };
 // publicly accessible 2 argumentss operator== (lhs, rhs)
@@ -75,7 +74,8 @@ class BindingMode // aggregation of poses (Cluster)
 			double								compute_entropy() const;
 			double								compute_enthalpy() const;
 			std::vector<Pose>::const_iterator 	elect_Representative(bool useOPTICSordering) const;
-			inline bool const 					operator<(const BindingMode&);
+			inline bool const 					operator< (const BindingMode& rhs);
+			inline bool const 					operator==(const BindingMode& rhs);
 
 
  	protected:
@@ -85,11 +85,14 @@ class BindingMode // aggregation of poses (Cluster)
 		void	set_energy();
 
 	private:
+		// private attributes
+		double 	energy;
+		// private methods 
 		void 	output_BindingMode(int num_result, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints);
 		void	output_dynamic_BindingMode(int nBindingMode, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints);
-		double energy;
 };
-
+// publicly accessible 2 argumentss operator== (lhs, rhs)
+inline bool const operator==(const BindingMode& lhs, const BindingMode& rhs);
 /*****************************************\
 			BindingPopulation  
 \*****************************************/
@@ -104,6 +107,10 @@ class BindingPopulation
 		explicit 	BindingPopulation(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom);
 			// 	add new binding mode to population
 		void	add_BindingMode(BindingMode&);
+			// Classify_BindingModes merges similar BindingModes together
+		void 	Classify_BindingModes();
+			// used to compute the distance between 2 poses (same as BindingMode::compute_distance)
+		float 	compute_distance(const Pose& pose1, const Pose& pose2) const;
 			// 	return the number of BindinMonde (size getter)
 		int		get_Population_size();
 			// 	output BindingMode up to nResults results
@@ -122,10 +129,16 @@ class BindingPopulation
 		atom* atoms;			// pointer to atoms' array
 		resid* residue;			// pointer to residues' array
 		gridpoint* cleftgrid;	// pointer to gridpoints' array (defining the total search space of the simulation)
-        void 						Entropize(); 	// Sort BindinModes according to their observation frequency
+	        // Sort BindinModes according to their observation frequency
+        void 	Entropize();
+	
 	private:
 		std::vector< BindingMode > 	BindingModes;	// BindingMode container
 		
+			// merges two existing BindingModes
+		bool 	merge_BindingModes(std::vector< BindingMode >::iterator mode1, std::vector< BindingMode >::iterator mode2);
+			// removes a BindingMode from the Ppopulation (THIS WILL NOT AFFACT THE POPULATION PARTITION FUNCTION)
+		void 	remove_BindingMode(std::vector<BindingMode>::iterator mode);
 		
 		struct EnergyComparator
 		{
