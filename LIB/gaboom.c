@@ -2089,7 +2089,7 @@ int generate_true_positive_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, 
 	std::vector<int> cCenters;
 
 	// determine the number of poses to generate in current cluster
-    nIndividuals = std::round( GB->num_chrom / (GB->num_decoy_clusters+1) ) + (GB->num_chrom % (GB->num_decoy_clusters+1));
+    nIndividuals = round( GB->num_chrom / (GB->num_decoy_clusters+1) ) + (GB->num_chrom % (GB->num_decoy_clusters+1));
 
 	// 0. Assert that coordinates are available for the reference
 	if(!FA->refstructure)
@@ -2184,7 +2184,7 @@ int generate_true_negatives_clusters(FA_Global* FA, GB_Global* GB, VC_Global *VC
 	std::vector<int> cCenters;
 	std::vector<int>::iterator it;
 	// int gpa,anchorIndex,ref;
-	int nIndividuals = std::round( GB->num_chrom / (GB->num_decoy_clusters+1) ) - 1; // -1 is to avoind counting the center in nIndividuals to generate
+	int nIndividuals = round( GB->num_chrom / (GB->num_decoy_clusters+1) ) - 1; // -1 is to avoind counting the center in nIndividuals to generate
 	float sizeTolerance = (float)(2.0f/3.0f);
 
 
