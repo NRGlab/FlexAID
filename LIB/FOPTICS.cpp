@@ -37,12 +37,12 @@ ClusterOrdering::ClusterOrdering(int id, int predID, float reach) : objectID(id)
 
 inline bool const ClusterOrdering::operator==(const ClusterOrdering& rhs)
 {
-	if(*this == rhs)
+	if(this->objectID == rhs.objectID)
 		return true;
-	if(typeid(rhs) != typeid(ClusterOrdering))
+	else if(typeid(rhs) != typeid(ClusterOrdering))
 		return false;
 
-	return ( this->objectID == rhs.objectID );
+	else return ( this->objectID == rhs.objectID );
 }
 
 inline bool const ClusterOrdering::operator< (const ClusterOrdering& rhs)
@@ -125,7 +125,7 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 	{
 		// need to transform the chromosomes into vectors for FastOPTICS algo
 		std::vector<float> vChrom( this->Vectorized_Cartesian_Coordinates(i) ); // Copy constructor (default vector constructor used)
-		if(vChrom.size() == this->nDimensions)
+		if(static_cast<int>(vChrom.size()) == this->nDimensions)
 		{
 			// default values initialization
 			this->order.push_back(-1);
@@ -334,7 +334,7 @@ void FastOPTICS::output_3d_OPTICS_ordering(char* end_strfile, char* tmp_end_strf
 			strcat(remark,tmpremark);
 			sprintf(tmpremark,"REMARK CF=%8.5f\n",get_cf_evalue(&CF));
 			strcat(remark,tmpremark);
-			sprintf(tmpremark,"REMARK CF.app=%8.5f\n",get_apparent_cf_evalue(&CF));
+			sprintf(tmpremark, "REMARK CF.app=%8.5f\n", get_apparent_cf_evalue(&CF));
 			strcat(remark,tmpremark);
 
 			for(int j = 0; j < this->FA->num_optres; ++j)
@@ -879,7 +879,7 @@ void RandomProjectedNeighborsAndDensities::getInverseDensities(std::vector< floa
 	std::vector<int> nDists(this->N);
 	nDists.reserve(this->N);
 //	for(std::vector< std::vector< int> >::iterator it1 = this->splitsets.begin(); it1 != this->splitsets.end(); ++it1)
-    for(int i = 0; i < this->splitsets.size(); ++i)
+    for(int i = 0; i < static_cast<int>(this->splitsets.size()); ++i)
 	{
 //		std::vector<int>::iterator pinSet = it1->begin();
         std::vector<int> & pinSet = this->splitsets.at(i);

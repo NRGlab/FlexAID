@@ -110,7 +110,7 @@ void BindingPopulation::output_Population(int nResults, char* end_strfile, char*
     
     // Looping through BindingModes
     int num_result = 0;
-    if(!nResults) nResults = this->get_Population_size() - 1; // if 0 is sent to this function, output all
+    if(!nResults) nResults = this->get_Population_size() - 1; // if 0 is sent to this function, output all available results
 	for(std::vector<BindingMode>::iterator mode = this->BindingModes.begin(); mode != this->BindingModes.end() && nResults > 0; ++mode, --nResults, ++num_result)
 	{
 		mode->output_BindingMode(num_result, end_strfile, tmp_end_strfile, dockinp, gainp, minPoints);
@@ -250,7 +250,7 @@ void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tm
     // 3. print REMARKS for FA->optres (res_ptr && cf_ptr for each optimizable residue)
 	strcpy(remark,"REMARK optimized structure\n");
 	
-	 sprintf(tmpremark,"REMARK Fast OPTICS clustering algorithm used to output the lowest CF as Binding Mode representative\n");
+	sprintf(tmpremark,"REMARK Fast OPTICS clustering algorithm used to output the lowest CF as Binding Mode representative\n");
 	 // sprintf(tmpremark,"REMARK Fast OPTICS clustering algorithm used to output the lowest OPTICS ordering as Binding Mode representative\n");
 	strcat(remark,tmpremark);
 	
@@ -426,7 +426,7 @@ inline bool const BindingMode::operator==(const BindingMode& rhs)
 	{
 		return true;
 	}
-	return false;
+	else return false;
 }
 
 inline bool const operator==(const BindingMode& lhs, const BindingMode& rhs)
@@ -435,14 +435,14 @@ inline bool const operator==(const BindingMode& lhs, const BindingMode& rhs)
 	{
 		return true;
 	}
-	return false;
+	else return false;
 }
 
 /*****************************************\
 				  Pose
 \*****************************************/
 // public constructor for Pose *non-overloadable*
-Pose::Pose(chromosome* chrom, int index, int iorder, float dist, uint temperature, std::vector<float> vec) : chrom(chrom), order(iorder), chrom_index(index), reachDist(dist), CF(chrom->app_evalue), vPose(vec)
+Pose::Pose(chromosome* chrom, int index, int iorder, float dist, uint temperature, std::vector<float> vec) :  chrom_index(index), order(iorder), reachDist(dist), chrom(chrom), CF(chrom->app_evalue), vPose(vec)
 {
 	this->boltzmann_weight = pow( E, ((-1.0) * (1/static_cast<double>(temperature)) * chrom->app_evalue) );
 }
@@ -460,7 +460,7 @@ inline bool const Pose::operator< (const Pose& rhs)
 	if(this->chrom_index < rhs.chrom_index) return true;
 	else if(this->chrom_index > rhs.chrom_index) return false;
 	
-	return false;
+	else return false;
 }
 
 inline bool const Pose::operator> (const Pose& rhs)
@@ -474,7 +474,7 @@ inline bool const Pose::operator> (const Pose& rhs)
 	if(this->chrom_index < rhs.chrom_index) return false;
 	else if(this->chrom_index > rhs.chrom_index) return true;
 	
-	return false;
+	else return false;
 }
 
 inline bool const Pose::operator==(const Pose& rhs)
