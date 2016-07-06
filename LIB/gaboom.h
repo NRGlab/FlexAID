@@ -39,6 +39,13 @@
 
 using namespace std;
 
+#ifndef HAVE_ROUND
+static inline float round( float value )
+{    
+  return floor( value + 0.5 );
+}
+#endif
+
 typedef boost::mt19937 RNGType;
 
 struct genelimits_struct{

@@ -182,9 +182,9 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
 		if( (this->points[i]).first != NULL )
 		{
 			// Calling Pose constructor for the current chromosome
-			Pose::Pose Pose((this->points[i]).first, i, this->order[i], this->reachDist[i], this->Population->Temperature, (this->points[i]).second);
+			Pose iPose = Pose::Pose((this->points[i]).first, i, this->order[i], this->reachDist[i], this->Population->Temperature, (this->points[i]).second);
 			// OPTICS.push(Pose);
-            this->OPTICS.push_back(Pose);
+            this->OPTICS.push_back(iPose);
 		}
 	}
 	// this line sorts this->OPTICS using PoseClassifier(pose1, pose2) comparison struct
@@ -547,7 +547,7 @@ std::vector<float> FastOPTICS::Vectorized_Cartesian_Coordinates(int chrom_index)
 
 void FastOPTICS::ExpandClusterOrder(int ipt)
 {
-    std::priority_queue< ClusterOrdering, std::vector<ClusterOrdering>, ClusterOrderingComparator::ClusterOrderingComparator > queue;
+    std::priority_queue< ClusterOrdering, std::vector<ClusterOrdering>, ClusterOrderingComparator > queue;
 	ClusterOrdering tmp(ipt,0,1e6f);
 	queue.push(tmp);
 
@@ -591,64 +591,64 @@ void FastOPTICS::ExpandClusterOrder(int ipt)
 	}
 }
 
-void FastOPTICS::update_ClusterOrdering_PriorityQueue_elements(int currPt, std::priority_queue< ClusterOrdering, std::vector<ClusterOrdering>, ClusterOrderingComparator::ClusterOrderingComparator > & queue)
-{
-	std::vector<int> queued_points;		// vector utilisé pour 
-	std::vector<ClusterOrdering> & Queue = Container(queue);
+// void FastOPTICS::update_ClusterOrdering_PriorityQueue_elements(int currPt, std::priority_queue< ClusterOrdering, std::vector<ClusterOrdering>, ClusterOrderingComparator > & queue)
+// {
+// 	std::vector<int> queued_points;		// vector utilisé pour 
+// 	std::vector<ClusterOrdering> & Queue = Container(queue);
 
-	// 1. Vérifier que tous les points dans la queue ont un prédécesseur dans la queue
-	// 	1.1 ajouter tous les points présents dans queue
-	for(std::vector<ClusterOrdering>::iterator it = Queue.begin(); it != Queue.end(); ++it)		queued_points.push_back(it->objectID);
+// 	// 1. Vérifier que tous les points dans la queue ont un prédécesseur dans la queue
+// 	// 	1.1 ajouter tous les points présents dans queue
+// 	for(std::vector<ClusterOrdering>::iterator it = Queue.begin(); it != Queue.end(); ++it)		queued_points.push_back(it->objectID);
 
-	queued_points.push_back(currPt);
+// 	queued_points.push_back(currPt);
 
-	std::sort(queued_points.begin(), queued_points.end());
+// 	std::sort(queued_points.begin(), queued_points.end());
 
-	// 2. Update les prédecesseurs+distance des points dont les prédécesseurs ne sont plus en queue
-	// 		pour ajouter currPt comme préd SI il est voisin
-	// 		chercher parmi les neighbors unprocessed du point pour vérifier lequel ajouter comme préd SINON
-	for(std::vector<ClusterOrdering>::iterator it = Queue.begin(); it != Queue.end(); ++it)
-	{
-		// FORCED UPDATE
-		// if(it->objectID != currPt && it->predecessorID != currPt)
-		// {
-		// 	it->predecessorID = currPt;
-		// 	it->reachability = this->compute_distance(this->points[it->objectID], this->points[currPt]);
-		// 	this->reachDist[it->objectID] = it->reachability;
-		// }
+// 	// 2. Update les prédecesseurs+distance des points dont les prédécesseurs ne sont plus en queue
+// 	// 		pour ajouter currPt comme préd SI il est voisin
+// 	// 		chercher parmi les neighbors unprocessed du point pour vérifier lequel ajouter comme préd SINON
+// 	for(std::vector<ClusterOrdering>::iterator it = Queue.begin(); it != Queue.end(); ++it)
+// 	{
+// 		// FORCED UPDATE
+// 		// if(it->objectID != currPt && it->predecessorID != currPt)
+// 		// {
+// 		// 	it->predecessorID = currPt;
+// 		// 	it->reachability = this->compute_distance(this->points[it->objectID], this->points[currPt]);
+// 		// 	this->reachDist[it->objectID] = it->reachability;
+// 		// }
 
-		// check only cases where predID is not found in the queue anymore
-		if( !std::binary_search(queued_points.begin(), queued_points.end(), it->predecessorID) )
-		{
-			// check if currPt if neighbor of (*it)
-			//  * case where (*it) is neighbor 
-			if(std::binary_search( this->neighbors[it->objectID].begin(), this->neighbors[it->objectID].end(), currPt))
-			{
-				// update (*it) with predID and reachDist
-				it->predecessorID = currPt;
-				it->reachability = this->compute_distance(this->points[it->objectID], this->points[currPt]);
-			}
-			// case where currPt is not neighbor of (*it)
-			else
-			{
-				for(std::vector<int>::iterator neigh = this->neighbors[it->objectID].begin(); neigh != this->neighbors[it->objectID].end(); ++neigh)
-				{
-					if(!std::binary_search(queued_points.begin(), queued_points.end(), *neigh)) continue;
+// 		// check only cases where predID is not found in the queue anymore
+// 		if( !std::binary_search(queued_points.begin(), queued_points.end(), it->predecessorID) )
+// 		{
+// 			// check if currPt if neighbor of (*it)
+// 			//  * case where (*it) is neighbor 
+// 			if(std::binary_search( this->neighbors[it->objectID].begin(), this->neighbors[it->objectID].end(), currPt))
+// 			{
+// 				// update (*it) with predID and reachDist
+// 				it->predecessorID = currPt;
+// 				it->reachability = this->compute_distance(this->points[it->objectID], this->points[currPt]);
+// 			}
+// 			// case where currPt is not neighbor of (*it)
+// 			else
+// 			{
+// 				for(std::vector<int>::iterator neigh = this->neighbors[it->objectID].begin(); neigh != this->neighbors[it->objectID].end(); ++neigh)
+// 				{
+// 					if(!std::binary_search(queued_points.begin(), queued_points.end(), *neigh)) continue;
 
-					float distance = this->compute_distance(this->points[it->objectID], this->points[*neigh]);
-					if(distance < it->reachability && !isUndefinedDist(distance))
-					{
-						it->predecessorID = *neigh;
-						it->reachability = distance;
-					}
-				}
-			}
-		}
-	}
+// 					float distance = this->compute_distance(this->points[it->objectID], this->points[*neigh]);
+// 					if(distance < it->reachability && !isUndefinedDist(distance))
+// 					{
+// 						it->predecessorID = *neigh;
+// 						it->reachability = distance;
+// 					}
+// 				}
+// 			}
+// 		}
+// 	}
 
-	// 3. restore heap properties in the priority_queue post-update
-	std::make_heap(const_cast<ClusterOrdering*>(&queue.top()), const_cast<ClusterOrdering*>(&queue.top() + queue.size()), ClusterOrderingComparator::ClusterOrderingComparator());
-}
+// 	// 3. restore heap properties in the priority_queue post-update
+// 	std::make_heap(const_cast<ClusterOrdering*>(&queue.top()), const_cast<ClusterOrdering*>(&queue.top() + queue.size()), ClusterOrderingComparator::ClusterOrderingComparator());
+// }
 
 float FastOPTICS::compute_distance(std::pair< chromosome*,std::vector<float> > & a, std::pair< chromosome*,std::vector<float> > & b)
 {

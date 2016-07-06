@@ -87,7 +87,7 @@ class FastOPTICS
 		explicit 	FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, BindingPopulation&, int nPoints);
 		// Main FastOPTICS function to execute the algorithm
 		void 		Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile);
-		void		update_ClusterOrdering_PriorityQueue_elements(int, std::priority_queue< ClusterOrdering, std::vector<ClusterOrdering>, ClusterOrderingComparator::ClusterOrderingComparator > &);
+		// void		update_ClusterOrdering_PriorityQueue_elements(int, std::priority_queue< ClusterOrdering, std::vector<ClusterOrdering>, ClusterOrderingComparator::ClusterOrderingComparator > &);
 		// population classification methods (linked to BindingPopulation* Population)
 				// 	classify the Pose into the appropriate BindingMode in the BindingPopulation
 		bool 		Classify_Pose(Pose& pose);
