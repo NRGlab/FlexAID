@@ -154,7 +154,9 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
     }
 	std::random_shuffle(mixedPts.begin(),mixedPts.end());
 	// Build object, compute projections, density estimates and density neighborhoods (in serial order of function calls below)
-	RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities MultiPartition(this->points, this->minPoints, this); // use minPoints amount of random projections
+	// RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities MultiPartition(this->points, this->minPoints, this); // use minPoints amount of random projections
+	RandomProjectedNeighborsAndDensities MultiPartition = RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities(this->points, this->minPoints, this);
+
 	MultiPartition.computeSetBounds(ptInd);
 	MultiPartition.getInverseDensities(this->inverseDensities);
 	MultiPartition.getNeighbors(this->neighbors);
@@ -213,8 +215,10 @@ bool FastOPTICS::Classify_Pose(Pose& pose)
 void FastOPTICS::Classify_Population()
 {
  	float distance = 0.0f;
- 	BindingMode::BindingMode Current(this->Population);
-    BindingMode::BindingMode Outliers(this->Population);
+ 	// BindingMode::BindingMode Current(this->Population);
+ 	BindingMode Current = BindingMode::BindingMode(this->Population);
+    // BindingMode::BindingMode Outliers(this->Population);
+ 	BindingMode Outliers = BindingMode::BindingMode(this->Population);
 
 /*#####################################################################################################
   #########################    Population Classification Algorithm    #################################

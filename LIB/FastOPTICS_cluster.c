@@ -6,14 +6,16 @@ void FastOPTICS_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome*
     // (minPoints < 3*FA->num_het_atm) ? minPoints = minPoints : minPoints = 3*FA->num_het_atm;
 	
     // BindingPopulation() : BindingPopulation constructor *non-overridable*
-    BindingPopulation::BindingPopulation Population1(FA,GB,VC,chrom,gene_lim,atoms,residue,cleftgrid,nChrom);
+    // BindingPopulation::BindingPopulation Population1(FA,GB,VC,chrom,gene_lim,atoms,residue,cleftgrid,nChrom);
+    BindingPopulation Population1 = BindingPopulation::BindingPopulation(FA,GB,VC,chrom,gene_lim,atoms,residue,cleftgrid,nChrom);
  //    BindingPopulation::BindingPopulation Population2(FA,GB,VC,chrom,gene_lim,atoms,residue,cleftgrid,nChrom);
  //    BindingPopulation::BindingPopulation Population3(FA,GB,VC,chrom,gene_lim,atoms,residue,cleftgrid,nChrom);
  //    BindingPopulation::BindingPopulation Population4(FA,GB,VC,chrom,gene_lim,atoms,residue,cleftgrid,nChrom);
 	// BindingPopulation::BindingPopulation Population5(FA,GB,VC,chrom,gene_lim,atoms,residue,cleftgrid,nChrom);
     
     // FastOPTICS() : calling FastOPTICS constructors
-    FastOPTICS::FastOPTICS Algo1(FA, GB, VC, chrom, gene_lim, atoms, residue, cleftgrid, nChrom, Population1, minPoints);
+    // FastOPTICS::FastOPTICS Algo1(FA, GB, VC, chrom, gene_lim, atoms, residue, cleftgrid, nChrom, Population1, minPoints);
+    FastOPTICS Algo1 = FastOPTICS::FastOPTICS(FA, GB, VC, chrom, gene_lim, atoms, residue, cleftgrid, nChrom, Population1, minPoints);
     // minPoints = std::floor(minPoints * 1.5);
     // FastOPTICS::FastOPTICS Algo2(FA, GB, VC, chrom, gene_lim, atoms, residue, cleftgrid, nChrom, Population2, minPoints);
     // minPoints = std::floor(minPoints * 1.5);

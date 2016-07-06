@@ -24,8 +24,9 @@ void BindingPopulation::add_BindingMode(BindingMode& mode)
 bool BindingPopulation::merge_BindingModes(std::vector< BindingMode >::iterator mode1, std::vector< BindingMode >::iterator mode2)
 {
 	// assign BindingMode* pointers to mode1 and mode 2
-	BindingMode::BindingMode Current(this);
-	// std::vector<BindingMode> toRemove;
+	// BindingMode::BindingMode Current(this);
+	BindingMode Current = BindingMode::BindingMode(this);
+
 	// if necessary, exchange pointers in order to merge Poses into the lowest energy BindingMpde
     for(std::vector< Pose >::iterator itp = mode1->Poses.begin(); itp != mode1->Poses.end(); ++itp)
     {
