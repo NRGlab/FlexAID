@@ -25,7 +25,8 @@ bool BindingPopulation::merge_BindingModes(std::vector< BindingMode >::iterator 
 {
 	// assign BindingMode* pointers to mode1 and mode 2
 	// BindingMode::BindingMode Current(this);
-	BindingMode Current = BindingMode::BindingMode(this);
+	BindingMode Current = BindingMode(this);
+	// BindingMode Current = BindingMode::BindingMode(this);
 
 	// if necessary, exchange pointers in order to merge Poses into the lowest energy BindingMpde
     for(std::vector< Pose >::iterator itp = mode1->Poses.begin(); itp != mode1->Poses.end(); ++itp)
@@ -84,7 +85,7 @@ void BindingPopulation::Entropize()
 		it->set_energy();
 	}
 	// sort BindingModes using customly defined BindingPopulation::EnergyComparator's comparator=
-	std::sort(this->BindingModes.begin(), this->BindingModes.end(), BindingPopulation::EnergyComparator::EnergyComparator());
+	std::sort(this->BindingModes.begin(), this->BindingModes.end(), BindingPopulation::EnergyComparator());
 }
 
 float BindingPopulation::compute_distance(const Pose& pose1, const Pose& pose2) const
