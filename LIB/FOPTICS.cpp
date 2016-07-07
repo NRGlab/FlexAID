@@ -155,7 +155,7 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
 	std::random_shuffle(mixedPts.begin(),mixedPts.end());
 	// Build object, compute projections, density estimates and density neighborhoods (in serial order of function calls below)
 	// RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities MultiPartition(this->points, this->minPoints, this); // use minPoints amount of random projections
-	RandomProjectedNeighborsAndDensities MultiPartition = RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities(this->points, this->minPoints, this);
+	RandomProjectedNeighborsAndDensities MultiPartition = RandomProjectedNeighborsAndDensities(this->points, this->minPoints, this);
 
 	MultiPartition.computeSetBounds(ptInd);
 	MultiPartition.getInverseDensities(this->inverseDensities);
@@ -182,13 +182,13 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
 		if( (this->points[i]).first != NULL )
 		{
 			// Calling Pose constructor for the current chromosome
-			Pose iPose = Pose::Pose((this->points[i]).first, i, this->order[i], this->reachDist[i], this->Population->Temperature, (this->points[i]).second);
+			Pose iPose = Pose((this->points[i]).first, i, this->order[i], this->reachDist[i], this->Population->Temperature, (this->points[i]).second);
 			// OPTICS.push(Pose);
             this->OPTICS.push_back(iPose);
 		}
 	}
 	// this line sorts this->OPTICS using PoseClassifier(pose1, pose2) comparison struct
-    std::sort(this->OPTICS.begin(), this->OPTICS.end(), PoseClassifier::PoseClassifier());
+    std::sort(this->OPTICS.begin(), this->OPTICS.end(), PoseClassifier());
 
 	// Build BindingModes (aggregation of Poses in BindingModes)
     this->Classify_Population();
@@ -216,9 +216,9 @@ void FastOPTICS::Classify_Population()
 {
  	float distance = 0.0f;
  	// BindingMode::BindingMode Current(this->Population);
- 	BindingMode Current = BindingMode::BindingMode(this->Population);
+ 	BindingMode Current = BindingMode(this->Population);
     // BindingMode::BindingMode Outliers(this->Population);
- 	BindingMode Outliers = BindingMode::BindingMode(this->Population);
+ 	BindingMode Outliers = BindingMode(this->Population);
 
 /*#####################################################################################################
   #########################    Population Classification Algorithm    #################################
@@ -585,7 +585,7 @@ void FastOPTICS::ExpandClusterOrder(int ipt)
 				this->reachDist[iNeigh] = nrdist;
 			else if(nrdist < this->reachDist[iNeigh])
 				this->reachDist[iNeigh] = nrdist;
-			tmp = ClusterOrdering::ClusterOrdering(iNeigh, currPt, nrdist);
+			tmp = ClusterOrdering(iNeigh, currPt, nrdist);
 			queue.push(tmp);
 		}
 	}
