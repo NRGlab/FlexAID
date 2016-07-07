@@ -782,7 +782,7 @@ float calculate_stddev(ClusterChrom* Chrom, int num_chrom)
 	int i;
 	float mean = calculate_mean(Chrom, num_chrom);
 	float sqrtot = 0.0f;
-    for(i = 0; i < num_chrom; ++i) sqrtot += pow( (mean - (&Chrom[i])->Distance),2.0 );
+    for(i = 0; i < num_chrom; ++i) sqrtot += pow( (mean - (&Chrom[i])->Distance),2.0f );
 	return sqrtf(sqrtot/(float)num_chrom);
 }
 

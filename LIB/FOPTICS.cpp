@@ -693,15 +693,14 @@ int FastOPTICS::get_minPoints() { return this->minPoints; }
 \*****************************************/
 
 // STATIC variables declaration
-int const RandomProjectedNeighborsAndDensities::logOProjectionConstant;
-float RandomProjectedNeighborsAndDensities::sizeTolerance;
+int const RandomProjectedNeighborsAndDensities::logOProjectionConstant = 20;
+float RandomProjectedNeighborsAndDensities::sizeTolerance = static_cast<float>(2.0f/3.0f);
 
 // Constructor
 RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities(std::vector< std::pair< chromosome*,std::vector<float> > >& inPoints, int minSplitSize, FastOPTICS* top)
 {
 	this->top = top;
 	this->minSplitSize = minSplitSize;
-	RandomProjectedNeighborsAndDensities::sizeTolerance = static_cast<float>(2.0f/3.0f);
 
 	if( inPoints.size() < 1 )
 	{
@@ -716,11 +715,11 @@ RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities(std::
 		this->N = static_cast<int>(this->points.size());
 		this->nDimensions = this->top->nDimensions;
 		
-		// this->nPointsSetSplits = static_cast<int>(RandomProjectedNeighborsAndDensities::logOProjectionConstant * log(this->N * (this->top->FA->npar+2) + 1)/log(2));
-		// this->nProject1D = static_cast<int>(RandomProjectedNeighborsAndDensities::logOProjectionConstant * log(this->N * (this->top->FA->npar+2) + 1)/log(2));
+		// this->nPointsSetSplits = static_cast<int>(RandomProjectedNeighborsAndDensities::logOProjectionConstant * log(static_cast<float>(this->N * (this->top->FA->npar+2) + 1))/log(2.f));
+		// this->nProject1D = static_cast<int>(RandomProjectedNeighborsAndDensities::logOProjectionConstant * log(static_cast<float>(this->N * (this->top->FA->npar+2) + 1))/log(2.f));
 		
-		this->nPointsSetSplits = static_cast<int>(RandomProjectedNeighborsAndDensities::logOProjectionConstant * log(this->N * (this->nDimensions) + 1)/log(2));
-		this->nProject1D = static_cast<int>(RandomProjectedNeighborsAndDensities::logOProjectionConstant * log(this->N * (this->nDimensions) + 1)/log(2));
+		this->nPointsSetSplits = static_cast<int>(RandomProjectedNeighborsAndDensities::logOProjectionConstant * log(static_cast<float>(this->N * (this->nDimensions) + 1))/log(2.f));
+		this->nProject1D = static_cast<int>(RandomProjectedNeighborsAndDensities::logOProjectionConstant * log(static_cast<float>(this->N * (this->nDimensions) + 1))/log(2.f));
 	}
 
 	this->projectedPoints.reserve(this->nProject1D);

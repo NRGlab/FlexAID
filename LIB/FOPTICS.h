@@ -157,7 +157,7 @@ class RandomProjectedNeighborsAndDensities
 		int N;
 		int nDimensions;
 		int minSplitSize;
-		static const int logOProjectionConstant = 20;
+		static const int logOProjectionConstant;
 		static float sizeTolerance;
 		std::vector< std::pair<chromosome*,std::vector<float> > > points;
 
