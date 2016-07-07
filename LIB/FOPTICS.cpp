@@ -889,7 +889,7 @@ void RandomProjectedNeighborsAndDensities::getInverseDensities(std::vector< floa
 		
 //		int len = it1->size();
         int len = static_cast<int>(pinSet.size());
-		int indoff = static_cast<int>(round(len/2));
+		int indoff = static_cast<int>(round_it(len/2));
 		int oldind = pinSet[indoff];
 		for(int i = 0; i < len; ++i)
 		{
@@ -926,7 +926,7 @@ void RandomProjectedNeighborsAndDensities::getNeighbors(std::vector< std::vector
 		std::vector<int>::iterator pinSet = it1->begin();
 		int len = static_cast<int>(it1->size());
 		int ind = pinSet[0];
-		int indoff = static_cast<int>(round(len/2));
+		int indoff = static_cast<int>(round_it(len/2));
 		int oldind = pinSet[indoff];
 
 		// add all points as neighbors to middle point

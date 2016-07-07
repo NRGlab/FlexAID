@@ -35,6 +35,7 @@
 #define QS_ASC(a,b) ((a)-(b))
 #define QS_DSC(a,b) ((b)-(a))
 #define K(i,j,n) (n*(n-1)/2) - (n-i)*((n-i)-1)/2 + j - i - 1
+#define round_it(a) ( a < 0.0 ? a - 0.5 : a + 0.5)
 //#define K(i,j,n) ( (i < j) ? (i*n+j) : (j*n+i) )
 
 using namespace std;
