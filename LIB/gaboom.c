@@ -1655,8 +1655,15 @@ void bin_print(int dec, int len){
 /*234567890123456789012345678901234567890123456789012345678901234567890*/
 /*        1         2         3         4         5         6         7*/
 /***********************************************************************/
-void swap_chrom(chromosome *x, chromosome *y){
-	chromosome t=*x;*x=*y;*y=t;
+void swap_chrom(chromosome *x, chromosome *y)
+{
+	chromosome t;
+	if( x && y && x != y )
+	{
+		t = *x;
+		*x = *y;
+		*y = t;
+	}
 }
 
 void QuickSort(chromosome* list, int beg, int end, bool energy)

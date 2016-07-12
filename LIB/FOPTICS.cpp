@@ -146,18 +146,19 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
 	std::vector< int > ptInd;
 	std::vector<int> mixedPts;
     ptInd.reserve(this->N);
-    mixedPts.reserve(this->N);
+//    mixedPts.reserve(this->N);
     for(int k = 0; k < this->N; ++k)
     {
         ptInd.push_back(k);
-        mixedPts.push_back(k);
+//        mixedPts.push_back(k);
     }
-	std::random_shuffle(mixedPts.begin(),mixedPts.end());
+//	std::random_shuffle(mixedPts.begin(),mixedPts.end());
 	// Build object, compute projections, density estimates and density neighborhoods (in serial order of function calls below)
 	// RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities MultiPartition(this->points, this->minPoints, this); // use minPoints amount of random projections
 	RandomProjectedNeighborsAndDensities MultiPartition = RandomProjectedNeighborsAndDensities(this->points, this->minPoints, this);
 
 	MultiPartition.computeSetBounds(ptInd);
+//    MultiPartition.computeSetBounds(mixedPts);
 	MultiPartition.getInverseDensities(this->inverseDensities);
 	MultiPartition.getNeighbors(this->neighbors);
     

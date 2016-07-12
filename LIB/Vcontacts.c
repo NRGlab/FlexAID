@@ -455,8 +455,10 @@ RESTART:
     
 	// reduce poly vertex list
 	vj=0;
-	for(vi=0; vi<vn; ++vi) {
-		if(VC->poly[vi].dist <= rado) {
+	for(vi=0; vi<vn; ++vi) 
+	{
+		if(VC->poly[vi].dist <= rado && &VC->poly[vj] != &VC->poly[vi]) 
+		{
 			VC->poly[vj] = VC->poly[vi];
 			++vj;
 		}
@@ -474,9 +476,12 @@ RESTART:
 		}
 	}
     
-	if(recalc == 'N') {
+	if(recalc == 'N') 
+	{
 		save_seeds(VC->seed,cont, VC->poly, vn, atomzero);
-	} else {
+	}
+	else
+	{
 		// reset atom coordinates to original values
 		VC->Calc[atomzero].atom->coor[0] = origcoor[0];
 		VC->Calc[atomzero].atom->coor[1] = origcoor[1];
