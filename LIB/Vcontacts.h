@@ -62,8 +62,6 @@
   #endif
 */
 
-using namespace std;
-
 // ------------------------- structure definitions ----------------------
 struct AtomCalcSAS_struct {
 	struct atom_struct* atom;
@@ -170,7 +168,7 @@ typedef struct VC_Global_struct VC_Global;
 int     Vcontacts(FA_Global*,atom*,resid*,VC_Global*,double*,bool);
 
 cfstr   ic2cf(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*); // non-const parameters
-double  vcfunction(FA_Global*,VC_Global*,atom*,resid*,vector< pair<int,int> > &,bool*);
+double  vcfunction(FA_Global*,VC_Global*,atom*,resid*,std::vector< std::pair<int,int> > &,bool*);
 float   xs2cf(FA_Global*,VC_Global*,atom*,resid*,int,int*);
 float   pb2cf(FA_Global*,VC_Global*,atom*,resid*,rot*,int,int*, int);
 
@@ -186,14 +184,14 @@ int     solve_3x3(const double *, const double *, const double *, double *);
 int     solve_2xS(const plane*, const plane*, float, double *, double *);
 int     calc_region(FA_Global*,VC_Global*,atom*,int,bool);
 void    calc_areas(vertex *,const vertex *, float, int, int, plane *,const ptindex *, const atomsas*);
-atomindex* index_protein(FA_Global*,atom*,resid*,atomsas*,int*,int*,int,atomindex*,map<string, atomindex*> &);
+atomindex* index_protein(FA_Global*,atom*,resid*,atomsas*,int*,int*,int,atomindex*,std::map<std::string, atomindex*> &);
 void    save_areas(const plane *,const contactlist *, int, int,atomsas*, int* ,int*,ca_struct** , int* );
 void    min_areas(ca_struct*, const atomsas*, const atomsas*, char*);
 void    print_areas(atomsas*, int, ca_struct*);
 int     get_contlist4(atom*,int, contactlist *, int, float, int, atomsas*, const int*, const atomindex*, const ca_struct*, const int*, double*, double,resid*,int*);
 void    save_seeds(int*,const plane *, const vertex *, int, int);
 void    get_firstvert(const int*,const plane *, int *, int *, int *, int, int);
-string  generate_dim_sig(float* global_min, int dim);
+std::string  generate_dim_sig(float* global_min, int dim);
 // ========================================================================
 
 /*

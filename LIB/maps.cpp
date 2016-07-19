@@ -1,10 +1,8 @@
 #include "maps.hpp"
 
-using namespace std;
-
-string get_key(const float* coor){
+std::string get_key(const float* coor){
 	
-	stringstream ss;
+	std::stringstream ss;
 	char char_coor[9];
 	
 	for(int i=0; i<3; i++){
@@ -20,7 +18,7 @@ string get_key(const float* coor){
 	
 }
 
-void parse_key(string key, float* coor){
+void parse_key(std::string key, float* coor){
 	
 	char char_coor[9];
 	

@@ -2,8 +2,6 @@
 #include "maps.hpp"
 #include "boinc.h"
 
-using namespace std;
-
 /*****************************************************************/
 /******* THIS FUNCTION IS USED TO SPLIT IN HALF THE   ************/
 /******* SPACING BETWEEN 2 INTERSECTIONS OF THE GRID  ************/
@@ -13,9 +11,9 @@ using namespace std;
 
 void slice_grid(FA_Global* FA,genlim* gene_lim,atom* atoms,resid* residue,gridpoint** cleftgrid) {
 
-	map<string,int> cleftgrid_map;
-	map<string,int>::iterator it,it2;
-	map<string,int>::iterator begin,end;
+    std::map<std::string,int> cleftgrid_map;
+    std::map<std::string,int>::iterator it,it2;
+    std::map<std::string,int>::iterator begin,end;
 	
 	float sqrspa = pow(FA->spacer_length, 2.0f);
 	float sqrhyp = pow(FA->spacer_length / sin(45.0f), 2.0f);
@@ -23,8 +21,8 @@ void slice_grid(FA_Global* FA,genlim* gene_lim,atom* atoms,resid* residue,gridpo
 	//printf("slicing grid...\n");
 	
 	for(int i=1; i<FA->num_grd; i++){
-		string key = get_key((*cleftgrid)[i].coor);
-		cleftgrid_map.insert(pair<string,int>(key, i));
+		std::string key = get_key((*cleftgrid)[i].coor);
+        cleftgrid_map.insert(std::pair<std::string,int>(key, i));
 	}
 	
 	begin = cleftgrid_map.begin();
@@ -46,7 +44,7 @@ void slice_grid(FA_Global* FA,genlim* gene_lim,atom* atoms,resid* residue,gridpo
 				
 				//string key1 = get_key((*cleftgrid)[it->second].coor);
 				//string key2 = get_key((*cleftgrid)[it2->second].coor);
-				string key = get_key(coor);
+				std::string key = get_key(coor);
 
 				/*
 				printf("key1: %s\nkey2: %s\nkey: %s\n",
@@ -70,7 +68,7 @@ void slice_grid(FA_Global* FA,genlim* gene_lim,atom* atoms,resid* residue,gridpo
 					(*cleftgrid)[FA->num_grd].coor[1] = coor[1];
 					(*cleftgrid)[FA->num_grd].coor[2] = coor[2];
 
-					cleftgrid_map.insert(pair<string,int>(key, FA->num_grd));
+                    cleftgrid_map.insert(std::pair<std::string,int>(key, FA->num_grd));
 
 					FA->num_grd++;
 				}

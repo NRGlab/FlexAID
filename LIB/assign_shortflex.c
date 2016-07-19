@@ -3,8 +3,6 @@
 #include "flexaid.h"
 #include "boinc.h"
 
-using namespace std;
-
 /****************************************/
 /* assign_flexclash: assigns the flexible
    bonds that are within the shortest path
@@ -42,8 +40,8 @@ void assign_shortflex(resid* residue, int tot, int fdih, atom* atoms)
 	
 	for(int i=0; i<tot; i++){
 		for(int j=0; j<tot; j++){
-			vector<string> iatmnum;
-			vector<string>::iterator it,it2;
+            std::vector<std::string> iatmnum;
+            std::vector<std::string>::iterator it,it2;
 			boost::split(iatmnum, residue->shortpath[i][j], boost::is_any_of(" "));
 			
 			//cout << residue->shortpath[i][j] << endl;

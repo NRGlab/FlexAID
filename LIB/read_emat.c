@@ -4,8 +4,6 @@
 #include "flexaid.h"
 #include "boinc.h"
 
-using namespace std;
-
 void read_emat(FA_Global* FA, char* emat_file)
 {
 	
@@ -18,13 +16,13 @@ void read_emat(FA_Global* FA, char* emat_file)
 		Terminate(8);
 	}
 	
-	vector<string> lines;
-	string pairwiseline = "";
+    std::vector<std::string> lines;
+    std::string pairwiseline = "";
 	
 	// builds a string from a buffered line
 	while(fgets(buffer,sizeof(buffer),infile_ptr) != NULL){
-		pairwiseline += string(buffer);
-		if(pairwiseline.find("\n") != string::npos){
+        pairwiseline += std::string(buffer);
+        if(pairwiseline.find("\n") != std::string::npos){
 			lines.push_back(pairwiseline);
 			pairwiseline = "";
 		}
@@ -50,15 +48,15 @@ void read_emat(FA_Global* FA, char* emat_file)
 	
 	for(int i=0;i<FA->ntypes;i++){
 		for(int j=i;j<FA->ntypes;j++){
-			string ori_line, line = *lines.begin();
+			std::string ori_line, line = *lines.begin();
 			ori_line = line;
 			lines.erase(lines.begin());
 			
-			if(line.find("=") != string::npos){
+			if(line.find("=") != std::string::npos){
 				line = line.substr(line.find("=")+1);
 			}
 			
-			vector<string> values;
+			std::vector<std::string> values;
 			boost::trim_if( line, boost::is_any_of(" \t\n") );
 			boost::split( values, line, boost::is_any_of(" \t\n"), boost::token_compress_on );
 			
@@ -92,9 +90,9 @@ void read_emat(FA_Global* FA, char* emat_file)
 				
 				struct energy_values* xyval_prev = NULL;
 				
-				for(vector<string>::iterator it=values.begin(); it!=values.end(); it+=2){
-					vector<string>::iterator xit = it;
-					vector<string>::iterator yit = it+1;
+				for(std::vector<std::string>::iterator it=values.begin(); it!=values.end(); it+=2){
+					std::vector<std::string>::iterator xit = it;
+					std::vector<std::string>::iterator yit = it+1;
 					
 					struct energy_values* xyval = (struct energy_values*)malloc(sizeof(struct energy_values));
 					if(!xyval){

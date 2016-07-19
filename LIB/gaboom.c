@@ -11,8 +11,6 @@
 # include <unistd.h>
 #endif
 
-using namespace std;
-
 /***********************************************************************/
 /*        1         2         3         4         5         6          */
 /*234567890123456789012345678901234567890123456789012345678901234567890*/
@@ -236,7 +234,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	//	   i,(*gene_lim)[i].min,(*gene_lim)[i].max,(*gene_lim)[i].del);
 	//PAUSE;
   
-	map<string, int> duplicates;
+    std::map< std::string, int> duplicates;
 	
 	populate_chromosomes(FA,GB,VC,(*chrom),(*gene_lim),atoms,residue,(*cleftgrid),
 			     GB->pop_init_method,target,GB->pop_init_file,at,0,print,dice,duplicates);
@@ -552,7 +550,7 @@ int reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom, cons
                atom* atoms,resid* residue,gridpoint* cleftgrid,char* repmodel, 
                double mutprob, double crossprob, int print,
 	       boost::variate_generator< RNGType, boost::uniform_int<> > & dice,
-	       map<string, int> & duplicates,
+              std::map< std::string, int> & duplicates,
                cfstr (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*)){
 	
 	static int nrejected = 0;
@@ -634,8 +632,8 @@ int reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom, cons
 			chrop2_gen[j].to_ic = genetoic(&gene_lim[j],chrop2_gen[j].to_int32);
 		}
 		
-		string sig1 = generate_sig(chrop1_gen,GB->num_genes);
-		string sig2 = generate_sig(chrop2_gen,GB->num_genes);
+		std::string sig1 = generate_sig(chrop1_gen,GB->num_genes);
+		std::string sig2 = generate_sig(chrop2_gen,GB->num_genes);
 		
 		/************************************/
 		/******   CHECK DUPLICATION  ********/
@@ -701,8 +699,8 @@ int reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom, cons
 	return nrejected;
 }
 
-string generate_sig(gene genes[], int num_genes){
-	stringstream ss;
+std::string generate_sig(gene genes[], int num_genes){
+	std::stringstream ss;
 	for(int i=0;i<num_genes;i++)
 		ss << (int)(genes[i].to_ic+0.5) << "/";
 	return ss.str();
@@ -1075,7 +1073,7 @@ void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* 
                           cfstr (*target)(FA_Global*,VC_Global*,atom*,resid*,gridpoint*,int,double*), 
                           char file[], long int at, int popoffset, int print,
                           boost::variate_generator< RNGType, boost::uniform_int<> > & dice,
-	                  map<string, int> & duplicates){
+                          std::map< std::string, int> & duplicates){
 	
 	int i,j;
 	/*
@@ -1103,7 +1101,7 @@ void populate_chromosomes(FA_Global* FA,GB_Global* GB,VC_Global* VC,chromosome* 
 		//printf("num_chrom=%d num_genes=%d\n",GB->num_chrom,GB->num_genes);
 		
 		int gener=0;
-		string sig;
+		std::string sig;
 		
 		i=popoffset;
 		while(i<GB->num_chrom){
@@ -1249,7 +1247,7 @@ int cmp_chrom2pop(const chromosome* chrom,const gene* genes, int num_genes,int s
 		for(j=0;j<num_genes;j++){
 			//printf("individuals[%d][%d].gene[%d]=%.3f\t%.3f\n", start-1, i, j,
 			//       genes[j].to_ic, chrom[i].genes[j].to_ic);
-			flag += abs(genes[j].to_ic - chrom[i].genes[j].to_ic) < 0.1;
+			flag += std::abs(genes[j].to_ic - chrom[i].genes[j].to_ic) < 0.1;
 		}
 		
 		//printf("flag=%d\n",flag);
@@ -1730,7 +1728,7 @@ int remove_dups(chromosome* chrom, int num_chrom, int num_genes){
 	{
 		int flag = 0;
 		for(int l=0;l<num_genes;l++){
-			flag += abs(chrom[j].genes[l].to_ic - chrom[i].genes[l].to_ic) < 0.1;
+			flag += std::abs(chrom[j].genes[l].to_ic - chrom[i].genes[l].to_ic) < 0.1;
 		}
 		if(flag != num_genes)
 		{

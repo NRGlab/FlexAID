@@ -59,11 +59,11 @@ struct ClusterOrderingComparator
 };
 
 // priority_queue container alllowing iterations throught the priority_queue
-template <class T, class S, class C>S& Container(priority_queue<T, S, C>& q)
+template <class T, class S, class C>S& Container(std::priority_queue<T, S, C>& q)
 {
-    struct IterableQueue : private priority_queue<T, S, C>
+    struct IterableQueue : private std::priority_queue<T, S, C>
     {
-        static S& Container(priority_queue<T, S, C>& q)
+        static S& Container(std::priority_queue<T, S, C>& q)
         {
             return q.*&IterableQueue::c;
         }
