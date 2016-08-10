@@ -146,7 +146,11 @@ bool BindingMode::isPoseAggregable(const Pose& pose) const
 	
 	for(std::vector<Pose>::const_iterator it = this->Poses.begin(); it != this->Poses.end(); ++it)
 	{
-		if( this->compute_distance((*it),pose) > ((1+sizeTolerance) * this->Population->FA->cluster_rmsd) ) accept = false;
+		if( this->compute_distance((*it),pose) > ((1+sizeTolerance) * this->Population->FA->cluster_rmsd) )
+		{
+			accept = false;
+			break;
+		}
 	}
 	
 	return accept;
@@ -162,8 +166,13 @@ bool BindingMode::isHomogenic() const
 		for(std::vector<Pose>::const_iterator it2 = this->Poses.begin(); it2 != this->Poses.end(); ++it2)
 		{
 			if ((*it1) == (*it2)) continue;
-			else if( this->compute_distance((*it1),(*it2)) > ((1+sizeTolerance) * this->Population->FA->cluster_rmsd) ) accept = false;
+			else if( this->compute_distance((*it1),(*it2)) > ((1+sizeTolerance) * this->Population->FA->cluster_rmsd) )
+			{	
+				accept = false;
+				break;
+			}
 		}
+		if(!accept) break;
 	}
 
 	return accept;
@@ -173,7 +182,7 @@ float BindingMode::compute_distance(const Pose& pose1, const Pose& pose2) const
 {
 	float distance = 0.0f;
 	// perform distance^2 calculation
-	for(int i = 0; i < pose1.vPose.size(); ++i)
+	for(int i = 0; i < pose1.vPose.size() && i < pose2.vPose.size(); ++i)
 	{
 		float temp = pose1.vPose[i] - pose2.vPose[i];
 		distance += temp * temp;

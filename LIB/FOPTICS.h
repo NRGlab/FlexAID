@@ -58,7 +58,7 @@ struct ClusterOrderingComparator
 	}
 };
 
-// priority_queue container alllowing iterations throught the priority_queue
+// priority_queue container alllowing iterations throughtout the priority_queue
 template <class T, class S, class C>S& Container(std::priority_queue<T, S, C>& q)
 {
     struct IterableQueue : private std::priority_queue<T, S, C>
@@ -76,7 +76,7 @@ template <class T, class S, class C>S& Container(std::priority_queue<T, S, C>& q
 \*****************************************/
 class FastOPTICS
 {
-	// multiple random projections partitioning algorithm
+	// multiple random projections partitioning algorithm-related class
 	friend class RandomProjectedNeighborsAndDensities;
 	// entropy-related classes to integrate with FlexAID
 	friend class BindingMode;
@@ -118,7 +118,7 @@ class FastOPTICS
 		std::vector< std::vector< int > > neighbors;
         
         std::vector< Pose > OPTICS;
-        // std::priority_queue< Pose, std::vector<Pose>, PoseClassifier::PoseClassifier > OPTICS;
+        
 		// BindingPopulation is used for clustering purposed
 		BindingPopulation* Population;
 		

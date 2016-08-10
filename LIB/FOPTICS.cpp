@@ -227,7 +227,7 @@ void FastOPTICS::Classify_Population()
 
 	for(std::vector< Pose >::iterator it = this->OPTICS.begin(); it != this->OPTICS.end(); ++it)
 	{
-		// the following line assign real RMSD between current Pose and previous one into distance; assigns UNDEFINED_DIST if first Pose
+		// the following line assign real RMSD between current Pose and previous one into distance; assigns UNDEFINED_DIST if first Pose (checked via !it->order)
         ( !it->order ) ? distance = UNDEFINED_DIST : distance = this->compute_vect_distance(it->vPose, (it-1)->vPose);
 
 		// an undefined distance means we need to create a new BindingMode
@@ -253,7 +253,7 @@ void FastOPTICS::Classify_Population()
 
 	}
     // push the Current BindingMode if it was still being populated during the iteration above
-	if( Current.get_BindingMode_size() ) this->Population->add_BindingMode(Current);
+	if( Current.get_BindingMode_size() > 0 ) this->Population->add_BindingMode(Current);
 
 	// OUTLIERS processing (re-classify them)
 	for(std::vector< Pose >::iterator it = Outliers.Poses.begin(); it != Outliers.Poses.end(); ++it )
