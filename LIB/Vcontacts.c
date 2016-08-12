@@ -457,7 +457,7 @@ RESTART:
 	vj=0;
 	for(vi=0; vi<vn; ++vi) 
 	{
-		if(VC->poly[vi].dist <= rado && &VC->poly[vj] != &VC->poly[vi]) 
+		if(VC->poly[vi].dist <= rado /*&& &VC->poly[vj] != &VC->poly[vi]*/) 
 		{
 			VC->poly[vj] = VC->poly[vi];
 			++vj;
