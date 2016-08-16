@@ -237,6 +237,7 @@ void FastOPTICS::Classify_Population()
         	{
         		this->Population->add_BindingMode(Current);
         		Current.clear_Poses();
+        		Current = BindingMode(this->Population);
         	}
     		if( Current.isPoseAggregable(*it) ) Current.add_Pose(*it);
         }

@@ -63,7 +63,7 @@ void BindingPopulation::remove_BindingMode(std::vector<BindingMode>::iterator mo
 
 void BindingPopulation::Classify_BindingModes()
 {
-	float sizeTolerance = (2-static_cast<float>(2.0f/3.0f)) * this->FA->cluster_rmsd;
+	float sizeTolerance = (1+static_cast<float>(2.0f/3.0f)) * this->FA->cluster_rmsd;
 	for(std::vector<BindingMode>::iterator it1 = this->BindingModes.begin(); it1 != this->BindingModes.end(); ++it1)
 	{
 		for(std::vector<BindingMode>::iterator it2 = this->BindingModes.begin(); it2 != this->BindingModes.end(); ++it2)
@@ -72,6 +72,7 @@ void BindingPopulation::Classify_BindingModes()
 
 			else if(this->compute_distance((*it1->elect_Representative(false)), (*it2->elect_Representative(false))) <= sizeTolerance) 
 			{
+				// need to check the merging process because the merging process could invalidate iterators
 				this->merge_BindingModes(it1, it2);
 			}
 		}
@@ -166,7 +167,7 @@ bool BindingMode::isHomogenic() const
 		for(std::vector<Pose>::const_iterator it2 = this->Poses.begin(); it2 != this->Poses.end(); ++it2)
 		{
 			if ((*it1) == (*it2)) continue;
-			else if( this->compute_distance((*it1),(*it2)) > ((1+sizeTolerance) * this->Population->FA->cluster_rmsd) )
+			else if( this->compute_distance((*it1),(*it2)) > ((3-sizeTolerance) * this->Population->FA->cluster_rmsd) )
 			{	
 				accept = false;
 				break;

@@ -104,10 +104,11 @@ class FastOPTICS
 
 	private:
 		// FlexAID specific attributes
-		int 	N;			// N : number of chromosomes to cluster
-		int 	minPoints;	// minPts : minimal number of neighbors (only parameter in FOPTICS)
-		int 	nDimensions;
-		float 	dist_threshold;
+		int 	N;				// N : number of chromosomes to cluster
+		int 	minPoints;		// minPts : minimal number of neighbors (only parameter in FOPTICS)
+		int 	nDimensions;	// number of dimensions of the vectorized Pose
+		float 	dist_threshold; // contains the value of this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsAndDensities::sizeTolerance)
+		
 		// FOPTICS algorithm attributes
 		int iOrder;
 		std::vector< int > order;

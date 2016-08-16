@@ -14,8 +14,6 @@ class BindingPopulation; // forward-declaration in order to access BindingPopula
 \*****************************************/
 struct Pose
 {
-	// friend class BindingPopulation;
-	
 	// public constructor :
 	Pose(chromosome* chrom, int chrom_index, int order, float dist, uint temperature, std::vector<float>);
 	~Pose();
