@@ -7,7 +7,7 @@ struct RNG
 {
     int operator() (int n)
     {
-        return std::rand() / (1.0 + RAND_MAX) * n;
+        return static_cast<int>(std::rand() / (1.0 + RAND_MAX) * n);
     }
 };
 
@@ -88,7 +88,6 @@ inline bool const ClusterOrdering::operator> (const ClusterOrdering& rhs)
 				FastOPTICS
 \*****************************************/
 // Constructor and Algorithm main+only call
-// int FastOPTICS::iOrder;
 FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, BindingPopulation& Population, int nPoints)
 {	
 // Declarations

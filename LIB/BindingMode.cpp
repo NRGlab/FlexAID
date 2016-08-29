@@ -37,14 +37,22 @@ bool BindingPopulation::merge_BindingModes(std::vector< BindingMode >::iterator 
     {
     	Current.add_Pose(*itp);
     }
+    // check if the BindingMode is homogenic enough to be added and to consider 
+    // the merger of *mode2 into *mode1 as successful
     if(Current.isHomogenic())
     {
-    	for(std::vector<Pose>::iterator itp = mode2->Poses.begin(); itp != mode2->Poses.end(); ++itp) mode1->add_Pose(*itp);
-    	this->remove_BindingMode(mode2);
+    	for(std::vector<Pose>::iterator itp = mode2->Poses.begin(); itp != mode2->Poses.end(); ++itp)
+    	{
+    		mode1->add_Pose(*itp);
+    	}
+    	// invalidate BindingMode pointed by mode2 (all its poses are added into *mode1)
+    	mode2->isValid = false;
+    	// return that the merge was successful (as of now, the return value is unused tho)
     	return true;
     }
     else
     {
+    	//
     	return false;
     }
 }
@@ -52,31 +60,43 @@ bool BindingPopulation::merge_BindingModes(std::vector< BindingMode >::iterator 
 void BindingPopulation::remove_BindingMode(std::vector<BindingMode>::iterator mode)
 {
 	this->BindingModes.erase(mode);
-	// for(std::vector< BindingMode >::iterator itp = this->BindingModes.begin(); itp != this->BindingModes.end(); ++itp)
-	// {
-	// 	if( (*mode) == (*itp) )
-	// 	{
-	// 		this->BindingModes.erase(itp);
-	// 	}
-	// }
+}
+
+void BindingPopulation::remove_invalid_BindingModes()
+{
+	for(std::vector< BindingMode >::iterator it = this->BindingModes.begin(); it != this->BindingModes.end(); ++it)
+	{
+		// the call to remove_BindingMode() might seem superfluous as of now,
+		// but could later be useful to call as a standalone function so I left it.
+		if(!it->isValid) this->remove_BindingMode(it);
+	}
 }
 
 void BindingPopulation::Classify_BindingModes()
 {
-	float sizeTolerance = (1+static_cast<float>(2.0f/3.0f)) * this->FA->cluster_rmsd;
+	float sizeTolerance = (3-static_cast<float>(2.0f/3.0f)) * this->FA->cluster_rmsd;
 	for(std::vector<BindingMode>::iterator it1 = this->BindingModes.begin(); it1 != this->BindingModes.end(); ++it1)
 	{
 		for(std::vector<BindingMode>::iterator it2 = this->BindingModes.begin(); it2 != this->BindingModes.end(); ++it2)
 		{
+			// do not proceed further if (*it1) and (*it2) are the same BindingMode
 			if((*it1) == (*it2)) continue;
+
+			// do not proceed further if any of the two BindingModes isn't valid
+			else if(!it1->isValid || !it2->isValid) continue;
 
 			else if(this->compute_distance((*it1->elect_Representative(false)), (*it2->elect_Representative(false))) <= sizeTolerance) 
 			{
 				// need to check the merging process because the merging process could invalidate iterators
 				this->merge_BindingModes(it1, it2);
 			}
+
+
 		}
 	}
+	// upon merging the BindingModes A and B, all the poses found in B are added to A
+	// thus invaliding the BindingMode B (all of its poses are now part of A and B should not be considered)
+	this->remove_invalid_BindingModes();
 }
 
 void BindingPopulation::Entropize()
@@ -128,7 +148,7 @@ void BindingPopulation::output_Population(int nResults, char* end_strfile, char*
 \*****************************************/
 
 // public constructor *non-overloadable*
-BindingMode::BindingMode(BindingPopulation* pop) : Population(pop), energy(0.0) {}
+BindingMode::BindingMode(BindingPopulation* pop) : Population(pop), isValid(true), energy(0.0) {}
 
 
 // public method for pose addition

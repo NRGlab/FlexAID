@@ -80,6 +80,7 @@ class BindingMode // aggregation of poses (Cluster)
 		std::vector<Pose> Poses;
 		BindingPopulation* Population; // used to access the BindingPopulation
 
+		bool 	isValid;
 		void	set_energy();
 
 	private:
@@ -137,7 +138,8 @@ class BindingPopulation
 		bool 	merge_BindingModes(std::vector< BindingMode >::iterator mode1, std::vector< BindingMode >::iterator mode2);
 			// removes a BindingMode from the Ppopulation (THIS WILL NOT AFFACT THE POPULATION PARTITION FUNCTION)
 		void 	remove_BindingMode(std::vector<BindingMode>::iterator mode);
-		
+			// removes all BindingModes where isValid == false (calls remove_BidningMode)
+		void 	remove_invalid_BindingModes();
 		struct EnergyComparator
 		{
 			inline bool operator() ( const BindingMode& BindingMode1, const BindingMode& BindingMode2 )
