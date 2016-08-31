@@ -143,7 +143,7 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
 {
 	// vector of point indexes 
 	std::vector< int > ptInd;
-	std::vector<int> mixedPts;
+	// std::vector<int> mixedPts;
     ptInd.reserve(this->N);
 //    mixedPts.reserve(this->N);
     for(int k = 0; k < this->N; ++k)
@@ -201,8 +201,7 @@ bool FastOPTICS::Classify_Pose(Pose& pose)
 	// in order to classify the Pose
 	for(std::vector< BindingMode >::iterator mode = this->Population->BindingModes.begin(); mode != this->Population->BindingModes.end(); ++mode)
 	{
-        if(	this->compute_vect_distance(pose.vPose, ( mode->elect_Representative(false))->vPose ) < this->dist_threshold ||
-        	this->compute_vect_distance(pose.vPose, ( mode->elect_Representative(true ))->vPose ) < this->dist_threshold )
+        if(	this->compute_vect_distance(pose.vPose, ( mode->elect_Representative(true))->vPose ) < this->dist_threshold )
         {
         	mode->add_Pose(pose); // add pose to the BindingMode mode
         	isClassified = true; // pose isClassified == true

@@ -36,14 +36,14 @@ void FastOPTICS_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome*
     // Algo4.Execute_FastOPTICS(end_strfile, tmp_end_strfile);
     // Algo5.Execute_FastOPTICS(end_strfile, tmp_end_strfile);
 
-    Algo1.output_OPTICS(end_strfile, tmp_end_strfile);
+    // Algo1.output_OPTICS(end_strfile, tmp_end_strfile);
     // Algo2.output_OPTICS(end_strfile, tmp_end_strfile);
     // Algo3.output_OPTICS(end_strfile, tmp_end_strfile);
     // Algo4.output_OPTICS(end_strfile, tmp_end_strfile);
     // Algo5.output_OPTICS(end_strfile, tmp_end_strfile);
 
     // output the 3D poses ordered with Fast OPTICS (done only once for the purpose as the order should not change)
-    Algo1.output_3d_OPTICS_ordering(end_strfile, tmp_end_strfile);
+    // Algo1.output_3d_OPTICS_ordering(end_strfile, tmp_end_strfile);
     // Algo2.output_3d_OPTICS_ordering(end_strfile, tmp_end_strfile);
     // Algo3.output_3d_OPTICS_ordering(end_strfile, tmp_end_strfile);
     // Algo4.output_3d_OPTICS_ordering(end_strfile, tmp_end_strfile);

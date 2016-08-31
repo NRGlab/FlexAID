@@ -64,28 +64,32 @@ void BindingPopulation::remove_BindingMode(std::vector<BindingMode>::iterator mo
 
 void BindingPopulation::remove_invalid_BindingModes()
 {
-	for(std::vector< BindingMode >::iterator it = this->BindingModes.begin(); it != this->BindingModes.end(); ++it)
+	// for(std::vector< BindingMode >::iterator it = this->BindingModes.begin(); it != this->BindingModes.end(); ++it)
+	for(int i = 0; i < this->get_Population_size(); ++i)
 	{
 		// the call to remove_BindingMode() might seem superfluous as of now,
 		// but could later be useful to call as a standalone function so I left it.
-		if(!it->isValid) this->remove_BindingMode(it);
+		// if(!it->isValid) this->remove_BindingMode(it);
+		if(!this->BindingModes[i].isValid) this->BindingModes.erase(this->BindingModes.begin() + i);
 	}
 }
 
 void BindingPopulation::Classify_BindingModes()
 {
+	int i = 0, j = 0;
 	float sizeTolerance = (3-static_cast<float>(2.0f/3.0f)) * this->FA->cluster_rmsd;
-	for(std::vector<BindingMode>::iterator it1 = this->BindingModes.begin(); it1 != this->BindingModes.end(); ++it1)
+	for(std::vector<BindingMode>::iterator it1 = this->BindingModes.begin(); it1 != this->BindingModes.end() && i < this->get_Population_size(); ++it1, ++i)
 	{
-		for(std::vector<BindingMode>::iterator it2 = this->BindingModes.begin(); it2 != this->BindingModes.end(); ++it2)
+		for(std::vector<BindingMode>::iterator it2 = this->BindingModes.begin(); it2 != this->BindingModes.end() && j < this->get_Population_size(); ++it2, ++j)
 		{
 			// do not proceed further if (*it1) and (*it2) are the same BindingMode
-			if((*it1) == (*it2)) continue;
+			// if((*it1) == (*it2)) continue;
+			if( i == j ) continue;
 
 			// do not proceed further if any of the two BindingModes isn't valid
 			else if(!it1->isValid || !it2->isValid) continue;
 
-			else if(this->compute_distance((*it1->elect_Representative(false)), (*it2->elect_Representative(false))) <= sizeTolerance) 
+			else if(this->compute_distance((*it1->elect_Representative(true)), (*it2->elect_Representative(true))) <= sizeTolerance )
 			{
 				// need to check the merging process because the merging process could invalidate iterators
 				this->merge_BindingModes(it1, it2);
@@ -270,11 +274,11 @@ void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tm
 	
     // 0. elect a Pose representative (Rep) of the current BindingMode
 	std::vector<Pose>::const_iterator Rep_lowCF = this->elect_Representative(false);
-	std::vector<Pose>::const_iterator Rep_lowOPTICS = this->elect_Representative(true);
+	std::vector<Pose>::const_iterator Rep_meanCF = this->elect_Representative(true);
 	
     // 1. build FA->opt_par[GB->num_genes]
 	 for(int k = 0; k < this->Population->GB->num_genes; ++k) this->Population->FA->opt_par[k] = Rep_lowCF->chrom->genes[k].to_ic;
-	 // for(int k = 0; k < this->Population->GB->num_genes; ++k) this->Population->FA->opt_par[k] = Rep_lowOPTICS->chrom->genes[k].to_ic;
+	 // for(int k = 0; k < this->Population->GB->num_genes; ++k) this->Population->FA->opt_par[k] = Rep_meanCF->chrom->genes[k].to_ic;
 
 	// 2. get CF with ic2cf() 
 	CF = ic2cf(this->Population->FA, this->Population->VC, this->Population->atoms, this->Population->residue, this->Population->cleftgrid, this->Population->GB->num_genes, this->Population->FA->opt_par);
@@ -312,7 +316,7 @@ void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tm
 	}
     
     sprintf(tmpremark,"REMARK Binding Mode:%d Best CF in Binding Mode:%8.5f OPTICS Center (CF):%8.5f Binding Mode Total CF:%8.5f Binding Mode Frequency:%d\n",
-            num_result, Rep_lowCF->CF, Rep_lowOPTICS->CF, this->compute_energy(), this->get_BindingMode_size());
+            num_result, Rep_lowCF->CF, Rep_meanCF->CF, this->compute_energy(), this->get_BindingMode_size());
     strcat(remark,tmpremark);
     for(int j=0; j < this->Population->FA->npar; ++j)
 	{
@@ -438,14 +442,40 @@ void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, 
     }
 }
 
-std::vector<Pose>::const_iterator BindingMode::elect_Representative(bool useOPTICSorder) const
+std::vector<Pose>::const_iterator BindingMode::elect_Representative(bool useMEANcf) const
 {
+	double meanCF = 0.0; // will be used to compute the mean CF
+	double diffCF = 9999.99;// wiil be used to remember the closest difference between the CF of a Pose and the MEAN CF of the BindingMode
+
+	// Rep is the const_iterator returned by this function
 	std::vector<Pose>::const_iterator Rep = this->Poses.begin();
-	for(std::vector<Pose>::const_iterator it = this->Poses.begin(); it != this->Poses.end(); ++it)
+	
+	if(useMEANcf) // use the CF closest to the mean CF as a representative
 	{
-		if(!useOPTICSorder && (Rep->CF - it->CF) > DBL_EPSILON ) Rep = it;
-		if(useOPTICSorder && it->reachDist < Rep->reachDist && !isUndefinedDist(it->reachDist)) Rep = it;
+
+		for(std::vector<Pose>::const_iterator it = this->Poses.begin(); it != this->Poses.end(); ++it) meanCF += it->CF;
+
+		meanCF /= static_cast<double>(this->Poses.size()); // divide the sum of CF by the number of poses
+		for(std::vector<Pose>::const_iterator it = this->Poses.begin(); it != this->Poses.end(); ++it)
+		{
+			// t
+			if( fabs(it->CF - meanCF) < diffCF )
+			{
+				Rep = it;
+				diffCF = fabs(it->CF - meanCF);
+			}
+		}
 	}
+	
+	else // use the BEST CF as representative
+	{
+		for(std::vector<Pose>::const_iterator it = this->Poses.begin(); it != this->Poses.end(); ++it)
+		{
+			if( (Rep->CF - it->CF) > DBL_EPSILON ) Rep = it;
+		}
+	}
+	
+	// return the representative of the BindingMode
 	return Rep;
 }
 

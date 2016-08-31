@@ -71,7 +71,7 @@ class BindingMode // aggregation of poses (Cluster)
 			double								compute_energy() const;
 			double								compute_entropy() const;
 			double								compute_enthalpy() const;
-			std::vector<Pose>::const_iterator 	elect_Representative(bool useOPTICSordering) const;
+			std::vector<Pose>::const_iterator 	elect_Representative(bool useMEANcf) const;
 			inline bool const 					operator< (const BindingMode& rhs);
 			inline bool const 					operator==(const BindingMode& rhs);
 
