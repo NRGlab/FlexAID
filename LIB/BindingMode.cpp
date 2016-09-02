@@ -77,7 +77,7 @@ void BindingPopulation::remove_invalid_BindingModes()
 void BindingPopulation::Classify_BindingModes()
 {
 	int i = 0, j = 0;
-	float sizeTolerance = (3-static_cast<float>(2.0f/3.0f)) * this->FA->cluster_rmsd;
+	float sizeTolerance = (1+static_cast<float>(2.0f/3.0f)) * this->FA->cluster_rmsd;
 	for(std::vector<BindingMode>::iterator it1 = this->BindingModes.begin(); it1 != this->BindingModes.end() && i < this->get_Population_size(); ++it1, ++i)
 	{
 		for(std::vector<BindingMode>::iterator it2 = this->BindingModes.begin(); it2 != this->BindingModes.end() && j < this->get_Population_size(); ++it2, ++j)
@@ -89,7 +89,7 @@ void BindingPopulation::Classify_BindingModes()
 			// do not proceed further if any of the two BindingModes isn't valid
 			else if(!it1->isValid || !it2->isValid) continue;
 
-			else if(this->compute_distance((*it1->elect_Representative(true)), (*it2->elect_Representative(true))) <= sizeTolerance )
+			else if(this->compute_distance((*it1->elect_Representative(false)), (*it2->elect_Representative(false))) <= sizeTolerance )
 			{
 				// need to check the merging process because the merging process could invalidate iterators
 				this->merge_BindingModes(it1, it2);
@@ -191,7 +191,7 @@ bool BindingMode::isHomogenic() const
 		for(std::vector<Pose>::const_iterator it2 = this->Poses.begin(); it2 != this->Poses.end(); ++it2)
 		{
 			if ((*it1) == (*it2)) continue;
-			else if( this->compute_distance((*it1),(*it2)) > ((3-sizeTolerance) * this->Population->FA->cluster_rmsd) )
+			else if( this->compute_distance((*it1),(*it2)) > ((1+sizeTolerance) * this->Population->FA->cluster_rmsd) )
 			{	
 				accept = false;
 				break;
@@ -425,18 +425,22 @@ void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, 
 		// 5. write_pdb(FA,atoms,residue,tmp_end_strfile,remark)
 		if(Pose == this->Poses.begin() && Pose+1 == this->Poses.end())
 		{
+			// case where there is a single pose
 			write_MODEL_pdb(true, true, nModel, this->Population->FA,this->Population->atoms,this->Population->residue,tmp_end_strfile,remark);
 		}
 		else if(Pose == this->Poses.begin())
 		{
+			// case where this is the first of multiple poses
 			write_MODEL_pdb(true, false, nModel, this->Population->FA,this->Population->atoms,this->Population->residue,tmp_end_strfile,remark);
 		}
 		else if(Pose+1 == this->Poses.end())
 		{
+			// case where this is the last of mulpile pose
 			write_MODEL_pdb(false, true, nModel, this->Population->FA,this->Population->atoms,this->Population->residue,tmp_end_strfile,remark);
 		}
 		else
 		{
+			// any pose between the first and the last of multiple poses
 			write_MODEL_pdb(false, false, nModel, this->Population->FA,this->Population->atoms,this->Population->residue,tmp_end_strfile,remark);
 		}
     }
@@ -458,9 +462,10 @@ std::vector<Pose>::const_iterator BindingMode::elect_Representative(bool useMEAN
 		meanCF /= static_cast<double>(this->Poses.size()); // divide the sum of CF by the number of poses
 		for(std::vector<Pose>::const_iterator it = this->Poses.begin(); it != this->Poses.end(); ++it)
 		{
-			// t
+			// if the difference between the CF of the current Pose (it) and meanCF (in absolute value) is lower than the one of Rep
 			if( fabs(it->CF - meanCF) < diffCF )
 			{
+				// then save current pose in Rep, and its CF difference to meanCF in diffCF
 				Rep = it;
 				diffCF = fabs(it->CF - meanCF);
 			}

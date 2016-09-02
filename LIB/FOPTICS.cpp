@@ -201,7 +201,7 @@ bool FastOPTICS::Classify_Pose(Pose& pose)
 	// in order to classify the Pose
 	for(std::vector< BindingMode >::iterator mode = this->Population->BindingModes.begin(); mode != this->Population->BindingModes.end(); ++mode)
 	{
-        if(	this->compute_vect_distance(pose.vPose, ( mode->elect_Representative(true))->vPose ) < this->dist_threshold )
+        if(	this->compute_vect_distance(pose.vPose, ( mode->elect_Representative(false))->vPose ) < this->dist_threshold )
         {
         	mode->add_Pose(pose); // add pose to the BindingMode mode
         	isClassified = true; // pose isClassified == true
