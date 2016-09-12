@@ -71,7 +71,7 @@ class BindingMode // aggregation of poses (Cluster)
 			double								compute_energy() const;
 			double								compute_entropy() const;
 			double								compute_enthalpy() const;
-			std::vector<Pose>::const_iterator 	elect_Representative(bool useMEANcf) const;
+			std::vector<Pose>::const_iterator 	elect_Representative(bool useCentroid) const;
 			inline bool const 					operator< (const BindingMode& rhs);
 			inline bool const 					operator==(const BindingMode& rhs);
 
@@ -87,8 +87,10 @@ class BindingMode // aggregation of poses (Cluster)
 		// private attributes
 		double 	energy;
 		// private methods 
-		void 	output_BindingMode(int num_result, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints);
-		void	output_dynamic_BindingMode(int nBindingMode, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints);
+		std::vector<float>	compute_centroid();	// return the centroid as a N dimensional vector of cartesian coordinates
+		double 				compute_partition_function(); // used in compute_centroid
+		void 				output_BindingMode(int num_result, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints);
+		void				output_dynamic_BindingMode(int nBindingMode, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints);
 };
 // publicly accessible 2 argumentss operator== (lhs, rhs)
 inline bool const operator==(const BindingMode& lhs, const BindingMode& rhs);
@@ -110,6 +112,8 @@ class BindingPopulation
 		void 	Classify_BindingModes();
 			// used to compute the distance between 2 poses (same as BindingMode::compute_distance)
 		float 	compute_distance(const Pose& pose1, const Pose& pose2) const;
+
+		float 	compute_vec_distance(std::vector<float>, std::vector<float>) const;
 			// 	return the number of BindinMonde (size getter)
 		int		get_Population_size();
 			// 	output BindingMode up to nResults results

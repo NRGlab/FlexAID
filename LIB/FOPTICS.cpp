@@ -179,7 +179,7 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
     //   second -> float reachDist
 	for(int i = 0; i < this->N; ++i)
 	{
-		if( (this->points[i]).first != NULL && (this->points[i]).first->app_evalue < 1000)
+		if( (this->points[i]).first != NULL && (this->points[i]).first->app_evalue < 1000 )
 		{
 			// Calling Pose constructor for the current chromosome
 			Pose iPose = Pose((this->points[i]).first, i, this->order[i], this->reachDist[i], this->Population->Temperature, (this->points[i]).second);
@@ -201,7 +201,17 @@ bool FastOPTICS::Classify_Pose(Pose& pose)
 	// in order to classify the Pose
 	for(std::vector< BindingMode >::iterator mode = this->Population->BindingModes.begin(); mode != this->Population->BindingModes.end(); ++mode)
 	{
-        if(	this->compute_vect_distance(pose.vPose, ( mode->elect_Representative(false))->vPose ) < this->dist_threshold )
+        std::vector<float> v1 = mode->compute_centroid();
+        if( !mode->get_BindingMode_size() ) return isClassified;
+
+        // else if( this->compute_vect_distance(pose.vPose, ( mode->elect_Representative(false))->vPose ) < this->dist_threshold )
+        // {
+        // 	mode->add_Pose(pose); // add pose to the BindingMode mode
+        // 	isClassified = true; // pose isClassified == true
+        // 	break; // do not continue distance calculations if pose isClassified 
+        // }
+        
+        else if( this->compute_vect_distance(pose.vPose, mode->compute_centroid()) < this->dist_threshold )
         {
         	mode->add_Pose(pose); // add pose to the BindingMode mode
         	isClassified = true; // pose isClassified == true
@@ -231,7 +241,7 @@ void FastOPTICS::Classify_Population()
 		// an undefined distance means we need to create a new BindingMode
         if( isUndefinedDist(it->reachDist) || isUndefinedDist(distance) || it->reachDist > this->FA->cluster_rmsd*(1 + RandomProjectedNeighborsAndDensities::sizeTolerance) )
         {
-        	if(Current.get_BindingMode_size())
+        	if(Current.get_BindingMode_size() > 0)
         	{
         		this->Population->add_BindingMode(Current);
         		Current.clear_Poses();
@@ -254,7 +264,10 @@ void FastOPTICS::Classify_Population()
     // push the Current BindingMode if it was still being populated during the iteration above
 	if( Current.get_BindingMode_size() > 0 ) this->Population->add_BindingMode(Current);
 
-	// OUTLIERS processing (re-classify them)
+    // Sort BindingModes with most favourables first
+   this->Population->Entropize();
+    
+	// // OUTLIERS processing (re-classify them)
 	for(std::vector< Pose >::iterator it = Outliers.Poses.begin(); it != Outliers.Poses.end(); ++it )
 	{
 		// this->Classify_Pose(Pose&) will try to push the Pose into a BindingMode where
@@ -566,10 +579,14 @@ void FastOPTICS::ExpandClusterOrder(int ipt)
 
 		float coredist = this->inverseDensities[currPt];
 
+		// ** leave the following block of code commented as it does not enhance performances **
+		// update the distance in the priority_queue (forced update)
         // this->update_ClusterOrdering_PriorityQueue_elements(currPt, queue);
-
-		// if( current.reachability > this->reachDist[currPt] && !isUndefinedDist(this->reachDist[currPt]) ) this->reachDist[currPt] = current.reachability;
-
+        
+        // update this->reachDist after a call to this->update_ClusterOrdering_PriorityQueue_elements()
+        // if( current.reachability > this->reachDist[currPt] && !isUndefinedDist(this->reachDist[currPt]) ) this->reachDist[currPt] = current.reachability;
+		// ** end of commented block of code ** 
+		
 		for( std::vector<int>::iterator it = this->neighbors[currPt].begin(); it != this->neighbors[currPt].end(); ++it)
 		{
 			int iNeigh = *it;
@@ -647,7 +664,8 @@ void FastOPTICS::ExpandClusterOrder(int ipt)
 // 	}
 
 // 	// 3. restore heap properties in the priority_queue post-update
-// 	std::make_heap(const_cast<ClusterOrdering*>(&queue.top()), const_cast<ClusterOrdering*>(&queue.top() + queue.size()), ClusterOrderingComparator::ClusterOrderingComparator());
+// 	// LEAVE COMMENTED AS IT IS NO LONGER NECESSARY (09/2016)
+// 	// std::make_heap(const_cast<ClusterOrdering*>(&queue.top()), const_cast<ClusterOrdering*>(&queue.top() + queue.size()), ClusterOrderingComparator::ClusterOrderingComparator());
 // }
 
 float FastOPTICS::compute_distance(std::pair< chromosome*,std::vector<float> > & a, std::pair< chromosome*,std::vector<float> > & b)

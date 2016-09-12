@@ -52,7 +52,7 @@ bool BindingPopulation::merge_BindingModes(std::vector< BindingMode >::iterator 
     }
     else
     {
-    	//
+    	// no modification could be made, return FALSE as the merging status of mode1 and mode2
     	return false;
     }
 }
@@ -70,7 +70,7 @@ void BindingPopulation::remove_invalid_BindingModes()
 		// the call to remove_BindingMode() might seem superfluous as of now,
 		// but could later be useful to call as a standalone function so I left it.
 		// if(!it->isValid) this->remove_BindingMode(it);
-		if(!this->BindingModes[i].isValid) this->BindingModes.erase(this->BindingModes.begin() + i);
+		if( !this->BindingModes[i].isValid ) this->BindingModes.erase( this->BindingModes.begin() + i );
 	}
 }
 
@@ -89,12 +89,15 @@ void BindingPopulation::Classify_BindingModes()
 			// do not proceed further if any of the two BindingModes isn't valid
 			else if(!it1->isValid || !it2->isValid) continue;
 
-			else if(this->compute_distance((*it1->elect_Representative(false)), (*it2->elect_Representative(false))) <= sizeTolerance )
+			// else if(this->compute_distance((*it1->elect_Representative(false)), (*it2->elect_Representative(false))) <= sizeTolerance )
+			// {
+			// 	this->merge_BindingModes(it1, it2);
+			// }
+
+			else if( this->compute_vec_distance(it1->compute_centroid(), it2->compute_centroid()) <= sizeTolerance)
 			{
-				// need to check the merging process because the merging process could invalidate iterators
 				this->merge_BindingModes(it1, it2);
 			}
-
 
 		}
 	}
@@ -120,6 +123,19 @@ float BindingPopulation::compute_distance(const Pose& pose1, const Pose& pose2) 
 	for(int i = 0; i < pose1.vPose.size(); ++i)
 	{
 		float temp = pose1.vPose[i] - pose2.vPose[i];
+		distance += temp * temp;
+	}
+	// return square-root of distance^2
+	return sqrtf(distance);
+}
+
+float BindingPopulation::compute_vec_distance(std::vector<float> v1 ,std::vector<float> v2) const
+{
+	float distance = 0.0f;
+	// perform distance^2 calculation
+	for(int i = 0; i < v1.size() && i < v2.size(); ++i)
+	{
+		float temp = v1[i] - v2[i];
 		distance += temp * temp;
 	}
 	// return square-root of distance^2
@@ -261,6 +277,42 @@ void BindingMode::set_energy()
 }
 
 
+std::vector<float> BindingMode::compute_centroid()
+{
+    Pose mPose(*this->elect_Representative(false));
+    unsigned int size = static_cast<unsigned int>( mPose.vPose.size() );
+    std::vector<float> vCentroid( size, 0.0f );
+    double partition_function = this->compute_partition_function();
+    
+    for(std::vector<Pose>::iterator iPose = this->Poses.begin(); iPose != this->Poses.end(); ++iPose)
+    {
+    	for(unsigned int i = 0; i < size; ++i)
+    	{
+    		// formula c = ∑(MiVi)
+    		// Mi = e^(-ßCF) / ∑(e^(-ßCF))
+    		// Vi = cartesian coordinates vector
+    		// Abdi, H. Centroid, center of gravity, center of mass, barycenter. (Encyclopedia of measurement and statistics. Thousand …, 2007). doi:10.1002/wics.031
+    		vCentroid[i] += ( iPose->boltzmann_weight / partition_function ) * iPose->vPose[i];
+    	}
+    }
+
+    return vCentroid;
+}
+
+double BindingMode::compute_partition_function()
+{
+	double partition_function = 0.0;
+	// double temperature = static_cast<double>(this->Population->Temperature);
+
+	// compute the current partition function of the BindingMode
+	for(std::vector<Pose>::iterator it = this->Poses.begin(); it != this->Poses.end(); ++it)
+	{
+		partition_function += it->boltzmann_weight;
+	}
+
+	return partition_function;
+}
+
 void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints)
 {
     // File and Output variables declarations
@@ -274,11 +326,11 @@ void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tm
 	
     // 0. elect a Pose representative (Rep) of the current BindingMode
 	std::vector<Pose>::const_iterator Rep_lowCF = this->elect_Representative(false);
-	std::vector<Pose>::const_iterator Rep_meanCF = this->elect_Representative(true);
+	std::vector<Pose>::const_iterator Rep_Centroid = this->elect_Representative(true);
 	
     // 1. build FA->opt_par[GB->num_genes]
 	 for(int k = 0; k < this->Population->GB->num_genes; ++k) this->Population->FA->opt_par[k] = Rep_lowCF->chrom->genes[k].to_ic;
-	 // for(int k = 0; k < this->Population->GB->num_genes; ++k) this->Population->FA->opt_par[k] = Rep_meanCF->chrom->genes[k].to_ic;
+	 // for(int k = 0; k < this->Population->GB->num_genes; ++k) this->Population->FA->opt_par[k] = Rep_Centroid->chrom->genes[k].to_ic;
 
 	// 2. get CF with ic2cf() 
 	CF = ic2cf(this->Population->FA, this->Population->VC, this->Population->atoms, this->Population->residue, this->Population->cleftgrid, this->Population->GB->num_genes, this->Population->FA->opt_par);
@@ -316,7 +368,7 @@ void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tm
 	}
     
     sprintf(tmpremark,"REMARK Binding Mode:%d Best CF in Binding Mode:%8.5f OPTICS Center (CF):%8.5f Binding Mode Total CF:%8.5f Binding Mode Frequency:%d\n",
-            num_result, Rep_lowCF->CF, Rep_meanCF->CF, this->compute_energy(), this->get_BindingMode_size());
+            num_result, Rep_lowCF->CF, Rep_Centroid->CF, this->compute_energy(), this->get_BindingMode_size());
     strcat(remark,tmpremark);
     for(int j=0; j < this->Population->FA->npar; ++j)
 	{
@@ -446,28 +498,43 @@ void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, 
     }
 }
 
-std::vector<Pose>::const_iterator BindingMode::elect_Representative(bool useMEANcf) const
+std::vector<Pose>::const_iterator BindingMode::elect_Representative(bool useCentroid) const
 {
-	double meanCF = 0.0; // will be used to compute the mean CF
+	// double meanCF = 0.0; // will be used to compute the mean CF
+	float deltaDist = 999.9f;	// will be used to find the closest representative to the centroid
+	float dist = 0.0f;		// will be used to find the closest representative to the centroid
 	double diffCF = 9999.99;// wiil be used to remember the closest difference between the CF of a Pose and the MEAN CF of the BindingMode
 
 	// Rep is the const_iterator returned by this function
 	std::vector<Pose>::const_iterator Rep = this->Poses.begin();
 	
-	if(useMEANcf) // use the CF closest to the mean CF as a representative
+	if(useCentroid) // use the CF closest to the mean CF as a representative
 	{
+		// BLOCK OF CODE USED TO FIND THE REPRESENTATIVE CLOSEST TO THE MEAN CF
+		// for(std::vector<Pose>::const_iterator it = this->Poses.begin(); it != this->Poses.end(); ++it) meanCF += it->CF;
 
-		for(std::vector<Pose>::const_iterator it = this->Poses.begin(); it != this->Poses.end(); ++it) meanCF += it->CF;
+		// meanCF /= static_cast<double>(this->Poses.size()); // divide the sum of CF by the number of poses
+		// for(std::vector<Pose>::const_iterator it = this->Poses.begin(); it != this->Poses.end(); ++it)
+		// {
+		// 	// if the difference between the CF of the current Pose (it) and meanCF (in absolute value) is lower than the one of Rep
+		// 	if( fabs(it->CF - meanCF) < diffCF )
+		// 	{
+		// 		// then save current pose in Rep, and its CF difference to meanCF in diffCF
+		// 		Rep = it;
+		// 		diffCF = fabs(it->CF - meanCF);
+		// 	}
+		// }
 
-		meanCF /= static_cast<double>(this->Poses.size()); // divide the sum of CF by the number of poses
+
+		// BLOCK OF CODE USED TO FIND THE REPRESENTATIVE CLOSEST TO THE CENTROID
+		std::vector<float> Centroid = this->compute_centroid();
 		for(std::vector<Pose>::const_iterator it = this->Poses.begin(); it != this->Poses.end(); ++it)
 		{
-			// if the difference between the CF of the current Pose (it) and meanCF (in absolute value) is lower than the one of Rep
-			if( fabs(it->CF - meanCF) < diffCF )
+			dist = this->compute_vec_distance(it->vPose, Centroid);
+			if(dist < deltaDist)
 			{
-				// then save current pose in Rep, and its CF difference to meanCF in diffCF
 				Rep = it;
-				diffCF = fabs(it->CF - meanCF);
+				deltaDist = dist;
 			}
 		}
 	}
