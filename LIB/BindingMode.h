@@ -87,8 +87,8 @@ class BindingMode // aggregation of poses (Cluster)
 		// private attributes
 		double 	energy;
 		// private methods 
-		std::vector<float>	compute_centroid();	// return the centroid as a N dimensional vector of cartesian coordinates
-		double 				compute_partition_function(); // used in compute_centroid
+		std::vector<float>	compute_centroid() const;	// return the centroid as a N dimensional vector of cartesian coordinates
+		double 				compute_partition_function() const; // used in compute_centroid
 		void 				output_BindingMode(int num_result, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints);
 		void				output_dynamic_BindingMode(int nBindingMode, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints);
 };

@@ -277,14 +277,14 @@ void BindingMode::set_energy()
 }
 
 
-std::vector<float> BindingMode::compute_centroid()
+std::vector<float> BindingMode::compute_centroid() const
 {
     Pose mPose(*this->elect_Representative(false));
     unsigned int size = static_cast<unsigned int>( mPose.vPose.size() );
     std::vector<float> vCentroid( size, 0.0f );
     double partition_function = this->compute_partition_function();
     
-    for(std::vector<Pose>::iterator iPose = this->Poses.begin(); iPose != this->Poses.end(); ++iPose)
+    for(std::vector<Pose>::const_iterator iPose = this->Poses.begin(); iPose != this->Poses.end(); ++iPose)
     {
     	for(unsigned int i = 0; i < size; ++i)
     	{
@@ -299,13 +299,13 @@ std::vector<float> BindingMode::compute_centroid()
     return vCentroid;
 }
 
-double BindingMode::compute_partition_function()
+double BindingMode::compute_partition_function() const
 {
 	double partition_function = 0.0;
 	// double temperature = static_cast<double>(this->Population->Temperature);
 
 	// compute the current partition function of the BindingMode
-	for(std::vector<Pose>::iterator it = this->Poses.begin(); it != this->Poses.end(); ++it)
+	for(std::vector<Pose>::const_iterator it = this->Poses.begin(); it != this->Poses.end(); ++it)
 	{
 		partition_function += it->boltzmann_weight;
 	}
@@ -530,7 +530,7 @@ std::vector<Pose>::const_iterator BindingMode::elect_Representative(bool useCent
 		std::vector<float> Centroid = this->compute_centroid();
 		for(std::vector<Pose>::const_iterator it = this->Poses.begin(); it != this->Poses.end(); ++it)
 		{
-			dist = this->compute_vec_distance(it->vPose, Centroid);
+			dist = this->Population->compute_vec_distance(it->vPose, Centroid);
 			if(dist < deltaDist)
 			{
 				Rep = it;
