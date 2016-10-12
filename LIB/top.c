@@ -162,6 +162,17 @@ int main(int argc, char **argv){
     strcpy(FA->vcontacts_self_consistency,"MAX");
 	FA->vcontacts_planedef = 'X';
 	
+	// the verification below is added to insure that an output name is given in argument to FlexAID
+	if(!argv[1])
+	{
+		fprintf(stderr, "ERROR: please define a configuration file as first (1st) argument given to FlexAID. The configuration file will be used to define the molecular docking simulation parameters.\n");
+		Terminate(0);
+	}
+	else if(!argv[2])
+	{
+		fprintf(stderr, "ERROR: please define an optimization algorithm configuration file as second (2nd) argument given to FlexAID. This file will be used for genetic algorithm optimization parameters.\n");
+		Terminate(0);
+	}
 	// Linux path
 	pch=strrchr(argv[0],'\\');
 	if(pch==NULL) 
@@ -188,6 +199,12 @@ int main(int argc, char **argv){
   
 	strcpy(dockinp,argv[1]);
 	strcpy(gainp,argv[2]);
+	// the verification below is added to insure that an output name is given in argument to FlexAID
+	if(!argv[3])
+	{
+		fprintf(stderr, "ERROR: please define a simulation name as third argument given to FlexAID. The simulation name will be used for results files.\n");
+		Terminate(0);
+	}
 	strcpy(end_strfile,argv[3]);
 	strcpy(FA->rrgfile,end_strfile);
 

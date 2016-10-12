@@ -384,10 +384,10 @@ void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tm
 		calc_rmsd(this->Population->FA,this->Population->atoms,this->Population->residue,this->Population->cleftgrid,this->Population->FA->npar,this->Population->FA->opt_par, Hungarian));
 		strcat(remark,tmpremark);
 		
-		Hungarian = true;
-		sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure     (symmetry corrected)\n",
-		calc_rmsd(this->Population->FA,this->Population->atoms,this->Population->residue,this->Population->cleftgrid,this->Population->FA->npar,this->Population->FA->opt_par, Hungarian));
-		strcat(remark,tmpremark);
+//		Hungarian = true;
+//		sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure     (symmetry corrected)\n",
+//		calc_rmsd(this->Population->FA,this->Population->atoms,this->Population->residue,this->Population->cleftgrid,this->Population->FA->npar,this->Population->FA->opt_par, Hungarian));
+//		strcat(remark,tmpremark);
 	}
 	sprintf(tmpremark,"REMARK inputs: %s & %s\n",dockinp,gainp);
 	strcat(remark,tmpremark);
@@ -463,10 +463,10 @@ void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, 
 			sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure (no symmetry correction)\n",
 			calc_rmsd(this->Population->FA,this->Population->atoms,this->Population->residue,this->Population->cleftgrid,this->Population->FA->npar,this->Population->FA->opt_par, Hungarian));
 			strcat(remark,tmpremark);
-			Hungarian = true;
-			sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure     (symmetry corrected)\n",
-			calc_rmsd(this->Population->FA,this->Population->atoms,this->Population->residue,this->Population->cleftgrid,this->Population->FA->npar,this->Population->FA->opt_par, Hungarian));
-			strcat(remark,tmpremark);
+//			Hungarian = true;
+//			sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure     (symmetry corrected)\n",
+//			calc_rmsd(this->Population->FA,this->Population->atoms,this->Population->residue,this->Population->cleftgrid,this->Population->FA->npar,this->Population->FA->opt_par, Hungarian));
+//			strcat(remark,tmpremark);
 		}
 		sprintf(tmpremark,"REMARK inputs: %s & %s\n",dockinp,gainp);
 		strcat(remark,tmpremark);
@@ -508,8 +508,9 @@ std::vector<Pose>::const_iterator BindingMode::elect_Representative(bool useCent
 	// Rep is the const_iterator returned by this function
 	std::vector<Pose>::const_iterator Rep = this->Poses.begin();
 	
-	if(useCentroid) // use the CF closest to the mean CF as a representative
+    if(useCentroid) // use either Centroid or the CF which is closest to the mean CF of the BindingMode
 	{
+        // use the CF closest to the mean CF as a representative
 		// BLOCK OF CODE USED TO FIND THE REPRESENTATIVE CLOSEST TO THE MEAN CF
 		// for(std::vector<Pose>::const_iterator it = this->Poses.begin(); it != this->Poses.end(); ++it) meanCF += it->CF;
 

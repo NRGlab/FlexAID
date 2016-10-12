@@ -34,7 +34,7 @@
 #define MAX_ENERGY_POINTS 5000      // probability function distribution
 #define MAX_CONTRIBUTIONS 10
 #define MAX_FLAG__ 3
-#define MAX_SHORTEST_PATH 25        // max number of atom to reach any atom of the same molecule
+#define MAX_SHORTEST_PATH 50        // max number of atom to reach any atom of the same molecule
 #define MAX_PATH__ 255              // max size of path length
 #define MAX_REMARK 5000             // max size of comment length
 #define MAX_NUM_RES 250             // max number of residues allowed 
