@@ -246,10 +246,10 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 			sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure (no symmetry correction)\n",
 				calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian));
 			strcat(remark,tmpremark);
-			Hungarian = true;
-			sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure     (symmetry corrected)\n",
-				calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian));
-			strcat(remark,tmpremark);
+//			Hungarian = true;
+//			sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure     (symmetry corrected)\n",
+//				calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian));
+//			strcat(remark,tmpremark);
 		}
 		sprintf(tmpremark,"REMARK inputs: %s & %s\n",dockinp,gainp);
 		strcat(remark,tmpremark);

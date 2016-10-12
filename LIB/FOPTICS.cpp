@@ -179,7 +179,7 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
     //   second -> float reachDist
 	for(int i = 0; i < this->N; ++i)
 	{
-		if( (this->points[i]).first != NULL && (this->points[i]).first->app_evalue < 1000 )
+		if( (this->points[i]).first != NULL /*&& (this->points[i]).first->app_evalue < 1000 */)
 		{
 			// Calling Pose constructor for the current chromosome
 			Pose iPose = Pose((this->points[i]).first, i, this->order[i], this->reachDist[i], this->Population->Temperature, (this->points[i]).second);
