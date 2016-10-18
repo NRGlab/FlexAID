@@ -10,7 +10,7 @@ int write_rrd(FA_Global* FA,GB_Global* GB,const chromosome* chrom, const genlim*
 	char sufix[10];
 	char tmp_end_strfile[MAX_PATH__];
 	float rmsd = 0.0f;
-	float rmsd_corrected = 0.0f;
+	// float rmsd_corrected = 0.0f;
 	bool Hungarian = false;
 
 	sprintf(sufix,".rrd");
@@ -54,7 +54,7 @@ int write_DensityPeak_rrd(FA_Global* FA, GB_Global* GB, const chromosome* chrom,
 	char sufix[10];
 	char tmp_end_strfile[MAX_PATH__];
 	float rmsd = 0.0f;
-	float rmsd_corrected = 0.0f;
+	// float rmsd_corrected = 0.0f;
 	float ClusRMSD = 0.0f;
 	bool Hungarian = false;
 

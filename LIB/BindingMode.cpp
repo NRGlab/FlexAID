@@ -89,10 +89,10 @@ void BindingPopulation::Classify_BindingModes()
 			// do not proceed further if any of the two BindingModes isn't valid
 			else if(!it1->isValid || !it2->isValid) continue;
 
-			// else if(this->compute_distance((*it1->elect_Representative(false)), (*it2->elect_Representative(false))) <= sizeTolerance )
-			// {
-			// 	this->merge_BindingModes(it1, it2);
-			// }
+			else if(this->compute_distance((*it1->elect_Representative(false)), (*it2->elect_Representative(false))) <= sizeTolerance )
+			{
+				this->merge_BindingModes(it1, it2);
+			}
 
 			else if( this->compute_vec_distance(it1->compute_centroid(), it2->compute_centroid()) <= sizeTolerance)
 			{
@@ -207,7 +207,7 @@ bool BindingMode::isHomogenic() const
 		for(std::vector<Pose>::const_iterator it2 = this->Poses.begin(); it2 != this->Poses.end(); ++it2)
 		{
 			if ((*it1) == (*it2)) continue;
-			else if( this->compute_distance((*it1),(*it2)) > ((1+sizeTolerance) * this->Population->FA->cluster_rmsd) )
+			else if( this->compute_distance((*it1),(*it2)) > ((3-sizeTolerance) * this->Population->FA->cluster_rmsd) )
 			{	
 				accept = false;
 				break;
@@ -503,7 +503,7 @@ std::vector<Pose>::const_iterator BindingMode::elect_Representative(bool useCent
 	// double meanCF = 0.0; // will be used to compute the mean CF
 	float deltaDist = 999.9f;	// will be used to find the closest representative to the centroid
 	float dist = 0.0f;		// will be used to find the closest representative to the centroid
-	double diffCF = 9999.99;// wiil be used to remember the closest difference between the CF of a Pose and the MEAN CF of the BindingMode
+	// double diffCF = 9999.99;// wiil be used to remember the closest difference between the CF of a Pose and the MEAN CF of the BindingMode
 
 	// Rep is the const_iterator returned by this function
 	std::vector<Pose>::const_iterator Rep = this->Poses.begin();
