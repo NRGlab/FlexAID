@@ -48,6 +48,23 @@ struct PoseClassifier
 		return false;
    }
 };
+
+struct PoseRanker
+{
+	inline bool operator() ( const Pose& Pose1, const Pose& Pose2 )
+   {
+       	if(Pose1.CF < Pose2.CF) return true;
+       	else if(Pose1.CF > Pose2.CF) return false;
+		
+		if(Pose1.boltzmann_weight > Pose2.boltzmann_weight) return true;
+		else if(Pose1.boltzmann_weight < Pose2.boltzmann_weight) return false;
+		
+		if(Pose1.chrom_index < Pose2.chrom_index) return true;
+		else if(Pose1.chrom_index > Pose2.chrom_index) return false;
+		
+		return false;
+   }
+};
 /*****************************************\
 			  BindingMode
 \*****************************************/
@@ -112,6 +129,7 @@ class BindingPopulation
 		void 	Classify_BindingModes();
 			// used to compute the distance between 2 poses (same as BindingMode::compute_distance)
 		float 	compute_distance(const Pose& pose1, const Pose& pose2) const;
+		float 	compute_distance(std::vector<Pose>::const_iterator,std::vector<Pose>::const_iterator) const;
 
 		float 	compute_vec_distance(std::vector<float>, std::vector<float>) const;
 			// 	return the number of BindinMonde (size getter)

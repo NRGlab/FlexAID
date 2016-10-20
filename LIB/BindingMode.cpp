@@ -25,22 +25,22 @@ bool BindingPopulation::merge_BindingModes(std::vector< BindingMode >::iterator 
 {
 	// assign BindingMode* pointers to mode1 and mode 2
 	// BindingMode::BindingMode Current(this);
-	BindingMode Current = BindingMode(this);
+	// BindingMode Current = BindingMode(this);
 	// BindingMode Current = BindingMode::BindingMode(this);
 
 	// if necessary, exchange pointers in order to merge Poses into the lowest energy BindingMpde
-    for(std::vector< Pose >::iterator itp = mode1->Poses.begin(); itp != mode1->Poses.end(); ++itp)
-    {
-    	Current.add_Pose(*itp);
-    }
-    for(std::vector< Pose >::iterator itp = mode2->Poses.begin(); itp != mode2->Poses.end(); ++itp)
-    {
-    	Current.add_Pose(*itp);
-    }
+    // for(std::vector< Pose >::iterator itp = mode1->Poses.begin(); itp != mode1->Poses.end(); ++itp)
+    // {
+    // 	Current.add_Pose(*itp);
+    // }
+    // for(std::vector< Pose >::iterator itp = mode2->Poses.begin(); itp != mode2->Poses.end(); ++itp)
+    // {
+    // 	Current.add_Pose(*itp);
+    // }
     // check if the BindingMode is homogenic enough to be added and to consider 
     // the merger of *mode2 into *mode1 as successful
-    if(Current.isHomogenic())
-    {
+    // if(Current.isHomogenic())
+    // {
     	for(std::vector<Pose>::iterator itp = mode2->Poses.begin(); itp != mode2->Poses.end(); ++itp)
     	{
     		mode1->add_Pose(*itp);
@@ -49,12 +49,12 @@ bool BindingPopulation::merge_BindingModes(std::vector< BindingMode >::iterator 
     	mode2->isValid = false;
     	// return that the merge was successful (as of now, the return value is unused tho)
     	return true;
-    }
-    else
-    {
+    // }
+    // else
+    // {
     	// no modification could be made, return FALSE as the merging status of mode1 and mode2
-    	return false;
-    }
+    	// return false;
+    // }
 }
 
 void BindingPopulation::remove_BindingMode(std::vector<BindingMode>::iterator mode)
@@ -128,6 +128,18 @@ float BindingPopulation::compute_distance(const Pose& pose1, const Pose& pose2) 
 	// return square-root of distance^2
 	return sqrtf(distance);
 }
+float BindingPopulation::compute_distance(std::vector<Pose>::const_iterator pose1,std::vector<Pose>::const_iterator pose2) const
+{
+	float distance = 0.0f;
+	// perform distance^2 calculation
+	for(int i = 0; i < pose1->vPose.size() && i < pose2->vPose.size(); ++i)
+	{
+		float temp = pose1->vPose[i] - pose2->vPose[i];
+		distance += temp * temp;
+	}
+	// return square-root of distance^2
+	return sqrtf(distance);
+}
 
 float BindingPopulation::compute_vec_distance(std::vector<float> v1 ,std::vector<float> v2) const
 {
@@ -148,16 +160,33 @@ int BindingPopulation::get_Population_size() { return static_cast<int>(this->Bin
 // output BindingMode up to nResults results
 void BindingPopulation::output_Population(int nResults, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints)
 {
+	bool accept = true;
+	float sizeTolerance = (1+static_cast<float>(2.0f/3.0f)) * this->FA->cluster_rmsd;
     // Output Population information ~= output clusters informations (*.cad)
-    
+    std::vector<std::vector<BindingMode>::iterator> lastModes;
     
     // Looping through BindingModes
     int num_result = 0;
     if(!nResults) nResults = this->get_Population_size() - 1; // if 0 is sent to this function, output all available results
-	for(std::vector<BindingMode>::iterator mode = this->BindingModes.begin(); mode != this->BindingModes.end() && nResults > 0; ++mode, --nResults, ++num_result)
+	for(std::vector<BindingMode>::iterator mode = this->BindingModes.begin(); mode != this->BindingModes.end() && nResults > 0; ++mode)
 	{
-		mode->output_BindingMode(num_result, end_strfile, tmp_end_strfile, dockinp, gainp, minPoints);
-        mode->output_dynamic_BindingMode(num_result,end_strfile, tmp_end_strfile, dockinp, gainp, minPoints);
+		accept = true;
+		for(std::vector<std::vector<BindingMode>::iterator>::iterator itMode = lastModes.begin(); itMode != lastModes.end(); ++itMode)
+		{
+			if(this->compute_distance((*itMode)->elect_Representative(false),mode->elect_Representative(false)) < sizeTolerance)
+			{
+				accept = false;
+				break;
+			}
+		}
+		if(accept)
+		{
+			mode->output_BindingMode(num_result, end_strfile, tmp_end_strfile, dockinp, gainp, minPoints);
+	        mode->output_dynamic_BindingMode(num_result,end_strfile, tmp_end_strfile, dockinp, gainp, minPoints);
+	         --nResults;
+	         ++num_result;
+	         lastModes.push_back(mode);
+        }
 	}
 }
 
@@ -231,6 +260,7 @@ float BindingMode::compute_distance(const Pose& pose1, const Pose& pose2) const
 	// return square-root of distance^2
 	return sqrtf(distance);
 }
+
 
 double BindingMode::compute_enthalpy() const
 {
@@ -405,12 +435,19 @@ void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, 
     cfstr CF; /* complementarity function value */
     resid* pRes = NULL;
     cfstr* pCF  = NULL;
-
+    
     char sufix[25];
     char remark[MAX_REMARK];
     char tmpremark[MAX_REMARK];
     int nModel = 1;
-    for(std::vector<Pose>::iterator Pose = this->Poses.begin(); Pose != this->Poses.end(); ++Pose, ++nModel)
+    int maxModels = 999;
+
+    // sort the Poses by lowest CF or highest Boltzmann_weight (if equal) or lowest chrom_index (if equal again)
+    // std::sort(this->Poses.begin(), this->Poses.end(), PoseRanker());
+    // random shuffling the Poses
+    std::random_shuffle(this->Poses.begin(), this->Poses.end());
+    
+    for(std::vector<Pose>::iterator Pose = this->Poses.begin(); Pose != this->Poses.end() && nModel < maxModels; ++Pose, ++nModel)
     {
     	// 1. build FA->opt_par[GB->num_genes]
 		for(int k = 0; k < this->Population->GB->num_genes; ++k) this->Population->FA->opt_par[k] = Pose->chrom->genes[k].to_ic;
@@ -485,7 +522,7 @@ void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, 
 			// case where this is the first of multiple poses
 			write_MODEL_pdb(true, false, nModel, this->Population->FA,this->Population->atoms,this->Population->residue,tmp_end_strfile,remark);
 		}
-		else if(Pose+1 == this->Poses.end())
+		else if(Pose+1 == this->Poses.end() || (nModel+1) == maxModels)
 		{
 			// case where this is the last of mulpile pose
 			write_MODEL_pdb(false, true, nModel, this->Population->FA,this->Population->atoms,this->Population->residue,tmp_end_strfile,remark);

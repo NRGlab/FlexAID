@@ -204,12 +204,12 @@ bool FastOPTICS::Classify_Pose(Pose& pose)
         std::vector<float> v1 = mode->compute_centroid();
         if( !mode->get_BindingMode_size() ) return isClassified;
 
-        // else if( this->compute_vect_distance(pose.vPose, ( mode->elect_Representative(false))->vPose ) < this->dist_threshold )
-        // {
-        // 	mode->add_Pose(pose); // add pose to the BindingMode mode
-        // 	isClassified = true; // pose isClassified == true
-        // 	break; // do not continue distance calculations if pose isClassified 
-        // }
+        else if( this->compute_vect_distance(pose.vPose, ( mode->elect_Representative(false))->vPose ) < this->dist_threshold )
+        {
+        	mode->add_Pose(pose); // add pose to the BindingMode mode
+        	isClassified = true; // pose isClassified == true
+        	break; // do not continue distance calculations if pose isClassified 
+        }
         
         else if( this->compute_vect_distance(pose.vPose, mode->compute_centroid()) < this->dist_threshold )
         {
