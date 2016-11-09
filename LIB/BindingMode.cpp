@@ -25,22 +25,22 @@ bool BindingPopulation::merge_BindingModes(std::vector< BindingMode >::iterator 
 {
 	// assign BindingMode* pointers to mode1 and mode 2
 	// BindingMode::BindingMode Current(this);
-	// BindingMode Current = BindingMode(this);
+	BindingMode Current = BindingMode(this);
 	// BindingMode Current = BindingMode::BindingMode(this);
 
-	// if necessary, exchange pointers in order to merge Poses into the lowest energy BindingMpde
-    // for(std::vector< Pose >::iterator itp = mode1->Poses.begin(); itp != mode1->Poses.end(); ++itp)
-    // {
-    // 	Current.add_Pose(*itp);
-    // }
-    // for(std::vector< Pose >::iterator itp = mode2->Poses.begin(); itp != mode2->Poses.end(); ++itp)
-    // {
-    // 	Current.add_Pose(*itp);
-    // }
-    // check if the BindingMode is homogenic enough to be added and to consider 
+//	 if necessary, exchange pointers in order to merge Poses into the lowest energy BindingMpde
+     for(std::vector< Pose >::iterator itp = mode1->Poses.begin(); itp != mode1->Poses.end(); ++itp)
+     {
+     	Current.add_Pose(*itp);
+     }
+     for(std::vector< Pose >::iterator itp = mode2->Poses.begin(); itp != mode2->Poses.end(); ++itp)
+     {
+     	Current.add_Pose(*itp);
+     }
+    // check if the BindingMode is homogenic enough to be added and to consider
     // the merger of *mode2 into *mode1 as successful
-    // if(Current.isHomogenic())
-    // {
+    if(Current.isHomogenic())
+    {
     	for(std::vector<Pose>::iterator itp = mode2->Poses.begin(); itp != mode2->Poses.end(); ++itp)
     	{
     		mode1->add_Pose(*itp);
@@ -49,12 +49,12 @@ bool BindingPopulation::merge_BindingModes(std::vector< BindingMode >::iterator 
     	mode2->isValid = false;
     	// return that the merge was successful (as of now, the return value is unused tho)
     	return true;
-    // }
-    // else
-    // {
-    	// no modification could be made, return FALSE as the merging status of mode1 and mode2
-    	// return false;
-    // }
+    }
+    else
+    {
+//    	no modification could be made, return FALSE as the merging status of mode1 and mode2
+    	return false;
+    }
 }
 
 void BindingPopulation::remove_BindingMode(std::vector<BindingMode>::iterator mode)

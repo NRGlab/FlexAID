@@ -141,7 +141,7 @@ class BindingPopulation
 		double PartitionFunction;	// sum of all Boltzmann_weight
 		int nChroms;				// n_chrom_snapshot input to clustergin function
 
-		// FlexAID pointer
+		// FlexAID pointers
 		FA_Global* 	FA;			// pointer to FA_Global struct
 		GB_Global* 	GB;			// pointer to GB_Global struct
 		VC_Global* 	VC;			// pointer to VC_Global struct
@@ -150,7 +150,7 @@ class BindingPopulation
 		atom* atoms;			// pointer to atoms' array
 		resid* residue;			// pointer to residues' array
 		gridpoint* cleftgrid;	// pointer to gridpoints' array (defining the total search space of the simulation)
-	        // Sort BindinModes according to their observation frequency
+	        // Sort BindinModes according to their energy score (∆G = ∆H - T∆S)
         void 	Entropize();
 	
 	private:
