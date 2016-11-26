@@ -54,7 +54,7 @@ int write_DensityPeak_rrd(FA_Global* FA, GB_Global* GB, const chromosome* chrom,
 	char sufix[10];
 	char tmp_end_strfile[MAX_PATH__];
 	float rmsd = 0.0f;
-	// float rmsd_corrected = 0.0f;
+	 float rmsd_corrected = 0.0f;
 	float ClusRMSD = 0.0f;
 	bool Hungarian = false;
 
@@ -80,8 +80,8 @@ int write_DensityPeak_rrd(FA_Global* FA, GB_Global* GB, const chromosome* chrom,
 			rmsd = calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian);
 
 			// Calculating symmetry-corrected RMSD (with the help of the Hungarian) saved into 'rmsd_corrected'
-//			Hungarian = true;
-//			rmsd_corrected = calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian);
+			Hungarian = true;
+			rmsd_corrected = calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian);
 			for(k=j+1;k<GB->num_chrom;++k)
 			{
 				if(Chrom[k].Cluster == Chrom[j].Cluster && Chrom[k].isCenter == true)
@@ -89,8 +89,8 @@ int write_DensityPeak_rrd(FA_Global* FA, GB_Global* GB, const chromosome* chrom,
 					ClusRMSD = RMSD[K(Chrom[k].index, Chrom[j].index, GB->num_chrom)];
 				}
 			}
-//			fprintf(outfile_ptr, "%3d %3d %8.5f %8.5f %8.5f %8.5f [", j, Chrom[j].Cluster, ClusRMSD, rmsd, rmsd_corrected, chrom[j].evalue);
-            fprintf(outfile_ptr, "%3d %3d %8.5f %8.5f %8.5f [", j, Chrom[j].Cluster, ClusRMSD, rmsd, chrom[j].evalue);
+			fprintf(outfile_ptr, "%3d %3d %8.5f %8.5f %8.5f %8.5f [", j, Chrom[j].Cluster, ClusRMSD, rmsd, rmsd_corrected, chrom[j].evalue);
+//            fprintf(outfile_ptr, "%3d %3d %8.5f %8.5f %8.5f [", j, Chrom[j].Cluster, ClusRMSD, rmsd, chrom[j].evalue);
 			for(l=0; l<FA->npar; ++l) fprintf(outfile_ptr,"%8.5f ",FA->opt_par[l]);
 			fprintf(outfile_ptr, "]\n" );
 		}

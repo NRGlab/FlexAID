@@ -414,10 +414,10 @@ void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tm
 		calc_rmsd(this->Population->FA,this->Population->atoms,this->Population->residue,this->Population->cleftgrid,this->Population->FA->npar,this->Population->FA->opt_par, Hungarian));
 		strcat(remark,tmpremark);
 		
-//		Hungarian = true;
-//		sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure     (symmetry corrected)\n",
-//		calc_rmsd(this->Population->FA,this->Population->atoms,this->Population->residue,this->Population->cleftgrid,this->Population->FA->npar,this->Population->FA->opt_par, Hungarian));
-//		strcat(remark,tmpremark);
+		Hungarian = true;
+		sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure     (symmetry corrected)\n",
+		calc_rmsd(this->Population->FA,this->Population->atoms,this->Population->residue,this->Population->cleftgrid,this->Population->FA->npar,this->Population->FA->opt_par, Hungarian));
+		strcat(remark,tmpremark);
 	}
 	sprintf(tmpremark,"REMARK inputs: %s & %s\n",dockinp,gainp);
 	strcat(remark,tmpremark);
@@ -500,10 +500,10 @@ void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, 
 			sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure (no symmetry correction)\n",
 			calc_rmsd(this->Population->FA,this->Population->atoms,this->Population->residue,this->Population->cleftgrid,this->Population->FA->npar,this->Population->FA->opt_par, Hungarian));
 			strcat(remark,tmpremark);
-//			Hungarian = true;
-//			sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure     (symmetry corrected)\n",
-//			calc_rmsd(this->Population->FA,this->Population->atoms,this->Population->residue,this->Population->cleftgrid,this->Population->FA->npar,this->Population->FA->opt_par, Hungarian));
-//			strcat(remark,tmpremark);
+			Hungarian = true;
+			sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure     (symmetry corrected)\n",
+			calc_rmsd(this->Population->FA,this->Population->atoms,this->Population->residue,this->Population->cleftgrid,this->Population->FA->npar,this->Population->FA->opt_par, Hungarian));
+			strcat(remark,tmpremark);
 		}
 		sprintf(tmpremark,"REMARK inputs: %s & %s\n",dockinp,gainp);
 		strcat(remark,tmpremark);

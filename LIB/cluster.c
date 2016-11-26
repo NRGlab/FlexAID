@@ -100,8 +100,10 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		if(FA->temperature > 0)
 		{
 			double Pj = pow( E, ((-1.0) * FA->beta * chrom[j].app_evalue) ) / partition_function;
-			Clus_ACF[num_of_clusters] = (double)( ( Pj * chrom[j].app_evalue) - (FA->temperature * Pj * log(Pj)) );
-			Clus_TCF[num_of_clusters] = (double)( ( Pj * chrom[j].app_evalue) - (FA->temperature * Pj * log(Pj)) );
+            // the equation below does reflect ∆G = ∆H - T∆S, but ∆S = -Pi*log(Pi) so the minus is reflected through the + in the +T∆S
+            // I know it's sketchier than what is implementer in BindingMode classes, but you get the point
+			Clus_ACF[num_of_clusters] = (double)( ( Pj * chrom[j].app_evalue) + (FA->temperature * Pj * log(Pj)) );
+			Clus_TCF[num_of_clusters] = (double)( ( Pj * chrom[j].app_evalue) + (FA->temperature * Pj * log(Pj)) );
 		}
 		else
 		{
@@ -127,6 +129,8 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 					// printf("i=%d belongs to cluster of j=%d because rmsd=%.3f\n", i, j, rmsd);
 					n_unclus--;
 					if(FA->temperature){
+                        // the equation below does reflect ∆G = ∆H - T∆S, but ∆S = -Pi*log(Pi) so the minus is reflected through the + in the +T∆S
+                        // I know it's sketchier than what is implementer in BindingMode classes, but you get the point
 						double Pi = pow( E, ((-1.0) * FA->beta * chrom[i].app_evalue) ) / partition_function;
 						Clus_ACF[num_of_clusters] += (double)( (Pi * chrom[i].app_evalue) + (FA->temperature * Pi * log(Pi)) );
 					}else{
@@ -246,10 +250,10 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 			sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure (no symmetry correction)\n",
 				calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian));
 			strcat(remark,tmpremark);
-//			Hungarian = true;
-//			sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure     (symmetry corrected)\n",
-//				calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian));
-//			strcat(remark,tmpremark);
+			Hungarian = true;
+			sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure     (symmetry corrected)\n",
+				calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian));
+			strcat(remark,tmpremark);
 		}
 		sprintf(tmpremark,"REMARK inputs: %s & %s\n",dockinp,gainp);
 		strcat(remark,tmpremark);
