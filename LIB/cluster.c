@@ -247,6 +247,7 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 		//sprintf(tmpremark,"REMARK seed=%ld\n",FA->seed_ini);
 		strcat(remark,tmpremark);
 		if(FA->refstructure == 1){
+			Hungarian = false;
 			sprintf(tmpremark,"REMARK %8.5f RMSD to ref. structure (no symmetry correction)\n",
 				calc_rmsd(FA,atoms,residue,cleftgrid,FA->npar,FA->opt_par, Hungarian));
 			strcat(remark,tmpremark);
