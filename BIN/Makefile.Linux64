@@ -361,7 +361,7 @@ FOPTICS.o: $I/FOPTICS.cpp $I/BindingMode.h
 	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/FOPTICS.cpp $(INCLUDES)
 
 ColonyEnergy.o: $I/ColonyEnergy.cpp $I/BindingMode.h
-    $(CXX) $(CXXFLAGS) $(DEFS) -c $I/ColonyEnergy.cpp $(INCLUDES)
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/ColonyEnergy.cpp $(INCLUDES)
 
 FastOPTICS_cluster.o: $I/FastOPTICS_cluster.c $I/BindingMode.h $I/gaboom.h
 	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/FastOPTICS_cluster.c $(INCLUDES)
