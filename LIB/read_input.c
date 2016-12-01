@@ -147,7 +147,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 				strcpy(FA->clustering_algorithm, "CF");
 			}
 			
-			if(strncmp(FA->clustering_algorithm,"FO",2) != 0 && strncmp(FA->clustering_algorithm,"DP",2) != 0 && strncmp(FA->clustering_algorithm,"CF",2) != 0)
+			if(strncmp(FA->clustering_algorithm,"FO",2) != 0 && strncmp(FA->clustering_algorithm,"DP",2) != 0 && strncmp(FA->clustering_algorithm,"CF",2) != 0 && strncmp(FA->clustering_algorithm,"CE",2) != 0)
 			{
 				fprintf(stderr,"ERROR: Invalid clustering algorithm given in input parameter.\n");
 				Terminate(2);

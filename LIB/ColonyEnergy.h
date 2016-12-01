@@ -10,7 +10,6 @@
 #include <queue>
 #include <cmath>
 
-int roll_die();
 
 /*****************************************\
 				FastOPTICS
@@ -28,9 +27,9 @@ class ColonyEnergy
 		explicit 	ColonyEnergy(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, BindingPopulation&, int nPoints);
 		// Main FastOPTICS function to execute the algorithm
 		void 		Execute_ColonyEnergy(char* end_strfile, char* tmp_end_strfile);
-		// void		update_ClusterOrdering_PriorityQueue_elements(int, std::priority_queue< ClusterOrdering, std::vector<ClusterOrdering>, ClusterOrderingComparator::ClusterOrderingComparator > &);
 		
 		// population classification methods (linked to BindingPopulation* Population)
+
 
         // distance computing methods
 		float 		compute_distance(std::pair< chromosome*,std::vector<float> > &, std::pair< chromosome*,std::vector<float> > &);
@@ -46,9 +45,8 @@ class ColonyEnergy
 		float 	dist_threshold; // contains the value of this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsColonyEnergy::sizeTolerance)
 		
 		// FOPTICS algorithm attributes
-		int iOrder;
-		std::vector< int > order;
-		std::vector< float > reachDist;
+		// std::vector< int > order;
+		// std::vector< float > reachDist;
 		std::vector< bool > processed;
 		std::vector< float > inverseDensities;
 		std::vector< std::pair<chromosome*,std::vector<float> > > points;

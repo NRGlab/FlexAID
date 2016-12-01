@@ -28,10 +28,8 @@ ColonyEnergy::ColonyEnergy(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromoso
     
     this->minPoints = nPoints;
     
-    // FastOPTICS::iOrder = 0;
-    this->iOrder = 0;
-	this->order.reserve(this->N);
-	this->reachDist.reserve(this->N);
+	// this->order.reserve(this->N);
+	// this->reachDist.reserve(this->N);
 	this->processed.reserve(this->N);
 	this->inverseDensities.reserve(this->N);
 	this->points.reserve(this->N);
@@ -44,8 +42,8 @@ ColonyEnergy::ColonyEnergy(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromoso
 		if(static_cast<int>(vChrom.size()) == this->nDimensions)
 		{
 			// default values initialization
-			this->order.push_back(-1);
-			this->reachDist.push_back(UNDEFINED_DIST);
+			// this->order.push_back(-1);
+			// this->reachDist.push_back(UNDEFINED_DIST);
 			this->processed.push_back(false);
 			this->inverseDensities.push_back(0.0f);
 			// std::pair<first, second> is pushed to this->points[]
@@ -68,11 +66,35 @@ void ColonyEnergy::Execute_ColonyEnergy(char* end_strfile, char* tmp_end_strfile
 
 	RandomProjectedNeighborsColonyEnergy MultiPartition = RandomProjectedNeighborsColonyEnergy(this->points, this->minPoints, this);
 	
+	// Fast— section of FastOPTICS to find neighbors
 	MultiPartition.computeSetBounds(ptInd);
 	MultiPartition.getInverseDensities(this->inverseDensities);
 	MultiPartition.getNeighbors(this->neighbors);
 	
 
+	// Create a BindingMode containing a single Pose
+	// this will correctly compute this->Population->PartitionFunction
+	// (creating the BindingMode from a Pose and its neighbors would compute multiple times each pose into the PF)
+	for(int i = 0; i < this->N; ++i)
+	{
+		Pose pose = Pose( (this->points[i]).first, i, this->neighbors[i].size(), 0.0f, this->Population->Temperature, (this->points[i]).second);
+		BindingMode mode = BindingMode(this->Population);
+		mode.add_Pose(pose);
+		this->Population->add_BindingMode(mode);
+	}
+
+	for(std::vector< BindingMode >::iterator iMode = this->Population->BindingModes.begin(); iMode != this->Population->BindingModes.end(); ++iMode)
+	{
+        Pose Rep = Pose( *iMode->elect_Representative(false) );
+		for(	std::vector<int>::iterator it = this->neighbors[Rep.chrom_index].begin();
+				it != this->neighbors[Rep.chrom_index].end();
+				it++)
+		{
+			Pose pose = Pose((this->points[*it]).first, *it,  this->neighbors[*it].size(), 0.0f, this->Population->Temperature, (this->points[*it]).second);
+			iMode->add_Pose(pose);
+		}
+	}
+    this->Population->Entropize();
 }
 
 
@@ -322,8 +344,13 @@ void RandomProjectedNeighborsColonyEnergy::getNeighbors(std::vector< std::vector
 		for(int i = 0; i < len; ++i)
 		{
 			ind = pinSet[i];
+
+			// check if the distance is <= to dist_threshold before condiering a point as a neighbor
+			if( this->top->compute_distance(this->top->points[ind], this->top->points[oldind]) > this->top->dist_threshold ) continue;
+			
 			// The following block of code uses an iterator to add all points as neighbors to the middle point
 			std::vector<int> & cneighs = neighs.at(ind);
+			
 			if( !std::binary_search(cneighs.begin(), cneighs.end(), oldind) ) //only add point if not a neighbor already
 			{
 				cneighs.push_back(oldind);

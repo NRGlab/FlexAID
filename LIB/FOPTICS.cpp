@@ -952,6 +952,10 @@ void RandomProjectedNeighborsFOPTICS::getNeighbors(std::vector< std::vector< int
 		for(int i = 0; i < len; ++i)
 		{
 			ind = pinSet[i];
+
+			// check if the distance is <= to dist_threshold before condiering a point as a neighbor
+			if( this->top->compute_distance(this->top->points[ind], this->top->points[oldind]) > this->top->dist_threshold ) continue;
+
 			// The following block of code uses an iterator to add all points as neighbors to the middle point
 			std::vector<int> & cneighs = neighs.at(ind);
 			if( !std::binary_search(cneighs.begin(), cneighs.end(), oldind) ) //only add point if not a neighbor already
@@ -1220,14 +1224,3 @@ void RandomProjectedNeighborsFOPTICS::output_projected_distance(char* end_strfil
 	}
 	CloseFile_B(&outfile,"w");;//fclose(outfile);
 }
-
-// This function generates a RandomInt32 who can be used as *genes->to_int32 value
-// int RandomProjectedNeighborsFOPTICS::Dice()
-// {
-// 	unsigned int tt = static_cast<unsigned int>(time(0));
-// 	srand(tt);
-// 	RNGType rng(tt);
-// 	boost::uniform_int<> one_to_max_int32( 0, MAX_RANDOM_VALUE );
-// 	boost::variate_generator< RNGType, boost::uniform_int<> > dice(rng, one_to_max_int32);
-// 	return dice();
-// }

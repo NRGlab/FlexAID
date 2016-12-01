@@ -174,7 +174,7 @@ void BindingPopulation::output_Population(int nResults, char* end_strfile, char*
 		accept = true;
 		for(std::vector<std::vector<BindingMode>::iterator>::iterator itMode = lastModes.begin(); itMode != lastModes.end(); ++itMode)
 		{
-			if(this->compute_distance((*itMode)->elect_Representative(false),mode->elect_Representative(false)) < sizeTolerance)
+			if(this->compute_distance((*itMode)->elect_Representative(false),mode->elect_Representative(false)) <= sizeTolerance)
 			{
 				accept = false;
 				break;
@@ -285,7 +285,9 @@ double BindingMode::compute_entropy() const
 		double boltzmann_prob = pose->boltzmann_weight / this->Population->PartitionFunction;
 		entropy += boltzmann_prob * log(boltzmann_prob);
 	}
-	return -entropy; // returning a S value instead of ∆S value. Rendering it negative as in Gibbs Entropy (no reference state)
+	// in order to respect Boltzmann entropy formula for a probabilities, we add the negative sign
+	// this is explained by the logarithm property where ln(W) = -ln(1/W)
+	return -entropy;
 }
 
 

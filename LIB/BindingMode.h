@@ -74,7 +74,8 @@ class BindingMode // aggregation of poses (Cluster)
 {
 	friend class BindingPopulation;
 	friend class FastOPTICS;
-	
+	friend class ColonyEnergy;
+
 	public:
 												// public constructor (explicitely needs a pointer to a BindingPopulation of type BindingPopulation*)
 		explicit 								BindingMode(BindingPopulation*);
@@ -120,6 +121,8 @@ class BindingPopulation
 {
 	friend class BindingMode;
     friend class FastOPTICS;
+    friend class ColonyEnergy;
+    
 	public:
 		// Temperature is used for energy calculations of BindingModes
 		unsigned int Temperature;
