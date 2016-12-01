@@ -131,6 +131,7 @@ OBJ =	top.o			\
 	assign_shortflex.o 	\
 	BindingMode.o 	\
 	FOPTICS.o 	\
+	ColonyEnergy.o  \
 	FastOPTICS_cluster.o
 	
 all: a.out
@@ -358,6 +359,9 @@ BindingMode.o: $I/BindingMode.cpp $I/boinc.h $I/gaboom.h $I/boinc.h
 
 FOPTICS.o: $I/FOPTICS.cpp $I/BindingMode.h
 	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/FOPTICS.cpp $(INCLUDES)
+
+ColonyEnergy.o: $I/ColonyEnergy.cpp $I/BindingMode.h
+    $(CXX) $(CXXFLAGS) $(DEFS) -c $I/ColonyEnergy.cpp $(INCLUDES)
 
 FastOPTICS_cluster.o: $I/FastOPTICS_cluster.c $I/BindingMode.h $I/gaboom.h
 	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/FastOPTICS_cluster.c $(INCLUDES)
