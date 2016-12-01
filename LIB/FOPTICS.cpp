@@ -1,7 +1,6 @@
 #include "FOPTICS.h"
 #include "gaboom.h"
 
-boost::random::mt19937 gen;
 
 struct RNG 
 {
@@ -104,7 +103,7 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
     this->chroms = chrom;
     this->gene_lim = gen_lim;
 	this->N = nChrom;
-	this->dist_threshold = this->FA->cluster_rmsd*(1 + RandomProjectedNeighborsAndDensities::sizeTolerance);
+	this->dist_threshold = this->FA->cluster_rmsd*(1 + RandomProjectedNeighborsFOPTICS::sizeTolerance);
 	// FastOPTICS
     this->nDimensions = this->FA->num_het_atm*3;	// use with Vectorized_Cartesian_Coordinates()
     // this->nDimensions = this->FA->npar + 2; 	// use with Vectorized_Chromosome()
@@ -153,8 +152,8 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
     }
 //	std::random_shuffle(mixedPts.begin(),mixedPts.end());
 	// Build object, compute projections, density estimates and density neighborhoods (in serial order of function calls below)
-	// RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities MultiPartition(this->points, this->minPoints, this); // use minPoints amount of random projections
-	RandomProjectedNeighborsAndDensities MultiPartition = RandomProjectedNeighborsAndDensities(this->points, this->minPoints, this);
+	// RandomProjectedNeighborsFOPTICS::RandomProjectedNeighborsFOPTICS MultiPartition(this->points, this->minPoints, this); // use minPoints amount of random projections
+	RandomProjectedNeighborsFOPTICS MultiPartition = RandomProjectedNeighborsFOPTICS(this->points, this->minPoints, this);
 
 	MultiPartition.computeSetBounds(ptInd);
 //    MultiPartition.computeSetBounds(mixedPts);
@@ -239,7 +238,7 @@ void FastOPTICS::Classify_Population()
         ( !it->order ) ? distance = UNDEFINED_DIST : distance = this->compute_vect_distance(it->vPose, (it-1)->vPose);
 
 		// an undefined distance means we need to create a new BindingMode
-        if( isUndefinedDist(it->reachDist) || isUndefinedDist(distance) || it->reachDist > this->FA->cluster_rmsd*(1 + RandomProjectedNeighborsAndDensities::sizeTolerance) )
+        if( isUndefinedDist(it->reachDist) || isUndefinedDist(distance) || it->reachDist > this->FA->cluster_rmsd*(1 + RandomProjectedNeighborsFOPTICS::sizeTolerance) )
         {
         	if(Current.get_BindingMode_size() > 0)
         	{
@@ -414,8 +413,8 @@ void FastOPTICS::output_3d_OPTICS_ordering(char* end_strfile, char* tmp_end_strf
 				// any MODEL in between to be written
 				write_MODEL_pdb(false, false, nModel, this->FA,this->atoms,this->residue,tmp_end_strfile,remark);
 			}
+		}
 	}
-}
 }
 
 std::vector<float> FastOPTICS::Vectorized_Chromosome(chromosome* chrom)
@@ -594,7 +593,7 @@ void FastOPTICS::ExpandClusterOrder(int ipt)
 
 			float nrdist = this->compute_distance(this->points[iNeigh], this->points[currPt]);
                             
-			if(nrdist > this->FA->cluster_rmsd*(1+RandomProjectedNeighborsAndDensities::sizeTolerance)) continue;
+			if(nrdist > this->FA->cluster_rmsd*(1+RandomProjectedNeighborsFOPTICS::sizeTolerance)) continue;
 
             if(coredist > nrdist) nrdist = coredist;
 
@@ -711,11 +710,11 @@ int FastOPTICS::get_minPoints() { return this->minPoints; }
 \*****************************************/
 
 // STATIC variables declaration
-int const RandomProjectedNeighborsAndDensities::logOProjectionConstant = 20;
-float RandomProjectedNeighborsAndDensities::sizeTolerance = static_cast<float>(2.0f/3.0f);
+int const RandomProjectedNeighborsFOPTICS::logOProjectionConstant = 20;
+float RandomProjectedNeighborsFOPTICS::sizeTolerance = static_cast<float>(2.0f/3.0f);
 
 // Constructor
-RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities(std::vector< std::pair< chromosome*,std::vector<float> > >& inPoints, int minSplitSize, FastOPTICS* top)
+RandomProjectedNeighborsFOPTICS::RandomProjectedNeighborsFOPTICS(std::vector< std::pair< chromosome*,std::vector<float> > >& inPoints, int minSplitSize, FastOPTICS* top)
 {
 	this->top = top;
 	this->minSplitSize = minSplitSize;
@@ -733,11 +732,11 @@ RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities(std::
 		this->N = static_cast<int>(this->points.size());
 		this->nDimensions = this->top->nDimensions;
 		
-		// this->nPointsSetSplits = static_cast<int>(RandomProjectedNeighborsAndDensities::logOProjectionConstant * log(static_cast<float>(this->N * (this->top->FA->npar+2) + 1))/log(2.f));
-		// this->nProject1D = static_cast<int>(RandomProjectedNeighborsAndDensities::logOProjectionConstant * log(static_cast<float>(this->N * (this->top->FA->npar+2) + 1))/log(2.f));
+		// this->nPointsSetSplits = static_cast<int>(RandomProjectedNeighborsFOPTICS::logOProjectionConstant * log(static_cast<float>(this->N * (this->top->FA->npar+2) + 1))/log(2.f));
+		// this->nProject1D = static_cast<int>(RandomProjectedNeighborsFOPTICS::logOProjectionConstant * log(static_cast<float>(this->N * (this->top->FA->npar+2) + 1))/log(2.f));
 		
-		this->nPointsSetSplits = static_cast<int>(RandomProjectedNeighborsAndDensities::logOProjectionConstant * log(static_cast<float>(this->N * (this->nDimensions) + 1))/log(2.f));
-		this->nProject1D = static_cast<int>(RandomProjectedNeighborsAndDensities::logOProjectionConstant * log(static_cast<float>(this->N * (this->nDimensions) + 1))/log(2.f));
+		this->nPointsSetSplits = static_cast<int>(RandomProjectedNeighborsFOPTICS::logOProjectionConstant * log(static_cast<float>(this->N * (this->nDimensions) + 1))/log(2.f));
+		this->nProject1D = static_cast<int>(RandomProjectedNeighborsFOPTICS::logOProjectionConstant * log(static_cast<float>(this->N * (this->nDimensions) + 1))/log(2.f));
 	}
 
 	this->projectedPoints.reserve(this->nProject1D);
@@ -752,7 +751,7 @@ RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities(std::
 //	}
 }
 
-void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > & ptList)
+void RandomProjectedNeighborsFOPTICS::computeSetBounds(std::vector< int > & ptList)
 {
 	std::vector< std::vector<float> > tempProj(this->nProject1D);
 	// perform projection of points
@@ -820,7 +819,7 @@ void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > &
 	}
 }
 
-void RandomProjectedNeighborsAndDensities::SplitUpNoSort(std::vector< int >& ind, int dim)
+void RandomProjectedNeighborsFOPTICS::SplitUpNoSort(std::vector< int >& ind, int dim)
 {
 	int nElements = static_cast<int>(ind.size());
 	// dim = dim % this->nProject1D;
@@ -829,7 +828,7 @@ void RandomProjectedNeighborsAndDensities::SplitUpNoSort(std::vector< int >& ind
 	int splitPos;
 
 	// save set such that used for density or neighborhood computation
-	if(nElements > this->minSplitSize*(1 - RandomProjectedNeighborsAndDensities::sizeTolerance) && nElements < this->minSplitSize*(1 + RandomProjectedNeighborsAndDensities::sizeTolerance))
+	if(nElements > this->minSplitSize*(1 - RandomProjectedNeighborsFOPTICS::sizeTolerance) && nElements < this->minSplitSize*(1 + RandomProjectedNeighborsFOPTICS::sizeTolerance))
 	{
 		std::vector<float> cpro(nElements);
 		for(int i = 0; i < nElements; ++i)	
@@ -894,7 +893,7 @@ void RandomProjectedNeighborsAndDensities::SplitUpNoSort(std::vector< int >& ind
 	}
 }
 
-void RandomProjectedNeighborsAndDensities::getInverseDensities(std::vector< float > & inverseDensities)
+void RandomProjectedNeighborsFOPTICS::getInverseDensities(std::vector< float > & inverseDensities)
 {
 	inverseDensities.reserve(this->N);
 	std::vector<int> nDists(this->N);
@@ -928,7 +927,7 @@ void RandomProjectedNeighborsAndDensities::getInverseDensities(std::vector< floa
 	}
 }
 
-void RandomProjectedNeighborsAndDensities::getNeighbors(std::vector< std::vector< int > > & neighs)
+void RandomProjectedNeighborsFOPTICS::getNeighbors(std::vector< std::vector< int > > & neighs)
 {
 	neighs.reserve(this->N);
 	for(int l = 0; l < this->N; l++)
@@ -974,7 +973,7 @@ void RandomProjectedNeighborsAndDensities::getNeighbors(std::vector< std::vector
 	}
 }
 
-bool RandomProjectedNeighborsAndDensities::accept_intraset_distance(std::vector<int> ind)
+bool RandomProjectedNeighborsFOPTICS::accept_intraset_distance(std::vector<int> ind)
 {
 	bool accept = true;
 	for(std::vector<int>::iterator it1 = ind.begin(); it1 != ind.end(); ++it1)
@@ -983,7 +982,7 @@ bool RandomProjectedNeighborsAndDensities::accept_intraset_distance(std::vector<
 		{
 			if((*it1) != (*it2)) // skip comparing the distance between an element and itself
 			{
-				if( this->top->compute_distance( this->top->points[(*it1)], this->top->points[(*it2)] ) >= (1 + RandomProjectedNeighborsAndDensities::sizeTolerance)*this->top->FA->cluster_rmsd )
+				if( this->top->compute_distance( this->top->points[(*it1)], this->top->points[(*it2)] ) >= (1 + RandomProjectedNeighborsFOPTICS::sizeTolerance)*this->top->FA->cluster_rmsd )
 				{
 					accept = false;
 					break;
@@ -994,7 +993,7 @@ bool RandomProjectedNeighborsAndDensities::accept_intraset_distance(std::vector<
 	return accept;
 }
 
-std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_InternalCoord_Vector()
+std::vector<float> RandomProjectedNeighborsFOPTICS::Randomized_InternalCoord_Vector()
 {
     std::vector<float> vChrom(this->nDimensions);
 
@@ -1043,7 +1042,7 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_InternalCoor
 	return vChrom;
 }
 
-std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_CartesianCoord_Vector()
+std::vector<float> RandomProjectedNeighborsFOPTICS::Randomized_CartesianCoord_Vector()
 {
    // float norm = 0.0f;
 
@@ -1140,14 +1139,14 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_CartesianCoo
 	return vChrom;
 }
 
-std::vector<float> RandomProjectedNeighborsAndDensities::Randomly_Selected_Chromosome()
+std::vector<float> RandomProjectedNeighborsFOPTICS::Randomly_Selected_Chromosome()
 {
 	int ind = rand() % this->N;
     std::vector<float> vChrom(this->top->Vectorized_Cartesian_Coordinates(ind));
 	return vChrom;
 }
 
-void RandomProjectedNeighborsAndDensities::quicksort_concurrent_Vectors(std::vector<float>& data, std::vector<int>& index, int beg, int end)
+void RandomProjectedNeighborsFOPTICS::quicksort_concurrent_Vectors(std::vector<float>& data, std::vector<int>& index, int beg, int end)
 {
 	int l, r, p;
 	float pivot;
@@ -1189,13 +1188,13 @@ void RandomProjectedNeighborsAndDensities::quicksort_concurrent_Vectors(std::vec
 	}
 }
 
-void RandomProjectedNeighborsAndDensities::swap_element_in_vectors(std::vector<float>::iterator xData, std::vector<float>::iterator yData, std::vector<int>::iterator xIndex, std::vector<int>::iterator yIndex)
+void RandomProjectedNeighborsFOPTICS::swap_element_in_vectors(std::vector<float>::iterator xData, std::vector<float>::iterator yData, std::vector<int>::iterator xIndex, std::vector<int>::iterator yIndex)
 {
 	float tData = *xData; *xData = *yData; *yData = tData;
 	int tIndex = *xIndex; *xIndex = *yIndex; *yIndex = tIndex;
 }
 
-void RandomProjectedNeighborsAndDensities::output_projected_distance(char* end_strfile, char* tmp_end_strfile)
+void RandomProjectedNeighborsFOPTICS::output_projected_distance(char* end_strfile, char* tmp_end_strfile)
 {
 	char sufix[25];
 	sprintf(sufix, "__%d.projDist", this->top->minPoints);
@@ -1223,7 +1222,7 @@ void RandomProjectedNeighborsAndDensities::output_projected_distance(char* end_s
 }
 
 // This function generates a RandomInt32 who can be used as *genes->to_int32 value
-// int RandomProjectedNeighborsAndDensities::Dice()
+// int RandomProjectedNeighborsFOPTICS::Dice()
 // {
 // 	unsigned int tt = static_cast<unsigned int>(time(0));
 // 	srand(tt);
@@ -1232,9 +1231,3 @@ void RandomProjectedNeighborsAndDensities::output_projected_distance(char* end_s
 // 	boost::variate_generator< RNGType, boost::uniform_int<> > dice(rng, one_to_max_int32);
 // 	return dice();
 // }
-
-int roll_die()
-{
-    boost::random::uniform_int_distribution<> dist(0, MAX_RANDOM_VALUE);
-    return dist(gen);
-}

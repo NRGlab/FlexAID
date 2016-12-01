@@ -1,5 +1,6 @@
 #include "BindingMode.h"
 
+boost::random::mt19937 gen;
 /*****************************************\
 			BindingPopulation  
 \*****************************************/
@@ -659,4 +660,10 @@ inline bool const operator==(const Pose& lhs, const Pose& rhs)
 {
 	if(lhs.chrom_index == rhs.chrom_index) return true;
 	else return false;
+}
+
+int roll_die()
+{
+    boost::random::uniform_int_distribution<> dist(0, MAX_RANDOM_VALUE);
+    return dist(gen);
 }
