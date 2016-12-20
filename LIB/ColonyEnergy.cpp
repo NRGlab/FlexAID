@@ -78,9 +78,12 @@ void ColonyEnergy::Execute_ColonyEnergy(char* end_strfile, char* tmp_end_strfile
 	for(int i = 0; i < this->N; ++i)
 	{
 		Pose pose = Pose( (this->points[i]).first, i, this->neighbors[i].size(), 0.0f, this->Population->Temperature, (this->points[i]).second);
-		BindingMode mode = BindingMode(this->Population);
-		mode.add_Pose(pose);
-		this->Population->add_BindingMode(mode);
+        if(pose.CF < 1000)
+        {
+            BindingMode mode = BindingMode(this->Population);
+            mode.add_Pose(pose);
+            this->Population->add_BindingMode(mode);
+        }
 	}
 
 	for(std::vector< BindingMode >::iterator iMode = this->Population->BindingModes.begin(); iMode != this->Population->BindingModes.end(); ++iMode)
