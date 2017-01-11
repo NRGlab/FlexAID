@@ -873,7 +873,8 @@ void RandomProjectedNeighborsFOPTICS::SplitUpNoSort(std::vector< int >& ind, int
 		// split set recursively
 		splitPos = minInd + 1;
 		
-		// std::vector<int> ind2(splitPos);
+		// processing recursively the first half of the array
+        // (up to splitPos)
 		std::vector<int> ind2(splitPos);
 		for(int l = 0; l < splitPos; ++l)
 		{
@@ -881,9 +882,10 @@ void RandomProjectedNeighborsFOPTICS::SplitUpNoSort(std::vector< int >& ind, int
 //			ind2.push_back(ind[l]);
 		}
 		this->SplitUpNoSort(ind2,dim+1);
-		
+	
+        // processing recursively the last half of the array
+        // (from splitPos to the end)
         std::vector<int> ind3(nElements - splitPos);
-//        ind2 = std::vector<int>( nElements-splitPos );
 		for(int l = 0; l < (nElements-splitPos); ++l)
 		{
 			 ind3[l] = ind[l+splitPos];
@@ -962,7 +964,7 @@ void RandomProjectedNeighborsFOPTICS::getNeighbors(std::vector< std::vector< int
 			{
 				cneighs.push_back(oldind);
 				std::sort(cneighs.begin(),cneighs.end());
-//                cneighs.erase(std::unique(cneighs.begin(), cneighs.end()), cneighs.end());
+                cneighs.erase(std::unique(cneighs.begin(), cneighs.end()), cneighs.end());
 			}
 			// The following block of code adds the middle point as neighbor to all other points in set
 			std::vector<int> & cneighs2 = neighs.at(oldind);
@@ -970,7 +972,7 @@ void RandomProjectedNeighborsFOPTICS::getNeighbors(std::vector< std::vector< int
 			{
 				cneighs2.push_back(ind);
 				std::sort(cneighs2.begin(),cneighs2.end());
-//				cneighs2.erase(std::unique(cneighs2.begin(), cneighs2.end()), cneighs2.end());
+				cneighs2.erase(std::unique(cneighs2.begin(), cneighs2.end()), cneighs2.end());
 			}
 		}
 

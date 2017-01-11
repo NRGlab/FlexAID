@@ -509,7 +509,7 @@ int main(int argc, char **argv){
 			}
 			else
 			{
-				printf("using the Complementarity Function (CF) based clustering algorithm.\n");
+				printf("using the Complementarity Function (CF) similarity based algorithm.\n");
 				cluster(FA,GB,VC,chrom_snapshot,gene_lim,atoms,residue,cleftgrid,n_chrom_snapshot,end_strfile,tmp_end_strfile,dockinp,gainp);
 			}
 			//////////////////////////////////////////
