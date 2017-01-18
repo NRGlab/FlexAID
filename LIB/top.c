@@ -497,7 +497,7 @@ int main(int argc, char **argv){
 				printf("using the Fast OPTICS (FO) density based clustering algorithm.\n");
 				FastOPTICS_cluster(FA,GB,VC,chrom_snapshot,gene_lim,atoms,residue,cleftgrid,n_chrom_snapshot,end_strfile,tmp_end_strfile,dockinp,gainp);
 			}
-			if( strcmp(FA->clustering_algorithm,"CE") == 0 )
+			else if( strcmp(FA->clustering_algorithm,"CE") == 0 )
 			{
 				printf("using the Colony Energy (CE) entropy evaluation algorithm.\n");
 				ColonyEnergy_cluster(FA,GB,VC,chrom_snapshot,gene_lim,atoms,residue,cleftgrid,n_chrom_snapshot,end_strfile,tmp_end_strfile,dockinp,gainp);
