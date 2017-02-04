@@ -462,7 +462,7 @@ void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, 
 		strcpy(remark,"REMARK optimized structure\n");
 		
 	//	 sprintf(tmpremark,"REMARK Fast OPTICS clustering algorithm used to output the lowest CF as Binding Mode representative\n");
-		 sprintf(tmpremark,"REMARK Fast OPTICS clustering algorithm used to output the lowest OPTICS ordering as Binding Mode representative\n");
+		sprintf(tmpremark,"REMARK Fast OPTICS clustering algorithm used to output the lowest OPTICS ordering as Binding Mode representative\n");
 		strcat(remark,tmpremark);
 		
 		sprintf(tmpremark,"REMARK CF=%8.5f\n",get_cf_evalue(&CF));

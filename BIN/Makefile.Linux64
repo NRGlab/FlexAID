@@ -124,7 +124,7 @@ OBJ =	top.o			\
 	read_spheres.o		\
 	generate_grid.o		\
 	cluster.o		\
-	DensityPeak_Cluster.o   \
+	DensityPeak_cluster.o   \
 	rna_structure.o		\
 	maps.o			\
 	shortest_path.o		\
@@ -132,7 +132,7 @@ OBJ =	top.o			\
 	BindingMode.o 	\
 	FOPTICS.o 	\
 	ColonyEnergy.o  \
-	FastOPTICS_cluster.o
+	Entropy_cluster.o
 	
 all: a.out
 	\mv a.out $W/FlexAID_Linux64
@@ -339,8 +339,8 @@ generate_grid.o: $I/generate_grid.cpp $I/flexaid.h $I/boinc.h $I/maps.hpp
 cluster.o: $I/cluster.c $I/gaboom.h $I/boinc.h
 	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/cluster.c $(INCLUDES)
 
-DensityPeak_Cluster.o: $I/DensityPeak_Cluster.c $I/gaboom.h $I/boinc.h
-	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/DensityPeak_Cluster.c $(INCLUDES)
+DensityPeak_cluster.o: $I/DensityPeak_cluster.c $I/gaboom.h $I/boinc.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/DensityPeak_cluster.c $(INCLUDES)
 
 rna_structure.o: $I/rna_structure.c $I/boinc.h
 	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/rna_structure.c $(INCLUDES)
@@ -363,5 +363,5 @@ FOPTICS.o: $I/FOPTICS.cpp $I/BindingMode.h
 ColonyEnergy.o: $I/ColonyEnergy.cpp $I/BindingMode.h
 	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/ColonyEnergy.cpp $(INCLUDES)
 
-FastOPTICS_cluster.o: $I/FastOPTICS_cluster.c $I/BindingMode.h $I/gaboom.h
-	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/FastOPTICS_cluster.c $(INCLUDES)
+Entropy_cluster.o: $I/Entropy_cluster.c $I/BindingMode.h $I/gaboom.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/Entropy_cluster.c $(INCLUDES)
