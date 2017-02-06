@@ -78,7 +78,7 @@ void ColonyEnergy::Execute_ColonyEnergy(char* end_strfile, char* tmp_end_strfile
 	for(int i = 0; i < this->N; ++i)
 	{
 		Pose pose = Pose( (this->points[i]).first, i, this->neighbors[i].size(), 0.0f, this->Population->Temperature, (this->points[i]).second);
-        if(pose.CF < 0 && pose.order > this->minPoints)
+        if(pose.CF < 0 /* && pose.order > this->minPoints */ )
         {
             BindingMode mode = BindingMode(this->Population);
             mode.add_Pose(pose);

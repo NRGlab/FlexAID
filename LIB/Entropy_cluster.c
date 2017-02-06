@@ -1,6 +1,9 @@
 #include "FOPTICS.h"
 #include "ColonyEnergy.h"
 
+/*
+    The following functions will be called from top.c 
+ */
 void FastOPTICS_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
 {
     int minPoints = 15;
@@ -44,4 +47,34 @@ void ColonyEnergy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosom
     Algo.Execute_ColonyEnergy(end_strfile, tmp_end_strfile);
 
     Population.output_Population(FA->max_results, end_strfile, tmp_end_strfile, dockinp, gainp, Algo.get_minPoints());
+}
+
+void Entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
+{
+    // minPoints will be used for the call to ColonyEnergy
+    // "       " will also be used for output_Population as a suffix (TO UNIFORMIZE)
+    int minPoints = 15;
+
+    BindingPopulation Population = BindingPopulation(FA, GB, VC, chrom, gene_lim, atoms, residue, cleftfrid, nChrom);
+
+    // call to ColonyEnergy class is still incertain for the current implementation
+    ColonyEnergy Algo = ColonyEnergy(FA, GB, VC, chrom, gene_lim, atoms, residue, cleftgrid, nChrom, Population, minPoints);
+    
+    // multiples options to consider :
+    // 1. Aggregate by CF then call ColonyEnergy (need to modify ColonyEnergy)
+    // 2. Process ColonyEnergy
+    std::vector<Pose> poses;
+    for(int i = 0; i < nChrom; ++i)
+    {   
+        BindingMode mode(&Population);
+
+        if(chrom[i].app_evalue < 0)
+        {
+            std::vector<float> vPose(Algo.Vectorized_Cartesian_Coordinates(i));
+            Pose pose(&chrom[i], i, -1, 0.0f, FA->temperature, vPose);
+            poses.push_back(pose);
+        }
+    } 
+
+    Population.output_Population(FA->max_results, end_strfile, tmp_end_strfile, dockinp, gainp, minPoints); // minPoints = 0 to call the same function without overloading/modifying output_Population 
 }
