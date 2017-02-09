@@ -660,6 +660,12 @@ std::vector<float> RandomProjectedNeighborsColonyEnergy::Randomized_CartesianCoo
 }
 
 int ColonyEnergy::get_minPoints() { return this->minPoints; }
+
+std::vector<int> ColonyEnergy::get_neighbors_for_chrom(int chrom_index)
+{
+	std::vector<int> neighs(this->neighbors[chrom_index]);
+	return neighs;
+}
 /*****************************************\
 
 			RandomProjections

@@ -32,10 +32,13 @@ class ColonyEnergy
 
 
         // distance computing methods
-		float 		compute_distance(std::pair< chromosome*,std::vector<float> > &, std::pair< chromosome*,std::vector<float> > &);
-		float 		compute_vect_distance(std::vector<float> a, std::vector<float> b);
+		float 				compute_distance(std::pair< chromosome*,std::vector<float> > &, std::pair< chromosome*,std::vector<float> > &);
+		float 				compute_vect_distance(std::vector<float> a, std::vector<float> b);
 		// getters methods
-		int 		get_minPoints();
+		int 				get_minPoints();
+		std::vector<int> 	get_neighbors_for_chrom(int);
+		std::vector<float> 	Vectorized_Chromosome(chromosome* chrom);
+		std::vector<float>	Vectorized_Cartesian_Coordinates(int chrom_index);
 
 	private:
 		// FlexAID specific attributes
@@ -72,8 +75,6 @@ class ColonyEnergy
 		atom* atoms;				// pointer to atoms' array
 		resid* residue;				// pointer to residues' array
 		/*const*/gridpoint* cleftgrid;	// pointer to gridpoints' array (defining the total search space of the simulation)
-		std::vector<float> 			Vectorized_Chromosome(chromosome* chrom);
-		std::vector<float>			Vectorized_Cartesian_Coordinates(int chrom_index);
 };
 
 /*****************************************\

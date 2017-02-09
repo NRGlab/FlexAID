@@ -54,8 +54,9 @@ void Entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
     // minPoints will be used for the call to ColonyEnergy
     // "       " will also be used for output_Population as a suffix (TO UNIFORMIZE)
     int minPoints = 15;
+    int nClusters = 0;
 
-    BindingPopulation Population = BindingPopulation(FA, GB, VC, chrom, gene_lim, atoms, residue, cleftfrid, nChrom);
+    BindingPopulation Population = BindingPopulation(FA, GB, VC, chrom, gene_lim, atoms, residue, cleftgrid, nChrom);
 
     // call to ColonyEnergy class is still incertain for the current implementation
     ColonyEnergy Algo = ColonyEnergy(FA, GB, VC, chrom, gene_lim, atoms, residue, cleftgrid, nChrom, Population, minPoints);
@@ -66,15 +67,40 @@ void Entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
     std::vector<Pose> poses;
     for(int i = 0; i < nChrom; ++i)
     {   
-        BindingMode mode(&Population);
 
-        if(chrom[i].app_evalue < 0)
+         if(chrom[i].app_evalue < 0)
+         {
+             std::vector<float> viPose(Algo.Vectorized_Cartesian_Coordinates(i));
+             Pose pose(&chrom[i], i, -1, 0.0f, FA->temperature, viPose);
+             // line below checks for NaN values
+             if(!(pose.boltzmann_weight != pose.boltzmann_weight)) poses.push_back(pose);
+         }
+    }
+
+    for(std::vector<Pose>::iterator iPose = poses.begin(); iPose != poses.end(); ++iPose)
+    {
+        if(iPose->order == -1) // pose is still unclustered
         {
-            std::vector<float> vPose(Algo.Vectorized_Cartesian_Coordinates(i));
-            Pose pose(&chrom[i], i, -1, 0.0f, FA->temperature, vPose);
-            poses.push_back(pose);
+            BindingMode mode(&Population);
+            iPose->order = nClusters;
+            mode.add_Pose(*iPose);
+
+            for(std::vector<Pose>::iterator jPose = iPose+1; jPose != poses.end(); ++jPose)
+            {   
+                std::vector<float> vjPose(Algo.Vectorized_Cartesian_Coordinates(jPose->chrom_index));
+                float rmsd = Population.compute_vec_distance(iPose->vPose, vjPose);
+                if( rmsd < FA->cluster_rmsd )
+                {
+                    jPose->order = nClusters;
+                    jPose->reachDist = rmsd;
+                    mode.add_Pose(*jPose);
+                }
+            }
+            Population.add_BindingMode(mode);
+            nClusters++;
         }
-    } 
+        if(nClusters == FA->max_results) { break; } // stop clustering when enough results are generated
+    }
 
     Population.output_Population(FA->max_results, end_strfile, tmp_end_strfile, dockinp, gainp, minPoints); // minPoints = 0 to call the same function without overloading/modifying output_Population 
 }
