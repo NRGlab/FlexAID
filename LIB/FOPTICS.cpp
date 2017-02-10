@@ -103,7 +103,7 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
     this->chroms = chrom;
     this->gene_lim = gen_lim;
 	this->N = nChrom;
-	this->dist_threshold = this->FA->cluster_rmsd*(1 + RandomProjectedNeighborsFOPTICS::sizeTolerance);
+	this->dist_threshold = this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsFOPTICS::sizeTolerance);
 	// FastOPTICS
     this->nDimensions = this->FA->num_het_atm*3;	// use with Vectorized_Cartesian_Coordinates()
     // this->nDimensions = this->FA->npar + 2; 	// use with Vectorized_Chromosome()
@@ -238,7 +238,7 @@ void FastOPTICS::Classify_Population()
         ( !it->order ) ? distance = UNDEFINED_DIST : distance = this->compute_vect_distance(it->vPose, (it-1)->vPose);
 
 		// an undefined distance means we need to create a new BindingMode
-        if( isUndefinedDist(it->reachDist) || isUndefinedDist(distance) || it->reachDist > this->FA->cluster_rmsd*(1 + RandomProjectedNeighborsFOPTICS::sizeTolerance) )
+        if( isUndefinedDist(it->reachDist) || isUndefinedDist(distance) || it->reachDist > this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsFOPTICS::sizeTolerance) )
         {
         	if(Current.get_BindingMode_size() > 0)
         	{
@@ -593,7 +593,7 @@ void FastOPTICS::ExpandClusterOrder(int ipt)
 
 			float nrdist = this->compute_distance(this->points[iNeigh], this->points[currPt]);
                             
-			if(nrdist > this->FA->cluster_rmsd*(1+RandomProjectedNeighborsFOPTICS::sizeTolerance)) continue;
+			if(nrdist > this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsFOPTICS::sizeTolerance)) continue;
 
             if(coredist > nrdist) nrdist = coredist;
 

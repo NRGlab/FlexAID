@@ -21,7 +21,7 @@ ColonyEnergy::ColonyEnergy(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromoso
     this->chroms = chrom;
     this->gene_lim = gen_lim;
 	this->N = nChrom;
-	this->dist_threshold = this->FA->cluster_rmsd*(1 + RandomProjectedNeighborsColonyEnergy::sizeTolerance);
+	this->dist_threshold = this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsColonyEnergy::sizeTolerance);
 	// FastOPTICS
     this->nDimensions = this->FA->num_het_atm*3;	// use with RandomProjectedNeighborsColonyEnergy()
     // this->nDimensions = this->FA->npar + 2; 	// use with Vectorized_Chromosome()
@@ -75,29 +75,29 @@ void ColonyEnergy::Execute_ColonyEnergy(char* end_strfile, char* tmp_end_strfile
 	// Create a BindingMode containing a single Pose
 	// this will correctly compute this->Population->PartitionFunction
 	// (creating the BindingMode from a Pose and its neighbors would compute multiple times each pose into the PF)
-	for(int i = 0; i < this->N; ++i)
-	{
-		Pose pose = Pose( (this->points[i]).first, i, this->neighbors[i].size(), 0.0f, this->Population->Temperature, (this->points[i]).second);
-        if(pose.CF < 0 /* && pose.order > this->minPoints */ )
-        {
-            BindingMode mode = BindingMode(this->Population);
-            mode.add_Pose(pose);
-            this->Population->add_BindingMode(mode);
-        }
-	}
+// 	for(int i = 0; i < this->N; ++i)
+// 	{
+// 		Pose pose = Pose( (this->points[i]).first, i, this->neighbors[i].size(), 0.0f, this->Population->Temperature, (this->points[i]).second);
+//         if(pose.CF < 0 /* && pose.order > this->minPoints */ )
+//         {
+//             BindingMode mode = BindingMode(this->Population);
+//             mode.add_Pose(pose);
+//             this->Population->add_BindingMode(mode);
+//         }
+// 	}
 
-	for(std::vector< BindingMode >::iterator iMode = this->Population->BindingModes.begin(); iMode != this->Population->BindingModes.end(); ++iMode)
-	{
-        Pose Rep = Pose( *iMode->elect_Representative(false) );
-		for(	std::vector<int>::iterator it = this->neighbors[Rep.chrom_index].begin();
-				it != this->neighbors[Rep.chrom_index].end();
-				it++)
-		{
-			Pose pose = Pose((this->points[*it]).first, *it,  this->neighbors[*it].size(), 0.0f, this->Population->Temperature, (this->points[*it]).second);
-			iMode->add_Pose(pose);
-		}
-	}
-    this->Population->Entropize();
+// 	for(std::vector< BindingMode >::iterator iMode = this->Population->BindingModes.begin(); iMode != this->Population->BindingModes.end(); ++iMode)
+// 	{
+//         Pose Rep = Pose( *iMode->elect_Representative(false) );
+// 		for(	std::vector<int>::iterator it = this->neighbors[Rep.chrom_index].begin();
+// 				it != this->neighbors[Rep.chrom_index].end();
+// 				it++)
+// 		{
+// 			Pose pose = Pose((this->points[*it]).first, *it,  this->neighbors[*it].size(), 0.0f, this->Population->Temperature, (this->points[*it]).second);
+// 			iMode->add_Pose(pose);
+// 		}
+// 	}
+//     this->Population->Entropize();
 }
 
 

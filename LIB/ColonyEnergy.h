@@ -55,8 +55,6 @@ class ColonyEnergy
 		std::vector< std::pair<chromosome*,std::vector<float> > > points;
 		std::vector< std::vector< int > > neighbors;
         
-        std::vector< Pose > OPTICS;
-        
 		// BindingPopulation is used for clustering purposed
 		BindingPopulation* Population;
 		

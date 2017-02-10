@@ -78,7 +78,7 @@ void BindingPopulation::remove_invalid_BindingModes()
 void BindingPopulation::Classify_BindingModes()
 {
 	int i = 0, j = 0;
-	float sizeTolerance = (1+static_cast<float>(2.0f/3.0f)) * this->FA->cluster_rmsd;
+	float sizeTolerance = (2 - static_cast<float>(2.0f/3.0f)) * this->FA->cluster_rmsd;
 	for(std::vector<BindingMode>::iterator it1 = this->BindingModes.begin(); it1 != this->BindingModes.end() && i < this->get_Population_size(); ++it1, ++i)
 	{
 		for(std::vector<BindingMode>::iterator it2 = this->BindingModes.begin(); it2 != this->BindingModes.end() && j < this->get_Population_size(); ++it2, ++j)
@@ -161,8 +161,10 @@ int BindingPopulation::get_Population_size() { return static_cast<int>(this->Bin
 // output BindingMode up to nResults results
 void BindingPopulation::output_Population(int nResults, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints)
 {
+    this->Entropize();
 	bool accept = true;
-	float sizeTolerance = (1+static_cast<float>(2.0f/3.0f)) * this->FA->cluster_rmsd;
+	float sizeTolerance =  this->FA->cluster_rmsd;
+	// float sizeTolerance = (2 - static_cast<float>(2.0f/3.0f)) * this->FA->cluster_rmsd;
     // Output Population information ~= output clusters informations (*.cad)
     std::vector<std::vector<BindingMode>::iterator> lastModes;
     
@@ -217,7 +219,7 @@ bool BindingMode::isPoseAggregable(const Pose& pose) const
 	
 	for(std::vector<Pose>::const_iterator it = this->Poses.begin(); it != this->Poses.end(); ++it)
 	{
-		if( this->compute_distance((*it),pose) > ((1+sizeTolerance) * this->Population->FA->cluster_rmsd) )
+		if( this->compute_distance((*it),pose) > ((2 - sizeTolerance) * this->Population->FA->cluster_rmsd) )
 		{
 			accept = false;
 			break;
@@ -237,7 +239,7 @@ bool BindingMode::isHomogenic() const
 		for(std::vector<Pose>::const_iterator it2 = this->Poses.begin(); it2 != this->Poses.end(); ++it2)
 		{
 			if ((*it1) == (*it2)) continue;
-			else if( this->compute_distance((*it1),(*it2)) > ((3-sizeTolerance) * this->Population->FA->cluster_rmsd) )
+			else if( this->compute_distance((*it1),(*it2)) > ((1 + sizeTolerance) * this->Population->FA->cluster_rmsd) )
 			{	
 				accept = false;
 				break;

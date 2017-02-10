@@ -85,7 +85,7 @@ class BindingMode // aggregation of poses (Cluster)
 			bool 								isPoseAggregable(const Pose& pose) const;
 												//	tells if the BindingMode contains one *homogenic* population
 			bool 								isHomogenic() const;
-			void								clear_Poses();
+			void                                clear_Poses();
 			int									get_BindingMode_size() const;
 			float 								compute_distance(const Pose& pose1, const Pose& pose2) const;
 			double								compute_energy() const;
@@ -126,7 +126,7 @@ class BindingPopulation
 	public:
 		// Temperature is used for energy calculations of BindingModes
 		unsigned int Temperature;
-		
+		// Explicit constructor to be called (it will handle the PartitionFunction)
 		explicit 	BindingPopulation(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom);
 			// 	add new binding mode to population
 		void	add_BindingMode(BindingMode&);
@@ -159,6 +159,7 @@ class BindingPopulation
         void 	Entropize();
 	
 	private:
+		// std::vector< Pose > Poses; 					// Poses container
 		std::vector< BindingMode > 	BindingModes;	// BindingMode container
 		
 			// merges two existing BindingModes

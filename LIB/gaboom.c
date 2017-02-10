@@ -203,7 +203,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 
 		for(i = 0; i < GB->num_chrom; ++i)
 		{
-			(*chrom_snapshot)[i].genes = (gene*)malloc(GB->num_genes*sizeof(gene));
+	 		(*chrom_snapshot)[i].genes = (gene*)malloc(GB->num_genes*sizeof(gene));
 			if(!(*chrom_snapshot)[i].genes)
 			{
 				fprintf(stderr,"ERROR: memory allocation error for chrom_snapshot[%d].genes.\n",i);	
