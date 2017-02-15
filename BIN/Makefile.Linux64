@@ -132,7 +132,7 @@ OBJ =	top.o			\
 	BindingMode.o 	\
 	FOPTICS.o 	\
 	ColonyEnergy.o  \
-	Entropy_cluster.o
+	entropy_cluster.o
 	
 all: a.out
 	\mv a.out $W/FlexAID_Linux64
@@ -363,5 +363,5 @@ FOPTICS.o: $I/FOPTICS.cpp $I/BindingMode.h
 ColonyEnergy.o: $I/ColonyEnergy.cpp $I/BindingMode.h
 	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/ColonyEnergy.cpp $(INCLUDES)
 
-Entropy_cluster.o: $I/Entropy_cluster.c $I/BindingMode.h $I/gaboom.h
-	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/Entropy_cluster.c $(INCLUDES)
+entropy_cluster.o: $I/Entropy_cluster.c $I/BindingMode.h $I/gaboom.h
+	$(CXX) $(CXXFLAGS) $(DEFS) -c $I/entropy_cluster.c $(INCLUDES)

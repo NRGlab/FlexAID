@@ -49,7 +49,7 @@ void ColonyEnergy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosom
     Population.output_Population(FA->max_results, end_strfile, tmp_end_strfile, dockinp, gainp, Algo.get_minPoints());
 }
 
-void Entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
+void entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
 {
     // minPoints will be used for the call to ColonyEnergy
     // "       " will also be used for output_Population as a suffix (TO UNIFORMIZE)
@@ -106,7 +106,7 @@ void Entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
                     {
                         itPose->order = nClusters;
                         nClustered++;
-                        if(mode.) mode.add_Pose(*itPose);
+                        mode.add_Pose(*itPose);
                         break;
                     }
                 }
