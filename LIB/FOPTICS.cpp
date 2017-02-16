@@ -178,12 +178,13 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
     //   second -> float reachDist
 	for(int i = 0; i < this->N; ++i)
 	{
-		if( (this->points[i]).first != NULL && (this->points[i]).first->app_evalue < 0 )
+		if( (this->points[i]).first != NULL /* && (this->points[i]).first->app_evalue < 0 */ )
 		{
 			// Calling Pose constructor for the current chromosome
 			Pose iPose = Pose((this->points[i]).first, i, this->order[i], this->reachDist[i], this->Population->Temperature, (this->points[i]).second);
-			// OPTICS.push(Pose);
-            this->OPTICS.push_back(iPose);
+            
+            // the following statement is FALSE for NaN values in iPose.boltzmann_weight
+            if(iPose.boltzmann_weight == iPose.boltzmann_weight) this->OPTICS.push_back(iPose);
 		}
 	}
 	// this line sorts this->OPTICS using PoseClassifier(pose1, pose2) comparison struct

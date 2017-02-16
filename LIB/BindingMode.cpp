@@ -184,7 +184,7 @@ void BindingPopulation::output_Population(int nResults, char* end_strfile, char*
 	float sizeTolerance =  this->FA->cluster_rmsd;
 	// float sizeTolerance = (2 - static_cast<float>(2.0f/3.0f)) * this->FA->cluster_rmsd;
     // Output Population information ~= output clusters informations (*.cad)
-    std::vector<std::vector<BindingMode>::iterator> lastModes;
+    std::vector< std::vector< BindingMode >::iterator > lastModes;
     
     // Looping through BindingModes
     int num_result = 0;
@@ -529,10 +529,6 @@ void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tm
     // 3. print REMARKS for FA->optres (res_ptr && cf_ptr for each optimizable residue)
 	strcpy(remark,"REMARK optimized structure\n");
 	
-	sprintf(tmpremark,"REMARK Fast OPTICS clustering algorithm used to output the lowest CF as Binding Mode representative\n");
-	 // sprintf(tmpremark,"REMARK Fast OPTICS clustering algorithm used to output the lowest OPTICS ordering as Binding Mode representative\n");
-	strcat(remark,tmpremark);
-	
 	sprintf(tmpremark,"REMARK CF=%8.5f\n",get_cf_evalue(&CF));
 	strcat(remark,tmpremark);
 	sprintf(tmpremark,"REMARK CF.app=%8.5f\n",get_apparent_cf_evalue(&CF));
@@ -618,10 +614,6 @@ void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, 
 		
 	    // 3. print REMARKS for FA->optres (res_ptr && cf_ptr for each optimizable residue)
 		strcpy(remark,"REMARK optimized structure\n");
-		
-	//	 sprintf(tmpremark,"REMARK Fast OPTICS clustering algorithm used to output the lowest CF as Binding Mode representative\n");
-		sprintf(tmpremark,"REMARK Fast OPTICS clustering algorithm used to output the lowest OPTICS ordering as Binding Mode representative\n");
-		strcat(remark,tmpremark);
 		
 		sprintf(tmpremark,"REMARK CF=%8.5f\n",get_cf_evalue(&CF));
 		strcat(remark,tmpremark);
@@ -775,7 +767,7 @@ inline bool const operator==(const BindingMode& lhs, const BindingMode& rhs)
 				  Pose
 \*****************************************/
 // public constructor for Pose *non-overloadable*
-Pose::Pose(chromosome* chrom, int index, int iorder, float dist, uint temperature, std::vector<float> vec) :  chrom_index(index), order(iorder), reachDist(dist), chrom(chrom), CF(chrom->app_evalue), vPose(vec)
+Pose::Pose(chromosome* chrom, int index, int iorder, float dist, uint temperature, std::vector<float> vec) :  chrom_index(index), order(iorder), reachDist(dist), chrom(chrom), CF(chrom->app_evalue), vPose(vec), processed(false)
 {
 	this->boltzmann_weight = pow( E, ((-1.0) * (1/static_cast<double>(temperature)) * chrom->app_evalue) );
 }

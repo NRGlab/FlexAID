@@ -20,6 +20,7 @@ struct Pose
 	Pose(chromosome* chrom, int chrom_index, int order, float dist, uint temperature, std::vector<float>);
 	~Pose();
 	// public (default behavior when struct is used instead of class)
+	bool processed;
 	int chrom_index;
 	int order;
 	float reachDist;
@@ -143,6 +144,8 @@ class BindingPopulation
 		std::vector<float> 	Vectorized_Chromosome(chromosome* chrom);
 		std::vector<float>	Vectorized_Cartesian_Coordinates(int chrom_index);
 
+		std::vector< Pose > Poses; 					// Poses container
+
 	protected:
 		double PartitionFunction;	// sum of all Boltzmann_weight
 		int nChroms;				// n_chrom_snapshot input to clustergin function
@@ -157,11 +160,11 @@ class BindingPopulation
 		atom* atoms;			// pointer to atoms' array
 		resid* residue;			// pointer to residues' array
 		gridpoint* cleftgrid;	// pointer to gridpoints' array (defining the total search space of the simulation)
+
 	        // Sort BindinModes according to their energy score (∆G = ∆H - T∆S)
-        void 	Entropize();
+        void 	Entropize();			// entropize BindingModes according to their current computed energy
 	
 	private:
-		std::vector< Pose > Poses; 					// Poses container
 		std::vector< BindingMode > 	BindingModes;	// BindingMode container
 		
 			// merges two existing BindingModes

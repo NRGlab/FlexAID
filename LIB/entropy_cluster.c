@@ -28,7 +28,7 @@ void FastOPTICS_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome*
     // output the 3D poses ordered with Fast OPTICS (done only once for the purpose as the order should not change)
     // Algo.output_3d_OPTICS_ordering(end_strfile, tmp_end_strfile);
     
-    std::cout << "Size of Population 1 is " << Population.get_Population_size() << " Binding Modes." << std::endl;
+    std::cout << "Size of Population is " << Population.get_Population_size() << " Binding Modes." << std::endl;
     
     // output FA->max_result BindingModes
     Population.output_Population(FA->max_results, end_strfile, tmp_end_strfile, dockinp, gainp, Algo.get_minPoints());
@@ -64,18 +64,18 @@ void entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
     ColonyEnergy Algo = ColonyEnergy(FA, GB, VC, chrom, gene_lim, atoms, residue, cleftgrid, nChrom, Population, minPoints);
     Algo.Execute_ColonyEnergy(end_strfile, tmp_end_strfile);
     
-    std::vector<Pose> poses;
+    // std::vector<Pose> poses;
 
     // 1. Build the Poses that won't result in NaN CF values in the partition function
-    for(int i = 0; i < nChrom; ++i)
-    {   
-         std::vector<float> viPose(Algo.Vectorized_Cartesian_Coordinates(i));
-         Pose pose(&chrom[i], i, -1, 0.0f, FA->temperature, viPose);
-         // line below checks for NaN values
-         if( pose.boltzmann_weight == pose.boltzmann_weight ) poses.push_back(pose);
-    }
+    // for(int i = 0; i < nChrom; ++i)
+    // {   
+    //      std::vector<float> viPose(Algo.Vectorized_Cartesian_Coordinates(i));
+    //      Pose pose = Pose(&chrom[i], i, -1, 0.0f, FA->temperature, viPose);
+    //      // line below checks for NaN values
+    //      if( pose.boltzmann_weight == pose.boltzmann_weight ) poses.push_back(pose);
+    // }
 
-    for(std::vector<Pose>::iterator iPose = poses.begin(); iPose != poses.end(); ++iPose)
+    for(std::vector<Pose>::iterator iPose = Population.Poses.begin(); iPose != Population.Poses.end(); ++iPose)
     {
         if(iPose->order == -1) // pose is still unclustered
         {
@@ -83,7 +83,7 @@ void entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
             iPose->order = nClusters;
             mode.add_Pose(*iPose);
 
-            for(std::vector<Pose>::iterator jPose = iPose+1; jPose != poses.end(); ++jPose)
+            for(std::vector<Pose>::iterator jPose = iPose+1; jPose != Population.Poses.end(); ++jPose)
             {   
                 std::vector<float> vjPose(Algo.Vectorized_Cartesian_Coordinates(jPose->chrom_index));
                 float rmsd = Population.compute_vec_distance(iPose->vPose, vjPose);
@@ -100,9 +100,9 @@ void entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
             for(std::vector<int>::iterator it = neighs.begin(); it != neighs.end(); ++it)
             {
                 // need to find the appropriate Pose by index (maybe all chroms were not built as Poses in 1.)
-                for(std::vector<Pose>::iterator itPose = poses.begin(); itPose != poses.end(); itPose++)
+                for(std::vector<Pose>::iterator itPose = Population.Poses.begin(); itPose != Population.Poses.end(); itPose++)
                 {
-                    if(poses[*it].chrom_index == itPose->chrom_index)
+                    if(Population.Poses[*it].chrom_index == itPose->chrom_index)
                     {
                         itPose->order = nClusters;
                         nClustered++;
