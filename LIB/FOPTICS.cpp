@@ -289,8 +289,8 @@ void FastOPTICS::Classify_Population()
 			}
 		}
 	}
-	this->Population->Classify_BindingModes();
-	this->Population->Entropize();
+	// this->Population->Classify_BindingModes();
+	// this->Population->Entropize();
 }
 
 void FastOPTICS::output_OPTICS(char* end_strfile, char* tmp_end_strfile)

@@ -16,15 +16,15 @@ BindingPopulation::BindingPopulation(FA_Global* pFA, GB_Global* pGB, VC_Global* 
 	for(int i = 0; i < nChroms; ++i)
 	{
 		// builds the Pose object
-		Pose pose(&chroms[i], i, -1, 0.0f, this->Temperature, this->Vectorized_Cartesian_Coordinates(i));
+		Pose pose = Pose(&chroms[i], i, -1, 0.0f, this->Temperature, this->Vectorized_Cartesian_Coordinates(i));
 		// check against NaN values before adding the pose to the population
 		//  (adding the pose the population means that it contributes to the partition function)
-		if(pose.boltzmann_weight == pose.boltzmann_weight)
-		{
+		// if(pose.boltzmann_weight == pose.boltzmann_weight)
+		// {
 			this->Poses.push_back(pose);
-		}
+		// }
 	}
-
+    
 	// calculate the partition function
 	for(std::vector<Pose>::iterator iPose = this->Poses.begin(); iPose != this->Poses.end(); ++iPose)
 	{
@@ -183,31 +183,31 @@ void BindingPopulation::output_Population(int nResults, char* end_strfile, char*
 	bool accept = true;
 	float sizeTolerance =  this->FA->cluster_rmsd;
 	// float sizeTolerance = (2 - static_cast<float>(2.0f/3.0f)) * this->FA->cluster_rmsd;
-    // Output Population information ~= output clusters informations (*.cad)
-    std::vector< std::vector< BindingMode >::iterator > lastModes;
+  
+    // std::vector< std::vector< BindingMode >::iterator > lastModes;
     
     // Looping through BindingModes
     int num_result = 0;
     if(!nResults) nResults = this->get_Population_size() - 1; // if 0 is sent to this function, output all available results
 	for(std::vector<BindingMode>::iterator mode = this->BindingModes.begin(); mode != this->BindingModes.end() && nResults > 0; ++mode)
 	{
-		accept = true;
-		for(std::vector<std::vector<BindingMode>::iterator>::iterator itMode = lastModes.begin(); itMode != lastModes.end(); ++itMode)
-		{
-			if(this->compute_distance((*itMode)->elect_Representative(false),mode->elect_Representative(false)) <= sizeTolerance)
-			{
-				accept = false;
-				break;
-			}
-		}
-		if(accept)
-		{
+		// accept = true;
+		// for(std::vector<std::vector<BindingMode>::iterator>::iterator itMode = lastModes.begin(); itMode != lastModes.end(); ++itMode)
+		// {
+		// 	if(this->compute_distance((*itMode)->elect_Representative(false),mode->elect_Representative(false)) <= sizeTolerance)
+		// 	{
+		// 		accept = false;
+		// 		break;
+		// 	}
+		// }
+		// if(accept)
+		// {
 			mode->output_BindingMode(num_result, end_strfile, tmp_end_strfile, dockinp, gainp, minPoints);
 	        mode->output_dynamic_BindingMode(num_result,end_strfile, tmp_end_strfile, dockinp, gainp, minPoints);
 	         --nResults;
 	         ++num_result;
-	         lastModes.push_back(mode);
-        }
+	         // lastModes.push_back(mode);
+        // }
 	}
 }
 

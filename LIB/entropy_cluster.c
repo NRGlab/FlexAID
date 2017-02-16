@@ -55,7 +55,6 @@ void entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
     // "       " will also be used for output_Population as a suffix (TO UNIFORMIZE)
     int minPoints = 15;
     int nClusters = 0;
-    int nClustered = 0;
 
     BindingPopulation Population = BindingPopulation(FA, GB, VC, chrom, gene_lim, atoms, residue, cleftgrid, nChrom);
 
@@ -64,58 +63,59 @@ void entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
     ColonyEnergy Algo = ColonyEnergy(FA, GB, VC, chrom, gene_lim, atoms, residue, cleftgrid, nChrom, Population, minPoints);
     Algo.Execute_ColonyEnergy(end_strfile, tmp_end_strfile);
     
-    // std::vector<Pose> poses;
-
-    // 1. Build the Poses that won't result in NaN CF values in the partition function
-    // for(int i = 0; i < nChrom; ++i)
-    // {   
-    //      std::vector<float> viPose(Algo.Vectorized_Cartesian_Coordinates(i));
-    //      Pose pose = Pose(&chrom[i], i, -1, 0.0f, FA->temperature, viPose);
-    //      // line below checks for NaN values
-    //      if( pose.boltzmann_weight == pose.boltzmann_weight ) poses.push_back(pose);
-    // }
-
+    // iterates over all Poses to run the CF clustering algo
     for(std::vector<Pose>::iterator iPose = Population.Poses.begin(); iPose != Population.Poses.end(); ++iPose)
     {
-        if(iPose->order == -1) // pose is still unclustered
+        if(/*iPose->order == -1 &&*/ !iPose->processed) // pose is still unclustered
         {
             BindingMode mode(&Population);
             iPose->order = nClusters;
+            iPose->processed = true;
             mode.add_Pose(*iPose);
 
             for(std::vector<Pose>::iterator jPose = iPose+1; jPose != Population.Poses.end(); ++jPose)
             {   
-                std::vector<float> vjPose(Algo.Vectorized_Cartesian_Coordinates(jPose->chrom_index));
-                float rmsd = Population.compute_vec_distance(iPose->vPose, vjPose);
-                if( rmsd < FA->cluster_rmsd )
+                if(/*jPose->order == -1 &&*/ !jPose->processed) // pose is still unclustered
                 {
-                    jPose->order = nClusters;
-                    jPose->reachDist = rmsd;
-                    mode.add_Pose(*jPose);
-                    nClustered++;
-                }
-            }
-            std::vector<int> neighs = Algo.get_neighbors_for_chrom(iPose->chrom_index);
-            // iterating over neighbors to add them to BindingMode
-            for(std::vector<int>::iterator it = neighs.begin(); it != neighs.end(); ++it)
-            {
-                // need to find the appropriate Pose by index (maybe all chroms were not built as Poses in 1.)
-                for(std::vector<Pose>::iterator itPose = Population.Poses.begin(); itPose != Population.Poses.end(); itPose++)
-                {
-                    if(Population.Poses[*it].chrom_index == itPose->chrom_index)
+//                    float rmsd = Population.compute_distance(*iPose, *jPose);
+                    float rmsd = calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes,iPose->chrom_index,jPose->chrom_index, NULL, NULL, true);
+                    if( rmsd <= FA->cluster_rmsd )
                     {
-                        itPose->order = nClusters;
-                        nClustered++;
-                        mode.add_Pose(*itPose);
-                        break;
+                        jPose->order = nClusters;
+                        jPose->reachDist = rmsd;
+                        jPose->processed = true;
+                        mode.add_Pose(*jPose);
                     }
                 }
             }
+
+            // neighbors-adding section
+            std::vector<int> neighs = Algo.get_neighbors_for_chrom(iPose->chrom_index);
+            // iterating over neighbors to add them to BindingMode
+            // for(std::vector<int>::iterator it = neighs.begin(); it != neighs.end(); ++it)
+            // {
+            //     // need to find the appropriate Pose by index (maybe all chroms were not built as Poses in 1.)
+            //     for(std::vector<Pose>::iterator itPose = Population.Poses.begin(); itPose != Population.Poses.end(); itPose++)
+            //     {
+            //         if(Population.Poses[*it].chrom_index == itPose->chrom_index)
+            //         {
+            //             if(!itPose->processed) // pose is still unclustered
+            //             {
+            //                 itPose->order = nClusters;
+            //                 itPose->processed = true;
+            //                 mode.add_Pose(*itPose);
+            //             }
+            //             break;
+            //         }
+            //     }
+            // }
+            
             Population.add_BindingMode(mode);
             nClusters++;
         }
-//        if(nClusters == FA->max_results) { break; } // stop clustering when enough results are generated
+
+        if(nClusters == FA->max_results) { break; } // stop clustering when enough results are generated
     }
-    
+    // Population.Classify_BindingModes();
     Population.output_Population(FA->max_results, end_strfile, tmp_end_strfile, dockinp, gainp, minPoints); // minPoints = 0 to call the same function without overloading/modifying output_Population 
 }
