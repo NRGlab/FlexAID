@@ -8,15 +8,33 @@ boost::random::mt19937 gen;
 // BindingPopulation::BindingPopulation(unsigned int temp) : Temperature(temp)
 BindingPopulation::BindingPopulation(FA_Global* pFA, GB_Global* pGB, VC_Global* pVC, chromosome* pchrom, genlim* pgene_lim, atom* patoms, resid* presidue, gridpoint* pcleftgrid, int num_chrom) : Temperature(pFA->temperature), PartitionFunction(0.0), nChroms(num_chrom), FA(pFA), GB(pGB), VC(pVC), chroms(pchrom), gene_lim(pgene_lim), atoms(patoms), residue(presidue), cleftgrid(pcleftgrid)
 {
+	// the number of dimensions is used for the vectors of coordinates
+	this->nDimensions = this->FA->num_het_atm*3;	// use with Vectorized_Cartesian_Coordinates()
+    // this->nDimensions = this->FA->npar + 2; 	// use with Vectorized_Chromosome()
+    
+    // iterates through all the chromosomes 
+	for(int i = 0; i < nChroms; ++i)
+	{
+		// builds the Pose object
+		Pose pose(&chroms[i], i, -1, 0.0f, this->Temperature, this->Vectorized_Cartesian_Coordinates(i));
+		// check against NaN values before adding the pose to the population
+		//  (adding the pose the population means that it contributes to the partition function)
+		if(pose.boltzmann_weight == pose.boltzmann_weight)
+		{
+			this->Poses.push_back(pose);
+		}
+	}
+
+	// calculate the partition function
+	for(std::vector<Pose>::iterator iPose = this->Poses.begin(); iPose != this->Poses.end(); ++iPose)
+	{
+		this->PartitionFunction += iPose->boltzmann_weight;
+	}
 }
 
 
 void BindingPopulation::add_BindingMode(BindingMode& mode)
 {
-	for(std::vector<Pose>::iterator pose = mode.Poses.begin(); pose != mode.Poses.end(); ++pose)
-	{
-		this->PartitionFunction += pose->boltzmann_weight;
-	}
     mode.set_energy();
 	this->BindingModes.push_back(mode);
 //	this->Entropize();
@@ -193,7 +211,145 @@ void BindingPopulation::output_Population(int nResults, char* end_strfile, char*
 	}
 }
 
+std::vector<float> BindingPopulation::Vectorized_Chromosome(chromosome* chrom)
+{
+    float norm = 0.0f;
+	std::vector<float> vChrom(this->nDimensions, 0.0f);
+	// getting nDim-2 because the Dim=0 fills 3 memory cases
+	for(int j = 0; j < this->nDimensions-2; ++j)
+	{
+		if(j == 0) //  building the first 3 comp. from genes[0] which are CartCoord x,y,z
+		{
+			for(int i = 0; i < 3; ++i)
+			{
+				// vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
+				if(i == 0)
+				{
+                    // vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
+					vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].dis);
+					// vChrom[i] *= vChrom[i];
+				}
+				if(i == 1)
+				{
+					// vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
+					vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].ang);
+					// vChrom[i] = static_cast<float>( RandomDouble( (*chrom).genes[j].to_int32) );
+					// vChrom[i] *= vChrom[i];
+				}
+				if(i == 2)
+				{
+                    // vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
+					vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].dih);
+					// vChrom[i] = static_cast<float>( genetoic(&this->gene_lim[i],(*chrom).genes[j].to_int32) );
+					// vChrom[i] *= vChrom[i];
+				}
+                norm += vChrom[i]*vChrom[i];
+			}
+		}
+		else
+		{
+			// j+2 is used from {j = 1 to N} to build further comp. of genes[j]
+			// vChrom[j+2] = static_cast<float>(genetoic(&gene_lim[j], (*chrom).genes[j].to_int32));
+			vChrom[j+2] = static_cast<float>((*chrom).genes[j].to_ic);
+			// vChrom[j+2] = static_cast<float>( RandomDouble( (*chrom).genes[j].to_int32) );
+            norm += vChrom[j+2]*vChrom[j+2];
+		}
+	}
+    
+  // norm = sqrtf(norm);
+  // for(int k = 0; k < this->nDimensions; ++k) { vChrom[k]/=norm; }
+   
+   return vChrom;
+}
 
+std::vector<float> BindingPopulation::Vectorized_Cartesian_Coordinates(int chrom_index)
+{
+	int i = 0,j = 0,l = 0,m = 0;
+	int cat;
+	int rot;
+
+	uint grd_idx;
+	int normalmode=-1;
+	int rot_idx=0;
+
+    std::vector<float> vChrom(this->nDimensions);
+
+	int npar = this->GB->num_genes;
+	
+	j = chrom_index;
+
+	for(i=0;i<npar;i++){ this->FA->opt_par[i] = this->chroms[j].genes[i].to_ic; }
+
+	for(i=0;i<npar;i++)
+	{
+		//printf("[%8.3f]",FA->opt_par[i]);
+  
+		if(this->FA->map_par[i].typ==-1) 
+		{ //by index
+			grd_idx = (uint)this->FA->opt_par[i];
+			//printf("this->FA->opt_par(index): %d\n", grd_idx);
+			//PAUSE;
+			this->atoms[this->FA->map_par[i].atm].dis = this->cleftgrid[grd_idx].dis;
+			this->atoms[this->FA->map_par[i].atm].ang = this->cleftgrid[grd_idx].ang;
+			this->atoms[this->FA->map_par[i].atm].dih = this->cleftgrid[grd_idx].dih;
+
+		}
+		else if(this->FA->map_par[i].typ == 0)
+		{
+			this->atoms[this->FA->map_par[i].atm].dis = (float)this->FA->opt_par[i];
+		}
+		else if(this->FA->map_par[i].typ == 1)
+		{
+			this->atoms[this->FA->map_par[i].atm].ang = (float)this->FA->opt_par[i];
+		}
+		else if(this->FA->map_par[i].typ == 2)
+		{
+			this->atoms[this->FA->map_par[i].atm].dih = (float)this->FA->opt_par[i];
+
+			j=this->FA->map_par[i].atm;
+			cat=this->atoms[j].rec[3];
+			if(cat != 0)
+			{
+				while(cat != this->FA->map_par[i].atm)
+				{
+					this->atoms[cat].dih=this->atoms[j].dih + this->atoms[cat].shift; 
+					j=cat;
+					cat=this->atoms[j].rec[3];
+				}
+			}
+		}else if(this->FA->map_par[i].typ == 3)
+		{ //by index
+			grd_idx = (uint)this->FA->opt_par[i];
+
+			// serves as flag , but also as grid index
+			normalmode=grd_idx;
+
+		}else if(this->FA->map_par[i].typ == 4)
+		{
+			rot_idx = (int)(this->FA->opt_par[i]+0.5);
+
+			this->residue[this->atoms[this->FA->map_par[i].atm].ofres].rot=rot_idx;
+		}
+  
+	}
+
+	if(normalmode > -1) alter_mode(this->atoms,this->residue,this->FA->normal_grid[normalmode],this->FA->res_cnt,this->FA->normal_modes);
+
+	/* rebuild cartesian coordinates of optimized residues*/
+    for(i=0;i<this->FA->nors;i++) buildcc(this->FA,this->atoms,this->FA->nmov[i],this->FA->mov[i]);
+
+	// residue that is optimized geometrically (ligand)
+	l=this->atoms[this->FA->map_par[0].atm].ofres;
+
+	rot=this->residue[l].rot;
+    m=0;
+	for(i=this->residue[l].fatm[rot];i<=this->residue[l].latm[rot];i++)
+	{
+		for(j=0;j<3;j++) vChrom[m*3+j] = this->atoms[i].coor[j];
+        ++m;
+	}
+	return vChrom;
+}
 
 /*****************************************\
 			  BindingMode

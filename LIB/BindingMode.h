@@ -129,22 +129,24 @@ class BindingPopulation
 		// Explicit constructor to be called (it will handle the PartitionFunction)
 		explicit 	BindingPopulation(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom);
 			// 	add new binding mode to population
-		void	add_BindingMode(BindingMode&);
+		void				add_BindingMode(BindingMode&);
 			// Classify_BindingModes merges similar BindingModes together
-		void 	Classify_BindingModes();
+		void 				Classify_BindingModes();
 			// used to compute the distance between 2 poses (same as BindingMode::compute_distance)
-		float 	compute_distance(const Pose& pose1, const Pose& pose2) const;
-		float 	compute_distance(std::vector<Pose>::const_iterator,std::vector<Pose>::const_iterator) const;
-
-		float 	compute_vec_distance(std::vector<float>, std::vector<float>) const;
+		float 				compute_distance(const Pose& pose1, const Pose& pose2) const;
+		float 				compute_distance(std::vector<Pose>::const_iterator,std::vector<Pose>::const_iterator) const;
+		float 				compute_vec_distance(std::vector<float>, std::vector<float>) const;
 			// 	return the number of BindinMonde (size getter)
-		int		get_Population_size();
+		int					get_Population_size();
 			// 	output BindingMode up to nResults results
-		void	output_Population(int nResults, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints);
+		void				output_Population(int nResults, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints);
+		std::vector<float> 	Vectorized_Chromosome(chromosome* chrom);
+		std::vector<float>	Vectorized_Cartesian_Coordinates(int chrom_index);
 
 	protected:
 		double PartitionFunction;	// sum of all Boltzmann_weight
 		int nChroms;				// n_chrom_snapshot input to clustergin function
+		int nDimensions;
 
 		// FlexAID pointers
 		FA_Global* 	FA;			// pointer to FA_Global struct
@@ -159,7 +161,7 @@ class BindingPopulation
         void 	Entropize();
 	
 	private:
-		// std::vector< Pose > Poses; 					// Poses container
+		std::vector< Pose > Poses; 					// Poses container
 		std::vector< BindingMode > 	BindingModes;	// BindingMode container
 		
 			// merges two existing BindingModes
