@@ -679,7 +679,7 @@ float FastOPTICS::compute_distance(std::pair< chromosome*,std::vector<float> > &
         distance +=  tempDist * tempDist;
 	}
 
-	return sqrtf(distance);
+	return sqrtf(distance / static_cast<float>(this->FA->num_het_atm));
 }
 
 float FastOPTICS::compute_vect_distance(std::vector<float> a, std::vector<float> b)
@@ -693,7 +693,7 @@ float FastOPTICS::compute_vect_distance(std::vector<float> a, std::vector<float>
         distance +=  tempDist * tempDist;
     }
 
-	return sqrtf(distance);
+	return sqrtf(distance / static_cast<float>(this->FA->num_het_atm));
 }
 
 void FastOPTICS::normalizeDistances()

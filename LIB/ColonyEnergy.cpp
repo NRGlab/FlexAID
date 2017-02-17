@@ -682,7 +682,7 @@ float ColonyEnergy::compute_distance(std::pair< chromosome*,std::vector<float> >
         distance +=  tempDist * tempDist;
 	}
 
-	return sqrtf(distance);
+	return sqrtf(distance / static_cast<float>(this->FA->num_het_atm));
 }
 
 float ColonyEnergy::compute_vect_distance(std::vector<float> a, std::vector<float> b)
@@ -696,7 +696,7 @@ float ColonyEnergy::compute_vect_distance(std::vector<float> a, std::vector<floa
         distance +=  tempDist * tempDist;
     }
 
-	return sqrtf(distance);
+	return sqrtf(distance / static_cast<float>(this->FA->num_het_atm));
 }
 
 std::vector<float> RandomProjectedNeighborsColonyEnergy::Randomly_Selected_Chromosome()

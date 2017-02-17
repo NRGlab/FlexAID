@@ -145,7 +145,7 @@ float BindingPopulation::compute_distance(const Pose& pose1, const Pose& pose2) 
 		distance += temp * temp;
 	}
 	// return square-root of distance^2
-	return sqrtf(distance);
+	return sqrtf(distance / static_cast<float>(this->FA->num_het_atm));
 }
 float BindingPopulation::compute_distance(std::vector<Pose>::const_iterator pose1,std::vector<Pose>::const_iterator pose2) const
 {
@@ -157,7 +157,7 @@ float BindingPopulation::compute_distance(std::vector<Pose>::const_iterator pose
 		distance += temp * temp;
 	}
 	// return square-root of distance^2
-	return sqrtf(distance);
+	return sqrtf(distance / static_cast<float>(this->FA->num_het_atm));
 }
 
 float BindingPopulation::compute_vec_distance(std::vector<float> v1 ,std::vector<float> v2) const
@@ -170,7 +170,7 @@ float BindingPopulation::compute_vec_distance(std::vector<float> v1 ,std::vector
 		distance += temp * temp;
 	}
 	// return square-root of distance^2
-	return sqrtf(distance);
+	return sqrtf(distance / static_cast<float>(this->FA->num_het_atm));
 }
 
 int BindingPopulation::get_Population_size() { return static_cast<int>(this->BindingModes.size()); }
@@ -417,7 +417,7 @@ float BindingMode::compute_distance(const Pose& pose1, const Pose& pose2) const
 		distance += temp * temp;
 	}
 	// return square-root of distance^2
-	return sqrtf(distance);
+	return sqrtf(distance / static_cast<float>(this->Population->FA->num_het_atm));
 }
 
 
