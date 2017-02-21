@@ -91,24 +91,25 @@ void entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 
             // neighbors-adding section
             std::vector<int> neighs = Algo.get_neighbors_for_chrom(iPose->chrom_index);
+            
             // iterating over neighbors to add them to BindingMode
-            // for(std::vector<int>::iterator it = neighs.begin(); it != neighs.end(); ++it)
-            // {
-            //     // need to find the appropriate Pose by index (maybe all chroms were not built as Poses in 1.)
-            //     for(std::vector<Pose>::iterator itPose = Population.Poses.begin(); itPose != Population.Poses.end(); itPose++)
-            //     {
-            //         if(Population.Poses[*it].chrom_index == itPose->chrom_index)
-            //         {
-            //             if(!itPose->processed) // pose is still unclustered
-            //             {
-            //                 itPose->order = nClusters;
-            //                 itPose->processed = true;
-            //                 mode.add_Pose(*itPose);
-            //             }
-            //             break;
-            //         }
-            //     }
-            // }
+            for(std::vector<int>::iterator it = neighs.begin(); it != neighs.end(); ++it)
+            {
+                // need to find the appropriate Pose by index (maybe all chroms were not built as Poses in 1.)
+                for(std::vector<Pose>::iterator itPose = Population.Poses.begin(); itPose != Population.Poses.end(); itPose++)
+                {
+                    if(Population.Poses[*it].chrom_index == itPose->chrom_index)
+                    {
+                        if(!itPose->processed) // pose is still unclustered
+                        {
+                            itPose->order = nClusters;
+                            itPose->processed = true;
+                            mode.add_Pose(*itPose);
+                        }
+                        break;
+                    }
+                }
+            }
             
             Population.add_BindingMode(mode);
             nClusters++;

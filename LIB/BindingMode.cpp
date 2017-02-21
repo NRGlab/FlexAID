@@ -19,10 +19,10 @@ BindingPopulation::BindingPopulation(FA_Global* pFA, GB_Global* pGB, VC_Global* 
 		Pose pose = Pose(&chroms[i], i, -1, 0.0f, this->Temperature, this->Vectorized_Cartesian_Coordinates(i));
 		// check against NaN values before adding the pose to the population
 		//  (adding the pose the population means that it contributes to the partition function)
-		// if(pose.boltzmann_weight == pose.boltzmann_weight)
-		// {
+		if(pose.boltzmann_weight == pose.boltzmann_weight)
+		{
 			this->Poses.push_back(pose);
-		// }
+		}
 	}
     
 	// calculate the partition function
