@@ -77,8 +77,8 @@ void entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
             {   
                 if(/*jPose->order == -1 &&*/ !jPose->processed) // pose is still unclustered
                 {
-//                    float rmsd = Population.compute_distance(*iPose, *jPose);
-                    float rmsd = calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes,iPose->chrom_index,jPose->chrom_index, NULL, NULL, true);
+                    float rmsd = Population.compute_distance(*iPose, *jPose);
+//                    float rmsd = calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes,iPose->chrom_index,jPose->chrom_index, NULL, NULL, true);
                     if( rmsd <= FA->cluster_rmsd )
                     {
                         jPose->order = nClusters;

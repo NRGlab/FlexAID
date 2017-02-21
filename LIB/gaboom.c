@@ -1972,7 +1972,9 @@ int generate_single_gene_mutants(FA_Global* FA, GB_Global* GB, VC_Global* VC, at
 		}
 		// rmsd is the distance between the individual and the chrom_center contained in centerIndex
 		rmsd = calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes, centerIndex, nChroms, NULL, NULL, true);
-		if( rmsd > (1-sizeTolerance)*FA->cluster_rmsd ) flag = true;
+		
+		if( rmsd > FA->cluster_rmsd ) flag = true;
+		// if( rmsd > (2-sizeTolerance)*FA->cluster_rmsd ) flag = true;
 
 		// chrom[nChroms].cf=eval_chromosome(FA, GB, VC, gene_lim, atoms, residue, cleftgrid, chrom[nChroms].genes, target);
 		// chrom[nChroms].evalue=get_cf_evalue(&chrom[nChroms].cf);

@@ -96,7 +96,8 @@ void BindingPopulation::remove_invalid_BindingModes()
 void BindingPopulation::Classify_BindingModes()
 {
 	int i = 0, j = 0;
-	float sizeTolerance = (2 - static_cast<float>(2.0f/3.0f)) * this->FA->cluster_rmsd;
+	float sizeTolerance = this->FA->cluster_rmsd;
+	// float sizeTolerance = (2 - static_cast<float>(2.0f/3.0f)) * this->FA->cluster_rmsd;
 	for(std::vector<BindingMode>::iterator it1 = this->BindingModes.begin(); it1 != this->BindingModes.end() && i < this->get_Population_size(); ++it1, ++i)
 	{
 		for(std::vector<BindingMode>::iterator it2 = this->BindingModes.begin(); it2 != this->BindingModes.end() && j < this->get_Population_size(); ++it2, ++j)
@@ -184,30 +185,30 @@ void BindingPopulation::output_Population(int nResults, char* end_strfile, char*
 	float sizeTolerance =  this->FA->cluster_rmsd;
 	// float sizeTolerance = (2 - static_cast<float>(2.0f/3.0f)) * this->FA->cluster_rmsd;
   
-    // std::vector< std::vector< BindingMode >::iterator > lastModes;
+    std::vector< std::vector< BindingMode >::iterator > lastModes;
     
     // Looping through BindingModes
     int num_result = 0;
     if(!nResults) nResults = this->get_Population_size() - 1; // if 0 is sent to this function, output all available results
 	for(std::vector<BindingMode>::iterator mode = this->BindingModes.begin(); mode != this->BindingModes.end() && nResults > 0; ++mode)
 	{
-		// accept = true;
-		// for(std::vector<std::vector<BindingMode>::iterator>::iterator itMode = lastModes.begin(); itMode != lastModes.end(); ++itMode)
-		// {
-		// 	if(this->compute_distance((*itMode)->elect_Representative(false),mode->elect_Representative(false)) <= sizeTolerance)
-		// 	{
-		// 		accept = false;
-		// 		break;
-		// 	}
-		// }
-		// if(accept)
-		// {
+		accept = true;
+		for(std::vector<std::vector<BindingMode>::iterator>::iterator itMode = lastModes.begin(); itMode != lastModes.end(); ++itMode)
+		{
+			if(this->compute_distance((*itMode)->elect_Representative(false),mode->elect_Representative(false)) <= sizeTolerance)
+			{
+				accept = false;
+				break;
+			}
+		}
+		if(accept)
+		{
 			mode->output_BindingMode(num_result, end_strfile, tmp_end_strfile, dockinp, gainp, minPoints);
 	        mode->output_dynamic_BindingMode(num_result,end_strfile, tmp_end_strfile, dockinp, gainp, minPoints);
 	         --nResults;
 	         ++num_result;
-	         // lastModes.push_back(mode);
-        // }
+	         lastModes.push_back(mode);
+        }
 	}
 }
 
@@ -368,14 +369,15 @@ void BindingMode::add_Pose(Pose& pose)
 bool BindingMode::isPoseAggregable(const Pose& pose) const
 {
 	bool accept = true;
-	float sizeTolerance = static_cast<float>(2.0f/3.0f);
+	float sizeTolerance = this->Population->FA->cluster_rmsd;
+	// float sizeTolerance = (2-static_cast<float>(2.0f/3.0f))*this->Population->FA->cluster_rmsd;
 
 	// automatically accep if the BindingMode is empty
 	if(!this->get_BindingMode_size()) return accept;
 	
 	for(std::vector<Pose>::const_iterator it = this->Poses.begin(); it != this->Poses.end(); ++it)
 	{
-		if( this->compute_distance((*it),pose) > ((2 - sizeTolerance) * this->Population->FA->cluster_rmsd) )
+		if( this->compute_distance((*it),pose) > sizeTolerance )
 		{
 			accept = false;
 			break;
@@ -388,14 +390,14 @@ bool BindingMode::isPoseAggregable(const Pose& pose) const
 bool BindingMode::isHomogenic() const
 {
 	bool accept = true;
-	float sizeTolerance = static_cast<float>(2.0f/3.0f);
+	float sizeTolerance = (2 - static_cast<float>(2.0f/3.0f)) * this->Population->FA->cluster_rmsd;
 	
 	for(std::vector<Pose>::const_iterator it1 = this->Poses.begin(); it1 != this->Poses.end(); ++it1)
 	{
 		for(std::vector<Pose>::const_iterator it2 = this->Poses.begin(); it2 != this->Poses.end(); ++it2)
 		{
 			if ((*it1) == (*it2)) continue;
-			else if( this->compute_distance((*it1),(*it2)) > ((1 + sizeTolerance) * this->Population->FA->cluster_rmsd) )
+			else if( this->compute_distance((*it1),(*it2)) > sizeTolerance )
 			{	
 				accept = false;
 				break;
@@ -416,7 +418,7 @@ float BindingMode::compute_distance(const Pose& pose1, const Pose& pose2) const
 		float temp = pose1.vPose[i] - pose2.vPose[i];
 		distance += temp * temp;
 	}
-	// return square-root of distance^2
+	// return square-root of distance^2 divided by the number of atoms
 	return sqrtf(distance / static_cast<float>(this->Population->FA->num_het_atm));
 }
 

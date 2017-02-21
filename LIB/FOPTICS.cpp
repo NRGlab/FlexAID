@@ -103,7 +103,8 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
     this->chroms = chrom;
     this->gene_lim = gen_lim;
 	this->N = nChrom;
-	this->dist_threshold = this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsFOPTICS::sizeTolerance);
+	this->dist_threshold = this->FA->cluster_rmsd;
+	// this->dist_threshold = this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsFOPTICS::sizeTolerance);
 	// FastOPTICS
     this->nDimensions = this->FA->num_het_atm*3;	// use with Vectorized_Cartesian_Coordinates()
     // this->nDimensions = this->FA->npar + 2; 	// use with Vectorized_Chromosome()
@@ -289,7 +290,7 @@ void FastOPTICS::Classify_Population()
 			}
 		}
 	}
-	// this->Population->Classify_BindingModes();
+    this->Population->Classify_BindingModes();
 	// this->Population->Entropize();
 }
 
@@ -594,8 +595,6 @@ void FastOPTICS::ExpandClusterOrder(int ipt)
 
 			float nrdist = this->compute_distance(this->points[iNeigh], this->points[currPt]);
                             
-			if(nrdist > this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsFOPTICS::sizeTolerance)) continue;
-
             if(coredist > nrdist) nrdist = coredist;
 
 			if(isUndefinedDist(this->reachDist[iNeigh]))
@@ -989,7 +988,7 @@ bool RandomProjectedNeighborsFOPTICS::accept_intraset_distance(std::vector<int> 
 		{
 			if((*it1) != (*it2)) // skip comparing the distance between an element and itself
 			{
-				if( this->top->compute_distance( this->top->points[(*it1)], this->top->points[(*it2)] ) >= (1 + RandomProjectedNeighborsFOPTICS::sizeTolerance)*this->top->FA->cluster_rmsd )
+				if( this->top->compute_distance( this->top->points[(*it1)], this->top->points[(*it2)] ) >= (2 - RandomProjectedNeighborsFOPTICS::sizeTolerance)*this->top->FA->cluster_rmsd )
 				{
 					accept = false;
 					break;

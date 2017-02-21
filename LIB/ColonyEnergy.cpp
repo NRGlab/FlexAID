@@ -21,7 +21,8 @@ ColonyEnergy::ColonyEnergy(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromoso
     this->chroms = chrom;
     this->gene_lim = gen_lim;
 	this->N = nChrom;
-	this->dist_threshold = this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsColonyEnergy::sizeTolerance);
+	this->dist_threshold = this->FA->cluster_rmsd;
+	// this->dist_threshold = this->FA->cluster_rmsd*(2 - RandomProjectedNeighborsColonyEnergy::sizeTolerance);
 	// FastOPTICS
     this->nDimensions = this->FA->num_het_atm*3;	// use with RandomProjectedNeighborsColonyEnergy()
     // this->nDimensions = this->FA->npar + 2; 	// use with Vectorized_Chromosome()
