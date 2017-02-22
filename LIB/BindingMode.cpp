@@ -19,7 +19,7 @@ BindingPopulation::BindingPopulation(FA_Global* pFA, GB_Global* pGB, VC_Global* 
 		Pose pose = Pose(&chroms[i], i, -1, 0.0f, this->Temperature, this->Vectorized_Cartesian_Coordinates(i));
 		// check against NaN values before adding the pose to the population
 		//  (adding the pose the population means that it contributes to the partition function)
-		if(pose.boltzmann_weight == pose.boltzmann_weight)
+		if( !boost::math::isnan(pose.boltzmann_weight) )
 		{
 			this->Poses.push_back(pose);
 		}
@@ -454,6 +454,11 @@ double BindingMode::compute_entropy() const
 double BindingMode::compute_energy() const
 { 
 	double energy = ( this->compute_enthalpy() - ( this->Population->Temperature * this->compute_entropy() ) );
+	
+	// if energy isNaN, put energy to 0.0
+	// to avoid NaN in BindingModes enery
+	if(boost::math::isnan(energy)) energy = 0.0;
+	
 	return energy;
 }
 
