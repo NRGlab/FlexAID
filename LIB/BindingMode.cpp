@@ -192,15 +192,15 @@ void BindingPopulation::output_Population(int nResults, char* end_strfile, char*
     if(!nResults) nResults = this->get_Population_size() - 1; // if 0 is sent to this function, output all available results
 	for(std::vector<BindingMode>::iterator mode = this->BindingModes.begin(); mode != this->BindingModes.end() && nResults > 0; ++mode)
 	{
-		accept = true;
-		for(std::vector<std::vector<BindingMode>::iterator>::iterator itMode = lastModes.begin(); itMode != lastModes.end(); ++itMode)
-		{
-			if(this->compute_distance((*itMode)->elect_Representative(false),mode->elect_Representative(false)) <= sizeTolerance)
-			{
-				accept = false;
-				break;
-			}
-		}
+		// accept = true;
+		// for(std::vector<std::vector<BindingMode>::iterator>::iterator itMode = lastModes.begin(); itMode != lastModes.end(); ++itMode)
+		// {
+		// 	if(this->compute_distance((*itMode)->elect_Representative(false),mode->elect_Representative(false)) <= sizeTolerance)
+		// 	{
+		// 		accept = false;
+		// 		break;
+		// 	}
+		// }
 		if(accept)
 		{
 			mode->output_BindingMode(num_result, end_strfile, tmp_end_strfile, dockinp, gainp, minPoints);
@@ -387,6 +387,15 @@ bool BindingMode::isPoseAggregable(const Pose& pose) const
 	return accept;
 }
 
+bool BindingMode::isPoseInBindingMode(int chrom_index) const
+{
+	for(std::vector<Pose>::const_iterator iPose = this->Poses.begin(); iPose != this->Poses.end(); ++iPose)
+	{
+		if(iPose->chrom_index == chrom_index) return true;
+	}
+	return false;
+}
+
 bool BindingMode::isHomogenic() const
 {
 	bool accept = true;
@@ -480,6 +489,7 @@ std::vector<float> BindingMode::compute_centroid() const
     Pose mPose(*this->elect_Representative(false));
     unsigned int size = static_cast<unsigned int>( mPose.vPose.size() );
     std::vector<float> vCentroid( size, 0.0f );
+    // partition_function below is a PF for a subpopulation of a BindingMode
     double partition_function = this->compute_partition_function();
     
     for(std::vector<Pose>::const_iterator iPose = this->Poses.begin(); iPose != this->Poses.end(); ++iPose)
@@ -774,9 +784,10 @@ inline bool const operator==(const BindingMode& lhs, const BindingMode& rhs)
 				  Pose
 \*****************************************/
 // public constructor for Pose *non-overloadable*
-Pose::Pose(chromosome* chrom, int index, int iorder, float dist, uint temperature, std::vector<float> vec) :  chrom_index(index), order(iorder), reachDist(dist), chrom(chrom), CF(chrom->app_evalue), vPose(vec), processed(false)
+Pose::Pose(chromosome* chrom, int index, int iorder, float dist, uint temperature, std::vector<float> vec) :  chrom_index(index), order(iorder), reachDist(dist), chrom(chrom), CF(chrom->app_evalue), CFdS(0.0), vPose(vec), processed(false)
 {
 	this->boltzmann_weight = pow( E, ((-1.0) * (1/static_cast<double>(temperature)) * chrom->app_evalue) );
+    // this->CFdS += this->boltzmann_weight;
 }
 
 Pose::~Pose(){}

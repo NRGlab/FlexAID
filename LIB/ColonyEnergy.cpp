@@ -73,32 +73,29 @@ void ColonyEnergy::Execute_ColonyEnergy(char* end_strfile, char* tmp_end_strfile
 	MultiPartition.getNeighbors(this->neighbors);
 	
 
-	// Create a BindingMode containing a single Pose
-	// this will correctly compute this->Population->PartitionFunction
-	// (creating the BindingMode from a Pose and its neighbors would compute multiple times each pose into the PF)
-// 	for(int i = 0; i < this->N; ++i)
-// 	{
-// 		Pose pose = Pose( (this->points[i]).first, i, this->neighbors[i].size(), 0.0f, this->Population->Temperature, (this->points[i]).second);
-//         if(pose.CF < 0 /* && pose.order > this->minPoints */ )
-//         {
-//             BindingMode mode = BindingMode(this->Population);
-//             mode.add_Pose(pose);
-//             this->Population->add_BindingMode(mode);
-//         }
-// 	}
+	// Create a BindingMode containing a single Pose and its neighbors
+	for(std::vector<Pose>::iterator iPose = this->Population->Poses.begin(); iPose != this->Population->Poses.end(); ++iPose)
+	{
+		// adding the CFdS value (Boltzmann_Prob*CF) of the current Pose
+		double Pi = ( iPose->boltzmann_weight / this->Population->PartitionFunction );
+		iPose->CFdS += Pi*iPose->CF - ( this->Population->Temperature * (-1 * Pi * log(Pi)) );
+		// added the CFdS values of the Pose's neighbors
+		for(std::vector<int>::iterator it = this->neighbors[iPose->chrom_index].begin(); it != this->neighbors[iPose->chrom_index].end(); ++it)
+		{
+			for(std::vector<Pose>::iterator jPose = this->Population->Poses.begin(); jPose != this->Population->Poses.end(); ++jPose)
+			{
+				if(jPose->chrom_index == *it) // found the appropriate neighboring Pose
+				{
+					double Pj = ( jPose->boltzmann_weight / this->Population->PartitionFunction );
+					iPose->CFdS += Pj*jPose->CF - ( this->Population->Temperature * (-1 * Pj * log(Pj)) );
+					break; // do not continue jPose iteration further unnecessarily
+				}
+			}
+		}
+	}
 
-// 	for(std::vector< BindingMode >::iterator iMode = this->Population->BindingModes.begin(); iMode != this->Population->BindingModes.end(); ++iMode)
-// 	{
-//         Pose Rep = Pose( *iMode->elect_Representative(false) );
-// 		for(	std::vector<int>::iterator it = this->neighbors[Rep.chrom_index].begin();
-// 				it != this->neighbors[Rep.chrom_index].end();
-// 				it++)
-// 		{
-// 			Pose pose = Pose((this->points[*it]).first, *it,  this->neighbors[*it].size(), 0.0f, this->Population->Temperature, (this->points[*it]).second);
-// 			iMode->add_Pose(pose);
-// 		}
-// 	}
-//     this->Population->Entropize();
+	// sort Poses by CFdS
+    std::sort(this->Population->Poses.begin(), this->Population->Poses.end(), PoseRanker());
 }
 
 

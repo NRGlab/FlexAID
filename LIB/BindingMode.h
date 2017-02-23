@@ -26,6 +26,7 @@ struct Pose
 	float reachDist;
 	chromosome* chrom;
 	double CF;
+	double CFdS;
 	double boltzmann_weight;
 	std::vector<float> vPose;
 	inline bool const operator< (const Pose& rhs);
@@ -56,6 +57,9 @@ struct PoseRanker
 {
 	inline bool operator() ( const Pose& Pose1, const Pose& Pose2 )
    {
+   		if(Pose1.CFdS < Pose2.CFdS) return true;
+   		else if(Pose1.CFdS > Pose2.CFdS) return false; 
+
        	if(Pose1.CF < Pose2.CF) return true;
        	else if(Pose1.CF > Pose2.CF) return false;
 		
@@ -84,6 +88,7 @@ class BindingMode // aggregation of poses (Cluster)
 			void								add_Pose(Pose&);
 												//	tells if a Pose can be added to a BidingMode
 			bool 								isPoseAggregable(const Pose& pose) const;
+			bool								isPoseInBindingMode(int chrom_index) const;
 												//	tells if the BindingMode contains one *homogenic* population
 			bool 								isHomogenic() const;
 			void                                clear_Poses();

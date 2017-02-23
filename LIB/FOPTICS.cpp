@@ -177,16 +177,14 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
     //  points pairs contain :
     //   first  -> pair<chromosome*, index>
     //   second -> float reachDist
-	for(int i = 0; i < this->N; ++i)
+	for(std::vector<Pose>::iterator iPose = this->Population->Poses.begin(); iPose != this->Population->Poses.end(); ++iPose)
 	{
-		if( (this->points[i]).first != NULL /* && (this->points[i]).first->app_evalue < 0 */ )
-		{
-			// Calling Pose constructor for the current chromosome
-			Pose iPose = Pose((this->points[i]).first, i, this->order[i], this->reachDist[i], this->Population->Temperature, (this->points[i]).second);
-            
-            // the following statement is FALSE for NaN values in iPose.boltzmann_weight
-            if( !boost::math::isnan(iPose.boltzmann_weight) ) this->OPTICS.push_back(iPose);
-		}
+		// Calling Pose constructor for the current chromosome
+		// Pose iPose = Pose((this->points[i]).first, i, this->order[i], this->reachDist[i], this->Population->Temperature, (this->points[i]).second);
+        iPose->order = this->order[iPose->chrom_index];
+        iPose->reachDist = this->reachDist[iPose->chrom_index];
+        // the following statement is FALSE for NaN values in iPose.boltzmann_weight
+        if( !boost::math::isnan(iPose->boltzmann_weight) ) this->OPTICS.push_back(*iPose);
 	}
 	// this line sorts this->OPTICS using PoseClassifier(pose1, pose2) comparison struct
     std::sort(this->OPTICS.begin(), this->OPTICS.end(), PoseClassifier());
@@ -291,7 +289,7 @@ void FastOPTICS::Classify_Population()
 		}
 	}
     this->Population->Classify_BindingModes();
-	// this->Population->Entropize();
+	this->Population->Entropize();
 }
 
 void FastOPTICS::output_OPTICS(char* end_strfile, char* tmp_end_strfile)

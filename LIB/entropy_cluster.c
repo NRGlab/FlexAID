@@ -78,7 +78,8 @@ void entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
                 if(/*jPose->order == -1 &&*/ !jPose->processed) // pose is still unclustered
                 {
                     float rmsd = Population.compute_distance(*iPose, *jPose);
-//                    float rmsd = calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes,iPose->chrom_index,jPose->chrom_index, NULL, NULL, true);
+                    // float rmsd2 = calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes,iPose->chrom_index,jPose->chrom_index, NULL, NULL, true);
+                    
                     if( rmsd <= FA->cluster_rmsd )
                     {
                         jPose->order = nClusters;
@@ -95,17 +96,14 @@ void entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
             // iterating over neighbors to add them to BindingMode
             for(std::vector<int>::iterator it = neighs.begin(); it != neighs.end(); ++it)
             {
+                // continue to next iter if the chrom_index of the Pose is already in BindingMode
+                if(mode.isPoseInBindingMode(*it)) continue;
                 // need to find the appropriate Pose by index (maybe all chroms were not built as Poses in 1.)
                 for(std::vector<Pose>::iterator itPose = Population.Poses.begin(); itPose != Population.Poses.end(); itPose++)
                 {
-                    if(Population.Poses[*it].chrom_index == itPose->chrom_index)
+                    if( *it == itPose->chrom_index )
                     {
-                        if(!itPose->processed) // pose is still unclustered
-                        {
-                            itPose->order = nClusters;
-                            itPose->processed = true;
-                            mode.add_Pose(*itPose);
-                        }
+                        /*if( mode.isPoseAggregable(*itPose) )*/ mode.add_Pose(*itPose);
                         break;
                     }
                 }
