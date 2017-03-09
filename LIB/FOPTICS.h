@@ -2,6 +2,7 @@
 #define FOPTICS_H
 
 #include "BindingMode.h"
+#include <typeinfo>
 #include <utility>
 #include <iostream>
 #include <sstream> // for ostringstream
