@@ -78,7 +78,7 @@ void entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
     // iterates over all Poses to run the CF clustering algo
     for(std::vector<Pose>::iterator iPose = Population.Poses.begin(); iPose != Population.Poses.end(); ++iPose)
     {
-        if(/*iPose->order == -1 &&*/ !iPose->processed) // pose is still unclustered
+        if(!iPose->processed) // pose is still unclustered
         {
             BindingMode mode(&Population);
             iPose->order = nClusters;
@@ -87,7 +87,7 @@ void entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 
             for(std::vector<Pose>::iterator jPose = iPose+1; jPose != Population.Poses.end(); ++jPose)
             {   
-                if(/*jPose->order == -1 &&*/ !jPose->processed) // pose is still unclustered
+                if(!jPose->processed) // pose is still unclustered
                 {
                     float rmsd = Population.compute_distance(*iPose, *jPose);
                     // float rmsd2 = calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes,iPose->chrom_index,jPose->chrom_index, NULL, NULL, true);
@@ -101,6 +101,7 @@ void entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
                     }
                 }
             }
+            
             check3 = std::clock();
             duration = ( check3 - check2 ) / (double) CLOCKS_PER_SEC;
             std::cout<<"CF cluster : "<< duration <<'\n';
@@ -120,7 +121,7 @@ void entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
                     {
                         itPose->order = nClusters;
                         itPose->processed = true;
-                        // itPose->reachDist = Population.compute_distance(*iPose, *tPose);
+                        // itPose->reachDist = Population.compute_distance(*iPose, *itPose);
                         /*if( mode.isPoseAggregable(*itPose) )*/ mode.add_Pose(*itPose);
                         break;
                     }

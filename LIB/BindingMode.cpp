@@ -30,6 +30,11 @@ BindingPopulation::BindingPopulation(FA_Global* pFA, GB_Global* pGB, VC_Global* 
 	{
 		this->PartitionFunction += iPose->boltzmann_weight;
 	}
+
+	for(std::vector<Pose>::iterator iPose = this->Poses.begin(); iPose != this->Poses.end(); ++iPose)
+	{
+		iPose->CFdS += iPose->boltzmann_weight / this->PartitionFunction;
+	}
 }
 
 

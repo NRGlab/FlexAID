@@ -29,38 +29,31 @@ ColonyEnergy::ColonyEnergy(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromoso
     
     this->minPoints = nPoints;
     
-	// this->order.reserve(this->N);
-	// this->reachDist.reserve(this->N);
 	this->processed.reserve(this->N);
-	this->inverseDensities.reserve(this->N);
+	this->colonyEnergy.reserve(this->N);
 	this->points.reserve(this->N);
 	this->neighbors.reserve(this->N);
     
-	for(int i = 0; i < this->N; ++i)
+    for(std::vector<Pose>::iterator iPose = this->Population->Poses.begin(); iPose != this->Population->Poses.end(); ++iPose)
 	{
-		// need to transform the chromosomes into vectors for FastOPTICS algo
-		std::vector<float> vChrom( this->Vectorized_Cartesian_Coordinates(i) ); // Copy constructor (default vector constructor used)
-		if(static_cast<int>(vChrom.size()) == this->nDimensions)
-		{
-			// default values initialization
-			// this->order.push_back(-1);
-			// this->reachDist.push_back(UNDEFINED_DIST);
-			this->processed.push_back(false);
-			this->inverseDensities.push_back(0.0f);
-			// std::pair<first, second> is pushed to this->points[]
-			// 	first  -> chromosome* pChrom (pointer to chromosome)
-			// 	second -> vChrom[FA->npar+n] (vectorized chromosome)
-			this->points.push_back( std::make_pair( (chromosome*)&chrom[i], vChrom) ) ;
-		}
+        // default values initialization
+        this->processed.push_back(false);
+        double Pi = ( iPose->boltzmann_weight / this->Population->PartitionFunction );
+        double CFdS = Pi*iPose->CF - ( this->Population->Temperature * (-1 * Pi * log(Pi)) );
+        this->colonyEnergy.push_back( CFdS );
+        // std::pair<first, second> is pushed to this->points[]
+        // 	first  -> chromosome* pChrom (pointer to chromosome)
+        // 	second -> vChrom[FA->npar+n] (vectorized chromosome)
+        this->points.push_back( std::make_pair( iPose->chrom, iPose->vPose) ) ;
 	}
 }
 
 void ColonyEnergy::Execute_ColonyEnergy(char* end_strfile, char* tmp_end_strfile)
 {
 	std::vector< int > ptInd;
-    ptInd.reserve(this->N);
+    ptInd.reserve(this->Population->Poses.size());
 
-    for(int k = 0; k < this->N; ++k)
+    for(int k = 0; k < this->Population->Poses.size(); ++k)
     {
         ptInd.push_back(k);
     }
@@ -69,30 +62,9 @@ void ColonyEnergy::Execute_ColonyEnergy(char* end_strfile, char* tmp_end_strfile
 	
 	// Fast— section of FastOPTICS to find neighbors
 	MultiPartition.computeSetBounds(ptInd);
-	MultiPartition.getInverseDensities(this->inverseDensities);
+    
+    // getNeighbors also updates CFdS attribute of the Poses in Population
 	MultiPartition.getNeighbors(this->neighbors);
-	
-
-	// Create a BindingMode containing a single Pose and its neighbors
-	for(std::vector<Pose>::iterator iPose = this->Population->Poses.begin(); iPose != this->Population->Poses.end(); ++iPose)
-	{
-		// adding the CFdS value (Boltzmann_Prob*CF) of the current Pose
-		double Pi = ( iPose->boltzmann_weight / this->Population->PartitionFunction );
-		iPose->CFdS += Pi*iPose->CF - ( this->Population->Temperature * (-1 * Pi * log(Pi)) );
-		// added the CFdS values of the Pose's neighbors
-		for(std::vector<int>::iterator it = this->neighbors[iPose->chrom_index].begin(); it != this->neighbors[iPose->chrom_index].end(); ++it)
-		{
-			for(std::vector<Pose>::iterator jPose = this->Population->Poses.begin(); jPose != this->Population->Poses.end(); ++jPose)
-			{
-				if(jPose->chrom_index == *it) // found the appropriate neighboring Pose
-				{
-					double Pj = ( jPose->boltzmann_weight / this->Population->PartitionFunction );
-					iPose->CFdS += Pj*jPose->CF - ( this->Population->Temperature * (-1 * Pj * log(Pj)) );
-					break; // do not continue jPose iteration further unnecessarily
-				}
-			}
-		}
-	}
 
 	// sort Poses by CFdS
     std::sort(this->Population->Poses.begin(), this->Population->Poses.end(), PoseRanker());
@@ -286,40 +258,6 @@ void RandomProjectedNeighborsColonyEnergy::SplitUpNoSort(std::vector< int >& ind
 	}
 }
 
-void RandomProjectedNeighborsColonyEnergy::getInverseDensities(std::vector< float > & inverseDensities)
-{
-	inverseDensities.reserve(this->N);
-	std::vector<int> nDists(this->N);
-	nDists.reserve(this->N);
-//	for(std::vector< std::vector< int> >::iterator it1 = this->splitsets.begin(); it1 != this->splitsets.end(); ++it1)
-    for(int i = 0; i < static_cast<int>(this->splitsets.size()); ++i)
-	{
-//		std::vector<int>::iterator pinSet = it1->begin();
-        std::vector<int> & pinSet = this->splitsets.at(i);
-		
-//		int len = it1->size();
-        int len = static_cast<int>(pinSet.size());
-		int indoff = static_cast<int>(round_it(len/2));
-		int oldind = pinSet[indoff];
-		for(int i = 0; i < len; ++i)
-		{
-			int ind = pinSet[i];
-			if(ind == indoff) continue;
-			
-			float dist = this->top->compute_distance(this->points[ind],this->points[oldind]);
-			inverseDensities[oldind] += dist;
-			nDists[oldind]++;
-			inverseDensities[ind] += dist;
-			nDists[ind]++;
-		}
-	}
-	for(int l = 0; l < this->N; ++l)
-	{
-		if(nDists[l] == 0) inverseDensities[l] = UNDEFINED_DIST;
-		else inverseDensities[l] /= nDists[l];
-	}
-}
-
 void RandomProjectedNeighborsColonyEnergy::getNeighbors(std::vector< std::vector< int > > & neighs)
 {
 	neighs.reserve(this->N);
@@ -354,14 +292,19 @@ void RandomProjectedNeighborsColonyEnergy::getNeighbors(std::vector< std::vector
 			
 			if( !std::binary_search(cneighs.begin(), cneighs.end(), oldind) ) //only add point if not a neighbor already
 			{
+                this->top->Population->Poses[ind].CFdS += this->top->colonyEnergy[oldind];
+                
 				cneighs.push_back(oldind);
 				std::sort(cneighs.begin(),cneighs.end());
-//                cneighs.erase(std::unique(cneighs.begin(), cneighs.end()), cneighs.end());
+//              cneighs.erase(std::unique(cneighs.begin(), cneighs.end()), cneighs.end());
+                
 			}
 			// The following block of code adds the middle point as neighbor to all other points in set
 			std::vector<int> & cneighs2 = neighs.at(oldind);
 			if( !std::binary_search(cneighs2.begin(), cneighs2.end(), ind) ) //only add point if not a neighbor already
 			{
+                this->top->Population->Poses[oldind].CFdS += this->top->colonyEnergy[ind];
+                
 				cneighs2.push_back(ind);
 				std::sort(cneighs2.begin(),cneighs2.end());
 //				cneighs2.erase(std::unique(cneighs2.begin(), cneighs2.end()), cneighs2.end());

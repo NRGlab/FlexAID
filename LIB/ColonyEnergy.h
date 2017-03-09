@@ -51,7 +51,7 @@ class ColonyEnergy
 		// std::vector< int > order;
 		// std::vector< float > reachDist;
 		std::vector< bool > processed;
-		std::vector< float > inverseDensities;
+		std::vector< double > colonyEnergy;
 		std::vector< std::pair<chromosome*,std::vector<float> > > points;
 		std::vector< std::vector< int > > neighbors;
         
@@ -108,7 +108,6 @@ class RandomProjectedNeighborsColonyEnergy
 		std::vector< std::vector< float > > projectedPoints;
 		// protected methods (accessible via ColonyEnergy class)
 		void 								computeSetBounds(std::vector< int >&);
-		void								getInverseDensities(std::vector<float> &);
 		void								getNeighbors(std::vector< std::vector< int > > &);
 		std::vector<float> 					Randomized_InternalCoord_Vector();
         std::vector<float>                  Randomized_CartesianCoord_Vector();
