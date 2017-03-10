@@ -63,6 +63,7 @@ void ColonyEnergy::Execute_ColonyEnergy(char* end_strfile, char* tmp_end_strfile
 	// Fast— section of FastOPTICS to find neighbors
 	MultiPartition.computeSetBounds(ptInd);
     
+    // fetches the neighbors of all Poses using random projections
     // getNeighbors also updates CFdS attribute of the Poses in Population
 	MultiPartition.getNeighbors(this->neighbors);
 
@@ -292,8 +293,10 @@ void RandomProjectedNeighborsColonyEnergy::getNeighbors(std::vector< std::vector
 			
 			if( !std::binary_search(cneighs.begin(), cneighs.end(), oldind) ) //only add point if not a neighbor already
 			{
+                // updates CFdS of Pose[ind] with CFdS of Pose[oldind]
                 this->top->Population->Poses[ind].CFdS += this->top->colonyEnergy[oldind];
                 
+                // add oldind as neighbor of ind
 				cneighs.push_back(oldind);
 				std::sort(cneighs.begin(),cneighs.end());
 //              cneighs.erase(std::unique(cneighs.begin(), cneighs.end()), cneighs.end());
@@ -303,8 +306,10 @@ void RandomProjectedNeighborsColonyEnergy::getNeighbors(std::vector< std::vector
 			std::vector<int> & cneighs2 = neighs.at(oldind);
 			if( !std::binary_search(cneighs2.begin(), cneighs2.end(), ind) ) //only add point if not a neighbor already
 			{
+                // updates CFdS of Pose[oldind] with CFdS of Pose[ind]
                 this->top->Population->Poses[oldind].CFdS += this->top->colonyEnergy[ind];
                 
+                // add ind as neighbor of oldind
 				cneighs2.push_back(ind);
 				std::sort(cneighs2.begin(),cneighs2.end());
 //				cneighs2.erase(std::unique(cneighs2.begin(), cneighs2.end()), cneighs2.end());

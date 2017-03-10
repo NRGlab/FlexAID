@@ -33,7 +33,8 @@ BindingPopulation::BindingPopulation(FA_Global* pFA, GB_Global* pGB, VC_Global* 
 
 	for(std::vector<Pose>::iterator iPose = this->Poses.begin(); iPose != this->Poses.end(); ++iPose)
 	{
-		iPose->CFdS += iPose->boltzmann_weight / this->PartitionFunction;
+		double Pi = iPose->boltzmann_weight / this->PartitionFunction;
+		iPose->CFdS += Pi*iPose->CF - this->Temperature*(-1 * Pi * log(Pi));
 	}
 }
 
