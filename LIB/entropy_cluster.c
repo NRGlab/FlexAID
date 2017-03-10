@@ -64,16 +64,16 @@ void entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
 
     check1 = std::clock();
     duration = ( check1 - start ) / (double) CLOCKS_PER_SEC;
-    std::cout<<"BindingPopulation() : "<< duration <<'\n';
+    std::cout<<"BindingPopulation() : "<< duration <<std::endl;
     
     // call to ColonyEnergy class will serve to get neighbors for each chrom
     // this will be useful later to build BindingModes in BindingPopulation
-    ColonyEnergy Algo = ColonyEnergy(FA, GB, VC, chrom, gene_lim, atoms, residue, cleftgrid, nChrom, Population, minPoints);
-    Algo.Execute_ColonyEnergy(end_strfile, tmp_end_strfile);
+    // ColonyEnergy Algo = ColonyEnergy(FA, GB, VC, chrom, gene_lim, atoms, residue, cleftgrid, nChrom, Population, minPoints);
+    // Algo.Execute_ColonyEnergy(end_strfile, tmp_end_strfile);
     
     check2 = std::clock();
     duration = ( check2 - check1 ) / (double) CLOCKS_PER_SEC;
-    std::cout<<"ColonyEnergy : "<< duration <<'\n';
+    std::cout<<"ColonyEnergy : "<< duration <<std::endl;
     
     // iterates over all Poses to run the CF clustering algo
     for(std::vector<Pose>::iterator iPose = Population.Poses.begin(); iPose != Population.Poses.end(); ++iPose)
@@ -104,33 +104,33 @@ void entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
             
             check3 = std::clock();
             duration = ( check3 - check2 ) / (double) CLOCKS_PER_SEC;
-            std::cout<<"CF cluster : "<< duration <<'\n';
+            std::cout<<"CF cluster : "<< duration <<std::endl;
             
             // neighbors-adding section
-            std::vector<int> neighs = Algo.get_neighbors_for_chrom(iPose->chrom_index);
+            // std::vector<int> neighs = Algo.get_neighbors_for_chrom(iPose->chrom_index);
             
             // iterating over neighbors to add them to BindingMode
-            for(std::vector<int>::iterator it = neighs.begin(); it != neighs.end(); ++it)
-            {
-                // continue to next iter if the chrom_index of the Pose is already in BindingMode
-                if(mode.isPoseInBindingMode(*it)) continue;
-                // need to find the appropriate Pose by index (maybe all chroms were not built as Poses in 1.)
-                for(std::vector<Pose>::iterator itPose = Population.Poses.begin(); itPose != Population.Poses.end(); itPose++)
-                {
-                    if( *it == itPose->chrom_index )
-                    {
-                        itPose->order = nClusters;
-                        itPose->processed = true;
-                        // itPose->reachDist = Population.compute_distance(*iPose, *itPose);
-                        /*if( mode.isPoseAggregable(*itPose) )*/ mode.add_Pose(*itPose);
-                        break;
-                    }
-                }
-            }
+            // for(std::vector<int>::iterator it = neighs.begin(); it != neighs.end(); ++it)
+            // {
+            //     // continue to next iter if the chrom_index of the Pose is already in BindingMode
+            //     if(mode.isPoseInBindingMode(*it)) continue;
+            //     // need to find the appropriate Pose by index (maybe all chroms were not built as Poses in 1.)
+            //     for(std::vector<Pose>::iterator itPose = Population.Poses.begin(); itPose != Population.Poses.end(); itPose++)
+            //     {
+            //         if( *it == itPose->chrom_index )
+            //         {
+            //             itPose->order = nClusters;
+            //             itPose->processed = true;
+            //             // itPose->reachDist = Population.compute_distance(*iPose, *itPose);
+            //             /*if( mode.isPoseAggregable(*itPose) )*/ mode.add_Pose(*itPose);
+            //             break;
+            //         }
+            //     }
+            // }
             
             check4 = std::clock();
             duration = ( check4 - check3 ) / (double) CLOCKS_PER_SEC;
-            std::cout<<"Neighbors : "<< duration <<'\n';
+            std::cout<<"Neighbors : "<< duration <<std::endl;
             
             Population.add_BindingMode(mode);
             nClusters++;
