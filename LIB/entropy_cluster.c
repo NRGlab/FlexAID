@@ -68,8 +68,8 @@ void entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
     
     // call to ColonyEnergy class will serve to get neighbors for each chrom
     // this will be useful later to build BindingModes in BindingPopulation
-    // ColonyEnergy Algo = ColonyEnergy(FA, GB, VC, chrom, gene_lim, atoms, residue, cleftgrid, nChrom, Population, minPoints);
-    // Algo.Execute_ColonyEnergy(end_strfile, tmp_end_strfile);
+    ColonyEnergy Algo = ColonyEnergy(FA, GB, VC, chrom, gene_lim, atoms, residue, cleftgrid, nChrom, Population, minPoints);
+    Algo.Execute_ColonyEnergy(end_strfile, tmp_end_strfile);
     
     check2 = std::clock();
     duration = ( check2 - check1 ) / (double) CLOCKS_PER_SEC;
@@ -107,26 +107,26 @@ void entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
             std::cout<<"CF cluster : "<< duration <<std::endl;
             
             // neighbors-adding section
-            // std::vector<int> neighs = Algo.get_neighbors_for_chrom(iPose->chrom_index);
+             std::vector<int> neighs = Algo.get_neighbors_for_chrom(iPose->chrom_index);
             
             // iterating over neighbors to add them to BindingMode
-            // for(std::vector<int>::iterator it = neighs.begin(); it != neighs.end(); ++it)
-            // {
-            //     // continue to next iter if the chrom_index of the Pose is already in BindingMode
-            //     if(mode.isPoseInBindingMode(*it)) continue;
-            //     // need to find the appropriate Pose by index (maybe all chroms were not built as Poses in 1.)
-            //     for(std::vector<Pose>::iterator itPose = Population.Poses.begin(); itPose != Population.Poses.end(); itPose++)
-            //     {
-            //         if( *it == itPose->chrom_index )
-            //         {
-            //             itPose->order = nClusters;
-            //             itPose->processed = true;
-            //             // itPose->reachDist = Population.compute_distance(*iPose, *itPose);
-            //             /*if( mode.isPoseAggregable(*itPose) )*/ mode.add_Pose(*itPose);
-            //             break;
-            //         }
-            //     }
-            // }
+            for(std::vector<int>::iterator it = neighs.begin(); it != neighs.end(); ++it)
+            {
+                // continue to next iter if the chrom_index of the Pose is already in BindingMode
+                if(mode.isPoseInBindingMode(*it)) continue;
+                // need to find the appropriate Pose by index (maybe all chroms were not built as Poses in 1.)
+                for(std::vector<Pose>::iterator itPose = Population.Poses.begin(); itPose != Population.Poses.end(); itPose++)
+                {
+                    if( *it == itPose->chrom_index )
+                    {
+                        itPose->order = nClusters;
+                        itPose->processed = true;
+                        // itPose->reachDist = Population.compute_distance(*iPose, *itPose);
+                        if( mode.isPoseAggregable(*itPose) ) mode.add_Pose(*itPose);
+                        break;
+                    }
+                }
+            }
             
             check4 = std::clock();
             duration = ( check4 - check3 ) / (double) CLOCKS_PER_SEC;
@@ -136,7 +136,7 @@ void entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
             nClusters++;
         }
 
-        if(nClusters == FA->max_results) { break; } // stop clustering when enough results are generated
+        if(nClusters == 2*FA->max_results) { break; } // stop clustering when enough results are generated
     }
     // Population.Classify_BindingModes();
     Population.output_Population(FA->max_results, end_strfile, tmp_end_strfile, dockinp, gainp, minPoints); // minPoints = 0 to call the same function without overloading/modifying output_Population 

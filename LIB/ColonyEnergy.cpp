@@ -72,6 +72,190 @@ void ColonyEnergy::Execute_ColonyEnergy(char* end_strfile, char* tmp_end_strfile
 }
 
 
+
+
+std::vector<float> ColonyEnergy::Vectorized_Chromosome(chromosome* chrom)
+{
+    float norm = 0.0f;
+	std::vector<float> vChrom(this->nDimensions, 0.0f);
+	// getting nDim-2 because the Dim=0 fills 3 memory cases
+	for(int j = 0; j < this->nDimensions-2; ++j)
+	{
+		if(j == 0) //  building the first 3 comp. from genes[0] which are CartCoord x,y,z
+		{
+			for(int i = 0; i < 3; ++i)
+			{
+				// vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
+				if(i == 0)
+				{
+                    // vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
+					vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].dis);
+					// vChrom[i] *= vChrom[i];
+				}
+				if(i == 1)
+				{
+					// vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
+					vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].ang);
+					// vChrom[i] = static_cast<float>( RandomDouble( (*chrom).genes[j].to_int32) );
+					// vChrom[i] *= vChrom[i];
+				}
+				if(i == 2)
+				{
+                    // vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
+					vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].dih);
+					// vChrom[i] = static_cast<float>( genetoic(&this->gene_lim[i],(*chrom).genes[j].to_int32) );
+					// vChrom[i] *= vChrom[i];
+				}
+                norm += vChrom[i]*vChrom[i];
+			}
+		}
+		else
+		{
+			// j+2 is used from {j = 1 to N} to build further comp. of genes[j]
+			// vChrom[j+2] = static_cast<float>(genetoic(&gene_lim[j], (*chrom).genes[j].to_int32));
+			vChrom[j+2] = static_cast<float>((*chrom).genes[j].to_ic);
+			// vChrom[j+2] = static_cast<float>( RandomDouble( (*chrom).genes[j].to_int32) );
+            norm += vChrom[j+2]*vChrom[j+2];
+		}
+	}
+    
+  // norm = sqrtf(norm);
+  // for(int k = 0; k < this->nDimensions; ++k) { vChrom[k]/=norm; }
+   
+   return vChrom;
+}
+
+std::vector<float> ColonyEnergy::Vectorized_Cartesian_Coordinates(int chrom_index)
+{
+	int i = 0,j = 0,l = 0,m = 0;
+	int cat;
+	int rot;
+
+	uint grd_idx;
+	int normalmode=-1;
+	int rot_idx=0;
+
+    std::vector<float> vChrom(this->nDimensions);
+
+	int npar = this->GB->num_genes;
+	
+	j = chrom_index;
+
+	for(i=0;i<npar;i++){ this->FA->opt_par[i] = this->chroms[j].genes[i].to_ic; }
+
+	for(i=0;i<npar;i++)
+	{
+		//printf("[%8.3f]",FA->opt_par[i]);
+  
+		if(this->FA->map_par[i].typ==-1) 
+		{ //by index
+			grd_idx = (uint)this->FA->opt_par[i];
+			//printf("this->FA->opt_par(index): %d\n", grd_idx);
+			//PAUSE;
+			this->atoms[this->FA->map_par[i].atm].dis = this->cleftgrid[grd_idx].dis;
+			this->atoms[this->FA->map_par[i].atm].ang = this->cleftgrid[grd_idx].ang;
+			this->atoms[this->FA->map_par[i].atm].dih = this->cleftgrid[grd_idx].dih;
+
+		}
+		else if(this->FA->map_par[i].typ == 0)
+		{
+			this->atoms[this->FA->map_par[i].atm].dis = (float)this->FA->opt_par[i];
+		}
+		else if(this->FA->map_par[i].typ == 1)
+		{
+			this->atoms[this->FA->map_par[i].atm].ang = (float)this->FA->opt_par[i];
+		}
+		else if(this->FA->map_par[i].typ == 2)
+		{
+			this->atoms[this->FA->map_par[i].atm].dih = (float)this->FA->opt_par[i];
+
+			j=this->FA->map_par[i].atm;
+			cat=this->atoms[j].rec[3];
+			if(cat != 0)
+			{
+				while(cat != this->FA->map_par[i].atm)
+				{
+					this->atoms[cat].dih=this->atoms[j].dih + this->atoms[cat].shift; 
+					j=cat;
+					cat=this->atoms[j].rec[3];
+				}
+			}
+		}else if(this->FA->map_par[i].typ == 3)
+		{ //by index
+			grd_idx = (uint)this->FA->opt_par[i];
+
+			// serves as flag , but also as grid index
+			normalmode=grd_idx;
+
+		}else if(this->FA->map_par[i].typ == 4)
+		{
+			rot_idx = (int)(this->FA->opt_par[i]+0.5);
+
+			this->residue[this->atoms[this->FA->map_par[i].atm].ofres].rot=rot_idx;
+		}
+  
+	}
+
+	if(normalmode > -1) alter_mode(this->atoms,this->residue,this->FA->normal_grid[normalmode],this->FA->res_cnt,this->FA->normal_modes);
+
+	/* rebuild cartesian coordinates of optimized residues*/
+    for(i=0;i<this->FA->nors;i++) buildcc(this->FA,this->atoms,this->FA->nmov[i],this->FA->mov[i]);
+
+	// residue that is optimized geometrically (ligand)
+	l=this->atoms[this->FA->map_par[0].atm].ofres;
+
+	rot=this->residue[l].rot;
+    m=0;
+	for(i=this->residue[l].fatm[rot];i<=this->residue[l].latm[rot];i++)
+	{
+		for(j=0;j<3;j++) vChrom[m*3+j] = this->atoms[i].coor[j];
+        ++m;
+	}
+	return vChrom;
+}
+
+int ColonyEnergy::get_minPoints() { return this->minPoints; }
+
+std::vector<int> ColonyEnergy::get_neighbors_for_chrom(int chrom_index)
+{
+	std::vector<int> neighs(this->neighbors[chrom_index]);
+	return neighs;
+}
+
+float ColonyEnergy::compute_distance(std::pair< chromosome*,std::vector<float> > & a, std::pair< chromosome*,std::vector<float> > & b)
+{
+	float distance = 0.0f;
+
+	// simple distance calculation below
+	for(int i = 0; i < this->nDimensions; ++i)
+	{
+		float tempDist = (a.second[i]-b.second[i]);
+        distance +=  tempDist * tempDist;
+	}
+
+	return sqrtf(distance / static_cast<float>(this->FA->num_het_atm));
+}
+
+float ColonyEnergy::compute_vect_distance(std::vector<float> a, std::vector<float> b)
+{
+	float distance = 0.0f;
+
+	// simple distance calculation below
+	for(int i = 0; i < this->nDimensions; ++i)
+    {
+		float tempDist = (a[i]-b[i]);
+        distance +=  tempDist * tempDist;
+    }
+
+	return sqrtf(distance / static_cast<float>(this->FA->num_het_atm));
+}
+
+
+
+/*****************************************\
+
+			RandomProjections
+\*****************************************/
 /*****************************************\
 			RandomProjections
 \*****************************************/
@@ -319,146 +503,6 @@ void RandomProjectedNeighborsColonyEnergy::getNeighbors(std::vector< std::vector
 	}
 }
 
-std::vector<float> ColonyEnergy::Vectorized_Chromosome(chromosome* chrom)
-{
-    float norm = 0.0f;
-	std::vector<float> vChrom(this->nDimensions, 0.0f);
-	// getting nDim-2 because the Dim=0 fills 3 memory cases
-	for(int j = 0; j < this->nDimensions-2; ++j)
-	{
-		if(j == 0) //  building the first 3 comp. from genes[0] which are CartCoord x,y,z
-		{
-			for(int i = 0; i < 3; ++i)
-			{
-				// vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
-				if(i == 0)
-				{
-                    // vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
-					vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].dis);
-					// vChrom[i] *= vChrom[i];
-				}
-				if(i == 1)
-				{
-					// vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
-					vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].ang);
-					// vChrom[i] = static_cast<float>( RandomDouble( (*chrom).genes[j].to_int32) );
-					// vChrom[i] *= vChrom[i];
-				}
-				if(i == 2)
-				{
-                    // vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].coor[i] - this->FA->ori[i]);
-					vChrom[i] = static_cast<float>(this->cleftgrid[static_cast<unsigned int>((*chrom).genes[j].to_ic)].dih);
-					// vChrom[i] = static_cast<float>( genetoic(&this->gene_lim[i],(*chrom).genes[j].to_int32) );
-					// vChrom[i] *= vChrom[i];
-				}
-                norm += vChrom[i]*vChrom[i];
-			}
-		}
-		else
-		{
-			// j+2 is used from {j = 1 to N} to build further comp. of genes[j]
-			// vChrom[j+2] = static_cast<float>(genetoic(&gene_lim[j], (*chrom).genes[j].to_int32));
-			vChrom[j+2] = static_cast<float>((*chrom).genes[j].to_ic);
-			// vChrom[j+2] = static_cast<float>( RandomDouble( (*chrom).genes[j].to_int32) );
-            norm += vChrom[j+2]*vChrom[j+2];
-		}
-	}
-    
-  // norm = sqrtf(norm);
-  // for(int k = 0; k < this->nDimensions; ++k) { vChrom[k]/=norm; }
-   
-   return vChrom;
-}
-
-std::vector<float> ColonyEnergy::Vectorized_Cartesian_Coordinates(int chrom_index)
-{
-	int i = 0,j = 0,l = 0,m = 0;
-	int cat;
-	int rot;
-
-	uint grd_idx;
-	int normalmode=-1;
-	int rot_idx=0;
-
-    std::vector<float> vChrom(this->nDimensions);
-
-	int npar = this->GB->num_genes;
-	
-	j = chrom_index;
-
-	for(i=0;i<npar;i++){ this->FA->opt_par[i] = this->chroms[j].genes[i].to_ic; }
-
-	for(i=0;i<npar;i++)
-	{
-		//printf("[%8.3f]",FA->opt_par[i]);
-  
-		if(this->FA->map_par[i].typ==-1) 
-		{ //by index
-			grd_idx = (uint)this->FA->opt_par[i];
-			//printf("this->FA->opt_par(index): %d\n", grd_idx);
-			//PAUSE;
-			this->atoms[this->FA->map_par[i].atm].dis = this->cleftgrid[grd_idx].dis;
-			this->atoms[this->FA->map_par[i].atm].ang = this->cleftgrid[grd_idx].ang;
-			this->atoms[this->FA->map_par[i].atm].dih = this->cleftgrid[grd_idx].dih;
-
-		}
-		else if(this->FA->map_par[i].typ == 0)
-		{
-			this->atoms[this->FA->map_par[i].atm].dis = (float)this->FA->opt_par[i];
-		}
-		else if(this->FA->map_par[i].typ == 1)
-		{
-			this->atoms[this->FA->map_par[i].atm].ang = (float)this->FA->opt_par[i];
-		}
-		else if(this->FA->map_par[i].typ == 2)
-		{
-			this->atoms[this->FA->map_par[i].atm].dih = (float)this->FA->opt_par[i];
-
-			j=this->FA->map_par[i].atm;
-			cat=this->atoms[j].rec[3];
-			if(cat != 0)
-			{
-				while(cat != this->FA->map_par[i].atm)
-				{
-					this->atoms[cat].dih=this->atoms[j].dih + this->atoms[cat].shift; 
-					j=cat;
-					cat=this->atoms[j].rec[3];
-				}
-			}
-		}else if(this->FA->map_par[i].typ == 3)
-		{ //by index
-			grd_idx = (uint)this->FA->opt_par[i];
-
-			// serves as flag , but also as grid index
-			normalmode=grd_idx;
-
-		}else if(this->FA->map_par[i].typ == 4)
-		{
-			rot_idx = (int)(this->FA->opt_par[i]+0.5);
-
-			this->residue[this->atoms[this->FA->map_par[i].atm].ofres].rot=rot_idx;
-		}
-  
-	}
-
-	if(normalmode > -1) alter_mode(this->atoms,this->residue,this->FA->normal_grid[normalmode],this->FA->res_cnt,this->FA->normal_modes);
-
-	/* rebuild cartesian coordinates of optimized residues*/
-    for(i=0;i<this->FA->nors;i++) buildcc(this->FA,this->atoms,this->FA->nmov[i],this->FA->mov[i]);
-
-	// residue that is optimized geometrically (ligand)
-	l=this->atoms[this->FA->map_par[0].atm].ofres;
-
-	rot=this->residue[l].rot;
-    m=0;
-	for(i=this->residue[l].fatm[rot];i<=this->residue[l].latm[rot];i++)
-	{
-		for(j=0;j<3;j++) vChrom[m*3+j] = this->atoms[i].coor[j];
-        ++m;
-	}
-	return vChrom;
-}
-
 std::vector<float> RandomProjectedNeighborsColonyEnergy::Randomized_InternalCoord_Vector()
 {
     std::vector<float> vChrom(this->nDimensions);
@@ -603,46 +647,6 @@ std::vector<float> RandomProjectedNeighborsColonyEnergy::Randomized_CartesianCoo
    //  norm = sqrtf(norm);
   	// for(i = 0; i < this->nDimensions; ++i) vChrom[i] /= norm;
 	return vChrom;
-}
-
-int ColonyEnergy::get_minPoints() { return this->minPoints; }
-
-std::vector<int> ColonyEnergy::get_neighbors_for_chrom(int chrom_index)
-{
-	std::vector<int> neighs(this->neighbors[chrom_index]);
-	return neighs;
-}
-/*****************************************\
-
-			RandomProjections
-\*****************************************/
-
-float ColonyEnergy::compute_distance(std::pair< chromosome*,std::vector<float> > & a, std::pair< chromosome*,std::vector<float> > & b)
-{
-	float distance = 0.0f;
-
-	// simple distance calculation below
-	for(int i = 0; i < this->nDimensions; ++i)
-	{
-		float tempDist = (a.second[i]-b.second[i]);
-        distance +=  tempDist * tempDist;
-	}
-
-	return sqrtf(distance / static_cast<float>(this->FA->num_het_atm));
-}
-
-float ColonyEnergy::compute_vect_distance(std::vector<float> a, std::vector<float> b)
-{
-	float distance = 0.0f;
-
-	// simple distance calculation below
-	for(int i = 0; i < this->nDimensions; ++i)
-    {
-		float tempDist = (a[i]-b[i]);
-        distance +=  tempDist * tempDist;
-    }
-
-	return sqrtf(distance / static_cast<float>(this->FA->num_het_atm));
 }
 
 std::vector<float> RandomProjectedNeighborsColonyEnergy::Randomly_Selected_Chromosome()
