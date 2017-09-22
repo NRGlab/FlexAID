@@ -16,7 +16,7 @@ void slice_grid(FA_Global* FA,genlim* gene_lim,atom* atoms,resid* residue,gridpo
     std::map<std::string,int>::iterator begin,end;
 	
 	float sqrspa = pow(FA->spacer_length, 2.0f);
-	float sqrhyp = pow(FA->spacer_length / sin(45.0f), 2.0f);
+	float sqrhyp = pow(FA->spacer_length / sin(PI/4.0f), 2.0f);
 
 	//printf("slicing grid...\n");
 	
@@ -93,4 +93,3 @@ void slice_grid(FA_Global* FA,genlim* gene_lim,atom* atoms,resid* residue,gridpo
 	
 	return;
 }
-
