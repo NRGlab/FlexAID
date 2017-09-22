@@ -61,8 +61,8 @@
 #define KDIST    1.0e3
 #define DEE_WALL_THRESHOLD 50.0
 
-#define PI 3.141592
-#define E  2.718281
+#define PI 3.14159265
+#define E  2.71828183
 #define Rw 1.4f
 
 #define NEW(p,type)     if ((p=(type *) malloc (sizeof(type))) == NULL) { \
