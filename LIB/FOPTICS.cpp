@@ -190,7 +190,7 @@ void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
     std::sort(this->OPTICS.begin(), this->OPTICS.end(), PoseClassifier());
 
 	// Build BindingModes (aggregation of Poses in BindingModes)
-	this->Classify_Population();
+    this->Classify_Population();
 }
 
 

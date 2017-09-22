@@ -1684,7 +1684,7 @@ void QuickSort(chromosome* list, int beg, int end, bool energy)
             while ( (l<=r) && ( ( energy && QS_ASC(list[l].evalue,piv) <= 0 ) ||
 								( !energy && QS_DSC(list[l].fitnes,piv) <= 0 ) ) ) l++;
             while ( (l<=r) && ( ( energy && QS_ASC(list[r].evalue,piv) > 0 ) ||
-								( !energy && QS_DSC(list[r].fitnes,piv) > 0 ) ) ) r--;
+								( !energy && QS_DSC(list[r].fitnes,piv) ) ) ) r--;
 			
             if (l>r) break;
 			

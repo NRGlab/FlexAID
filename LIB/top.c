@@ -500,20 +500,14 @@ int main(int argc, char **argv){
 			else if( strcmp(FA->clustering_algorithm,"CE") == 0 )
 			{
 				printf("using the Colony Energy (CE) entropy evaluation algorithm.\n");
-				ColonyEnergy_cluster(FA,GB,VC,chrom_snapshot,gene_lim,atoms,residue,cleftgrid,n_chrom_snapshot,end_strfile,tmp_end_strfile,dockinp,gainp);
+				// ColonyEnergy_cluster(FA,GB,VC,chrom_snapshot,gene_lim,atoms,residue,cleftgrid,n_chrom_snapshot,end_strfile,tmp_end_strfile,dockinp,gainp);
+				cluster(FA,GB,VC,chrom_snapshot,gene_lim,atoms,residue,cleftgrid,n_chrom_snapshot,end_strfile,tmp_end_strfile,dockinp,gainp);
+				entropy_cluster(FA,GB,VC,chrom_snapshot,gene_lim,atoms,residue,cleftgrid,n_chrom_snapshot,end_strfile,tmp_end_strfile,dockinp,gainp);
 			}
 			else if( strcmp(FA->clustering_algorithm,"DP") == 0 )
 			{
 				printf("using the Density Peak (DP) based clustering algorithm.\n");
 				DensityPeak_cluster(FA,GB,VC,chrom_snapshot,gene_lim,atoms,residue,cleftgrid,n_chrom_snapshot,end_strfile,tmp_end_strfile,dockinp,gainp);
-			}
-			else if(FA->temperature) //used to differentiate between old entropy implementation in cluster() from entropy_cluster() using Binding Modes
-			{
-				printf("using the entropy (dS) density based clustering algorithm.\n");
-				entropy_cluster(FA,GB,VC,chrom_snapshot,gene_lim,atoms,residue,cleftgrid,n_chrom_snapshot,end_strfile,tmp_end_strfile,dockinp,gainp);
-
-				// # call to cluster() below used for comparison purposes
-				// cluster(FA,GB,VC,chrom_snapshot,gene_lim,atoms,residue,cleftgrid,n_chrom_snapshot,end_strfile,tmp_end_strfile,dockinp,gainp);
 			}
 			else
 			{
