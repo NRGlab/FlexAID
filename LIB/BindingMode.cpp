@@ -216,8 +216,48 @@ void BindingPopulation::output_Population(int nResults, char* end_strfile, char*
 	         lastModes.push_back(mode);
         }
 	}
+	this->output_Population_energy(end_strfile, tmp_end_strfile);
 }
 
+// outputs the thermodynamic parameters of the BindingModes in BindingPopulation
+void BindingPopulation::output_Population_energy(char* end_strfile, char* tmp_end_strfile)
+{
+	char sufix[25];
+	FILE* outfile_ptr = NULL;
+	double complex_entropy, complex_enthalpy, complex_energy, complex_minusTdS = 0.0;
+	double ligand_entropy, ligand_enthalpy, ligand_energy, ligand_minusTdS = 0.0;
+
+	// output filename processing
+	sprintf(sufix, ".energy");
+	strcpy(tmp_end_strfile, end_strfile);
+	strcat(tmp_end_strfile, sufix);
+	
+	if( !OpenFile_B(tmp_end_strfile, "w", &outfile_ptr) )
+	{
+		Terminate(6);
+	}
+	else
+	{
+		// 1. Prints HEADER
+		// fprintf(outfile_ptr, "%2s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%3s\n","#", "∆Gc", "∆Hc", "∆Sc", "-T∆Sc", "∆Gl", "∆Hl", "∆Sl", "-T∆Sl", "∆Gs", "∆Hs", "∆Ss", "-T∆Ss", "T");
+		fprintf(outfile_ptr, "%2s\t%10s\t%10s\t%10s\t%10s\t%3s\n","#", "∆Gc", "∆Hc", "∆Sc", "-T∆Sc", "T");
+
+		for(std::vector<BindingMode>::iterator iMode = this->BindingModes.begin(); iMode != this->BindingModes.end(); ++iMode)
+		{
+			complex_energy = iMode->compute_energy();
+			complex_enthalpy = iMode->compute_enthalpy();
+			complex_entropy = iMode->compute_entropy();
+			complex_minusTdS = -1 * complex_entropy * this->Temperature;
+
+			// prints BindingMode rank, energy, enthalpy, entropy, -T∆S and Temperature for the current BindingMode
+			fprintf(outfile_ptr, "%2ld\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%3d\n", (iMode - this->BindingModes.begin()), complex_energy, complex_enthalpy, complex_entropy, complex_minusTdS, this->Temperature);
+		}
+	}
+
+	CloseFile_B(&outfile_ptr,"w");
+}
+
+// returns a vectorized Chromosome from Internal Coordinates
 std::vector<float> BindingPopulation::Vectorized_Chromosome(chromosome* chrom)
 {
     float norm = 0.0f;
@@ -269,6 +309,7 @@ std::vector<float> BindingPopulation::Vectorized_Chromosome(chromosome* chrom)
    return vChrom;
 }
 
+// returns a vectorized Chromosome from Cartesian Coordinates
 std::vector<float> BindingPopulation::Vectorized_Cartesian_Coordinates(int chrom_index)
 {
 	int i = 0,j = 0,l = 0,m = 0;
@@ -460,9 +501,18 @@ double BindingMode::compute_entropy() const
 		double boltzmann_prob = pose->boltzmann_weight / this->Population->PartitionFunction;
 		entropy += boltzmann_prob * log(boltzmann_prob);
 	}
-	// in order to respect Boltzmann entropy formula for a probabilities, we add the negative sign
-	// this is explained by the logarithm property where ln(W) = -ln(1/W)
-	return -entropy;
+	
+	if( boost::math::isnan(entropy) )
+	{
+		entropy = 0.0;
+		return entropy;
+	}
+	else
+	{
+		// in order to respect Boltzmann entropy formula for a probabilities, we add the negative sign
+		// this is explained by the logarithm property where ln(W) = -ln(1/W)
+		return -entropy;
+	}
 }
 
 

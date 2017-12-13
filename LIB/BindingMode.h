@@ -143,11 +143,13 @@ class BindingPopulation
 		float 				compute_distance(const Pose& pose1, const Pose& pose2) const;
 		float 				compute_distance(std::vector<Pose>::const_iterator,std::vector<Pose>::const_iterator) const;
 		float 				compute_vec_distance(std::vector<float>, std::vector<float>) const;
-			// 	return the number of BindinMonde (size getter)
+			// 	returns the number of BindinMonde (size getter)
 		int					get_Population_size();
-			// 	output BindingMode up to nResults results
+			// 	outputs BindingMode up to nResults results
 		void				output_Population(int nResults, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints);
+			// returns a vectorized Chromosome from Internal Coordinates
 		std::vector<float> 	Vectorized_Chromosome(chromosome* chrom);
+			// returns a vectorized Chromosome from Cartesian Coordinates
 		std::vector<float>	Vectorized_Cartesian_Coordinates(int chrom_index);
 
 		std::vector< Pose > Poses; 					// Poses container
@@ -173,6 +175,8 @@ class BindingPopulation
 	private:
 		std::vector< BindingMode > 	BindingModes;	// BindingMode container
 		
+			// outputs the thermodynamic parameters of the BindingModes in BindingPopulation
+		void	output_Population_energy(char* end_strfile, char* tmp_end_strfile);
 			// merges two existing BindingModes
 		bool 	merge_BindingModes(std::vector< BindingMode >::iterator mode1, std::vector< BindingMode >::iterator mode2);
 			// removes a BindingMode from the Ppopulation (THIS WILL NOT AFFACT THE POPULATION PARTITION FUNCTION)
