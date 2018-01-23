@@ -184,7 +184,7 @@ int BindingPopulation::get_Population_size() { return static_cast<int>(this->Bin
 
 
 // output BindingMode up to nResults results
-void BindingPopulation::output_Population(int nResults, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints)
+void BindingPopulation::output_Population(int nResults, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
 {
     this->Entropize();
 	bool accept = true;
@@ -209,8 +209,8 @@ void BindingPopulation::output_Population(int nResults, char* end_strfile, char*
 		// }
 		if(accept)
 		{
-			mode->output_BindingMode(num_result, end_strfile, tmp_end_strfile, dockinp, gainp, minPoints);
-	        mode->output_dynamic_BindingMode(num_result,end_strfile, tmp_end_strfile, dockinp, gainp, minPoints);
+			mode->output_BindingMode(num_result, end_strfile, tmp_end_strfile, dockinp, gainp);
+	        mode->output_dynamic_BindingMode(num_result,end_strfile, tmp_end_strfile, dockinp, gainp);
 	         --nResults;
 	         ++num_result;
 	         lastModes.push_back(mode);
@@ -493,7 +493,7 @@ double BindingMode::compute_complex_enthalpy() const
 }
 
 
-double BindingMode::compute_complex_enthalpy() const
+double BindingMode::compute_complex_entropy() const
 { 
 	double entropy = 0.0;
 	// compute entropy
@@ -578,7 +578,7 @@ double BindingMode::compute_partition_function() const
 	return partition_function;
 }
 
-void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints)
+void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
 {
     // File and Output variables declarations
     cfstr CF; /* complementarity function value */
@@ -652,7 +652,7 @@ void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tm
 	}
 	sprintf(tmpremark,"REMARK inputs: %s & %s\n",dockinp,gainp);
 	strcat(remark,tmpremark);
-	sprintf(sufix,"_%d_%d.pdb", minPoints, num_result);
+	sprintf(sufix,"_%d.pdb", num_result);
 	strcpy(tmp_end_strfile,end_strfile);
 	strcat(tmp_end_strfile,sufix);
 	// 5. write_pdb(FA,atoms,residue,tmp_end_strfile,remark)
@@ -660,7 +660,7 @@ void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tm
 }
 
 
-void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints)
+void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
 {
     // File and Output variables declarations
     cfstr CF; /* complementarity function value */
@@ -735,7 +735,7 @@ void BindingMode::output_dynamic_BindingMode(int num_result, char* end_strfile, 
 		sprintf(tmpremark,"REMARK inputs: %s & %s\n",dockinp,gainp);
 		strcat(remark,tmpremark);
         
-		sprintf(sufix,"_%d_MODEL_%d.pdb", minPoints, num_result);
+		sprintf(sufix,"_MODEL_%d.pdb", num_result);
 		strcpy(tmp_end_strfile,end_strfile);
 		strcat(tmp_end_strfile,sufix);
 		// 5. write_pdb(FA,atoms,residue,tmp_end_strfile,remark)

@@ -100,11 +100,11 @@ class BindingMode // aggregation of poses (Cluster)
 												// returns the distance between two poses (norm)
 			float 								compute_distance(const Pose& pose1, const Pose& pose2) const;
 												// returns a BindingMode ∆G
-			double								compute_energy() const;
+			double								compute_complex_energy() const;
 												// returns a BindingMode ∆S
-			double								compute_entropy() const;
+			double								compute_complex_entropy() const;
 												// returns a BindingMode ∆H
-			double								compute_enthalpy() const;
+			double								compute_complex_enthalpy() const;
 												// returns an iterator pointing to the representative Pose in BindingMode
 												// if (useCentroid) ? centroid is used : lowest CF is used
 			std::vector<Pose>::const_iterator 	elect_Representative(bool useCentroid) const;
@@ -125,8 +125,8 @@ class BindingMode // aggregation of poses (Cluster)
 		// private methods 
 		std::vector<float>	compute_centroid() const;	// return the centroid as a N dimensional vector of cartesian coordinates
 		double 				compute_partition_function() const; // used in compute_centroid
-		void 				output_BindingMode(int num_result, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints);
-		void				output_dynamic_BindingMode(int nBindingMode, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints);
+		void 				output_BindingMode(int num_result, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp);
+		void				output_dynamic_BindingMode(int nBindingMode, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp);
 };
 // publicly accessible 2 argumentss operator== (lhs, rhs)
 inline bool const operator==(const BindingMode& lhs, const BindingMode& rhs);
@@ -155,7 +155,7 @@ class BindingPopulation
 			// 	returns the number of BindinMonde (size getter)
 		int					get_Population_size();
 			// 	outputs BindingMode up to nResults results
-		void				output_Population(int nResults, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp, int minPoints);
+		void				output_Population(int nResults, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp);
 			// returns a vectorized Chromosome from Internal Coordinates
 		std::vector<float> 	Vectorized_Chromosome(chromosome* chrom);
 			// returns a vectorized Chromosome from Cartesian Coordinates
@@ -196,7 +196,7 @@ class BindingPopulation
 		{
 			inline bool operator() ( const BindingMode& BindingMode1, const BindingMode& BindingMode2 )
 			{
-				return (BindingMode1.compute_energy() < BindingMode2.compute_energy());
+				return (BindingMode1.compute_complex_energy() < BindingMode2.compute_complex_energy());
 			}
 		};
 };

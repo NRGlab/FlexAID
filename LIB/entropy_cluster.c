@@ -31,7 +31,7 @@ void FastOPTICS_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome*
 //    std::cout << "Size of Population is " << Population.get_Population_size() << " Binding Modes." << std::endl;
     
     // output FA->max_result BindingModes
-    Population.output_Population(FA->max_results, end_strfile, tmp_end_strfile, dockinp, gainp, Algo.get_minPoints());
+    Population.output_Population(FA->max_results, end_strfile, tmp_end_strfile, dockinp, gainp);
     // printf("-- end of FastOPTICS_cluster --\n");
 }
 
@@ -83,7 +83,7 @@ void ColonyEnergy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosom
     }
 
 
-    Population.output_Population(FA->max_results, end_strfile, tmp_end_strfile, dockinp, gainp, Algo.get_minPoints());
+    Population.output_Population(FA->max_results, end_strfile, tmp_end_strfile, dockinp, gainp);
 }
 
 void entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
@@ -131,5 +131,5 @@ void entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* ch
         if(nClusters > 2*FA->max_results) { break; } // stop clustering when enough results are generated
     }
     // Population.Classify_BindingModes();
-    Population.output_Population(FA->max_results, end_strfile, tmp_end_strfile, dockinp, gainp, minPoints); // minPoints = 0 to call the same function without overloading/modifying output_Population 
+    Population.output_Population(FA->max_results, end_strfile, tmp_end_strfile, dockinp, gainp); // minPoints = 0 to call the same function without overloading/modifying output_Population 
 }
