@@ -89,15 +89,24 @@ class BindingMode // aggregation of poses (Cluster)
 			void								add_Pose(Pose&);
 												//	tells if a Pose can be added to a BidingMode
 			bool 								isPoseAggregable(const Pose& pose) const;
+												// tells whether a Pose with chrom_index is found in BindingMode
 			bool								isPoseInBindingMode(int chrom_index) const;
 												//	tells if the BindingMode contains one *homogenic* population
 			bool 								isHomogenic() const;
+												// clear Poses from BindingMode
 			void                                clear_Poses();
+												// returns the number of Poses in BindingMode
 			int									get_BindingMode_size() const;
+												// returns the distance between two poses (norm)
 			float 								compute_distance(const Pose& pose1, const Pose& pose2) const;
+												// returns a BindingMode ∆G
 			double								compute_energy() const;
+												// returns a BindingMode ∆S
 			double								compute_entropy() const;
+												// returns a BindingMode ∆H
 			double								compute_enthalpy() const;
+												// returns an iterator pointing to the representative Pose in BindingMode
+												// if (useCentroid) ? centroid is used : lowest CF is used
 			std::vector<Pose>::const_iterator 	elect_Representative(bool useCentroid) const;
 			inline bool const 					operator< (const BindingMode& rhs);
 			inline bool const 					operator==(const BindingMode& rhs);

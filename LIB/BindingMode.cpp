@@ -224,8 +224,9 @@ void BindingPopulation::output_Population_energy(char* end_strfile, char* tmp_en
 {
 	char sufix[25];
 	FILE* outfile_ptr = NULL;
-	double complex_entropy, complex_enthalpy, complex_energy, complex_minusTdS = 0.0;
-	double ligand_entropy, ligand_enthalpy, ligand_energy, ligand_minusTdS = 0.0;
+	double complex_entropy = 0.0, complex_enthalpy = 0.0, complex_energy = 0.0, complex_minusTdS = 0.0;
+	double ligand_entropy = 0.0, ligand_enthalpy = 0.0, ligand_energy = 0.0, ligand_minusTdS = 0.0;
+	// double target_entropy, target_enthalpy, target_energy, target_minusTdS = 0.0;
 
 	// output filename processing
 	sprintf(sufix, ".energy");
@@ -244,10 +245,10 @@ void BindingPopulation::output_Population_energy(char* end_strfile, char* tmp_en
 
 		for(std::vector<BindingMode>::iterator iMode = this->BindingModes.begin(); iMode != this->BindingModes.end(); ++iMode)
 		{
-			complex_energy = iMode->compute_energy();
-			complex_enthalpy = iMode->compute_enthalpy();
-			complex_entropy = iMode->compute_entropy();
-			complex_minusTdS = -1 * complex_entropy * this->Temperature;
+			complex_energy = iMode->compute_energy();						// ∆Gc
+			complex_enthalpy = iMode->compute_enthalpy();					// ∆Hc
+			complex_entropy = iMode->compute_entropy();						// ∆Sc
+			complex_minusTdS = -1 * complex_entropy * this->Temperature;	// -T∆Sc
 
 			// prints BindingMode rank, energy, enthalpy, entropy, -T∆S and Temperature for the current BindingMode
 			fprintf(outfile_ptr, "%2ld\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%3d\n", (iMode - this->BindingModes.begin()), complex_energy, complex_enthalpy, complex_entropy, complex_minusTdS, this->Temperature);
@@ -816,7 +817,7 @@ std::vector<Pose>::const_iterator BindingMode::elect_Representative(bool useCent
 }
 
 
-inline bool const BindingMode::operator< (const BindingMode& rhs) { return ( this->compute_energy() < rhs.compute_energy() ); }
+inline bool const BindingMode::operator< (const BindingMode& rhs) { return ( (this->compute_energy() - rhs.compute_energy()) < DBL_EPSILON ? true : false ); }
 
 inline bool const BindingMode::operator==(const BindingMode& rhs)
 {
