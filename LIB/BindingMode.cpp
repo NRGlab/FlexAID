@@ -245,9 +245,9 @@ void BindingPopulation::output_Population_energy(char* end_strfile, char* tmp_en
 
 		for(std::vector<BindingMode>::iterator iMode = this->BindingModes.begin(); iMode != this->BindingModes.end(); ++iMode)
 		{
-			complex_energy = iMode->compute_energy();						// ∆Gc
-			complex_enthalpy = iMode->compute_enthalpy();					// ∆Hc
-			complex_entropy = iMode->compute_entropy();						// ∆Sc
+			complex_energy = iMode->compute_complex_energy();						// ∆Gc
+			complex_enthalpy = iMode->compute_complex_enthalpy();					// ∆Hc
+			complex_entropy = iMode->compute_complex_enthalpy();						// ∆Sc
 			complex_minusTdS = -1 * complex_entropy * this->Temperature;	// -T∆Sc
 
 			// prints BindingMode rank, energy, enthalpy, entropy, -T∆S and Temperature for the current BindingMode
@@ -480,7 +480,7 @@ float BindingMode::compute_distance(const Pose& pose1, const Pose& pose2) const
 }
 
 
-double BindingMode::compute_enthalpy() const
+double BindingMode::compute_complex_enthalpy() const
 {
 	double enthalpy = 0.0;
 	// compute enthalpy
@@ -493,7 +493,7 @@ double BindingMode::compute_enthalpy() const
 }
 
 
-double BindingMode::compute_entropy() const
+double BindingMode::compute_complex_enthalpy() const
 { 
 	double entropy = 0.0;
 	// compute entropy
@@ -517,9 +517,9 @@ double BindingMode::compute_entropy() const
 }
 
 
-double BindingMode::compute_energy() const
+double BindingMode::compute_complex_energy() const
 { 
-	double energy = ( this->compute_enthalpy() - ( this->Population->Temperature * this->compute_entropy() ) );
+	double energy = ( this->compute_complex_enthalpy() - ( this->Population->Temperature * this->compute_complex_enthalpy() ) );
 	
 	// if energy isNaN, put energy to 0.0
 	// to avoid NaN in BindingModes enery
@@ -537,7 +537,7 @@ void BindingMode::clear_Poses() { this->Poses.clear(); }
 
 void BindingMode::set_energy()
 {
-	this->energy = this->compute_energy();
+	this->energy = this->compute_complex_energy();
 }
 
 
@@ -629,7 +629,7 @@ void BindingMode::output_BindingMode(int num_result, char* end_strfile, char* tm
 	}
     
     sprintf(tmpremark,"REMARK Binding Mode:%d Best CF in Binding Mode:%8.5f OPTICS Center (CF):%8.5f Binding Mode Total CF:%8.5f Binding Mode Frequency:%d\n",
-            num_result, Rep_lowCF->CF, Rep_Centroid->CF, this->compute_energy(), this->get_BindingMode_size());
+            num_result, Rep_lowCF->CF, Rep_Centroid->CF, this->compute_complex_energy(), this->get_BindingMode_size());
     strcat(remark,tmpremark);
     for(int j=0; j < this->Population->FA->npar; ++j)
 	{
@@ -817,7 +817,7 @@ std::vector<Pose>::const_iterator BindingMode::elect_Representative(bool useCent
 }
 
 
-inline bool const BindingMode::operator< (const BindingMode& rhs) { return ( (this->compute_energy() - rhs.compute_energy()) < DBL_EPSILON ? true : false ); }
+inline bool const BindingMode::operator< (const BindingMode& rhs) { return ( (this->compute_complex_energy() - rhs.compute_complex_energy()) < DBL_EPSILON ? true : false ); }
 
 inline bool const BindingMode::operator==(const BindingMode& rhs)
 {
