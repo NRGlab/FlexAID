@@ -99,12 +99,29 @@ class BindingMode // aggregation of poses (Cluster)
 			int									get_BindingMode_size() const;
 												// returns the distance between two poses (norm)
 			float 								compute_distance(const Pose& pose1, const Pose& pose2) const;
-												// returns a BindingMode ∆G
+
+
+												// returns a BindingMode ∆Gc
 			double								compute_complex_energy() const;
-												// returns a BindingMode ∆S
+												// returns a BindingMode ∆Sc
 			double								compute_complex_entropy() const;
-												// returns a BindingMode ∆H
+												// returns a BindingMode ∆Hc
 			double								compute_complex_enthalpy() const;
+
+												// returns a BindingMode ∆Gl
+			double								compute_free_ligand_energy() const;
+												// returns a BindingMode ∆Sl
+			double								compute_free_ligand_entropy() const;
+												// returns a BindingMode ∆Hl
+			double								compute_free_ligand_enthalpy() const;
+
+												// returns a BindingMode ∆Gs
+			double								compute_solvated_complex_energy() const;
+												// returns a BindingMode ∆Ss
+			double								compute_solvated_complex_entropy() const;
+												// returns a BindingMode ∆Hs
+			double								compute_solvated_complex_enthalpy() const;
+
 												// returns an iterator pointing to the representative Pose in BindingMode
 												// if (useCentroid) ? centroid is used : lowest CF is used
 			std::vector<Pose>::const_iterator 	elect_Representative(bool useCentroid) const;

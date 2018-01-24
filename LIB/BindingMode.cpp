@@ -34,6 +34,7 @@ BindingPopulation::BindingPopulation(FA_Global* pFA, GB_Global* pGB, VC_Global* 
 	for(std::vector<Pose>::iterator iPose = this->Poses.begin(); iPose != this->Poses.end(); ++iPose)
 	{
 		double Pi = iPose->boltzmann_weight / this->PartitionFunction;
+		// CFdS {∆G} += Pi*CFi {∆H} - T*(-PilnPi) {T∆S}
 		iPose->CFdS += Pi*iPose->CF - this->Temperature*(-1 * Pi * log(Pi));
 	}
 }
@@ -226,7 +227,7 @@ void BindingPopulation::output_Population_energy(char* end_strfile, char* tmp_en
 	FILE* outfile_ptr = NULL;
 	double complex_entropy = 0.0, complex_enthalpy = 0.0, complex_energy = 0.0, complex_minusTdS = 0.0;
 	double ligand_entropy = 0.0, ligand_enthalpy = 0.0, ligand_energy = 0.0, ligand_minusTdS = 0.0;
-	// double target_entropy, target_enthalpy, target_energy, target_minusTdS = 0.0;
+	// double target_entropy = 0.0, target_enthalpy = 0.0, target_energy = 0.0, target_minusTdS = 0.0;
 
 	// output filename processing
 	sprintf(sufix, ".energy");
