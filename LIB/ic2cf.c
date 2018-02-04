@@ -130,6 +130,8 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,
 	cf.wal = 0.0;
 	cf.sas = 0.0;
 	cf.con = 0.0;
+	cf.ligsolv = 0.0;
+	cf.tarsolv = 0.0;
 	cf.rclash = 0;
     
 	for(i=0;i<FA->num_optres;i++){
@@ -237,6 +239,8 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,
 		cf.com += FA->optres[i].cf.com;
 		cf.wal += FA->optres[i].cf.wal;
 		cf.sas += FA->optres[i].cf.sas;
+		cf.ligsolv += FA->optres[i].cf.ligsolv;
+		cf.tarsolv += FA->optres[i].cf.tarsolv;
 		cf.con += FA->optres[i].cf.con;
 
 	}

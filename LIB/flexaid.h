@@ -99,11 +99,13 @@
 typedef unsigned int uint;
 
 struct cf_str{  // Complementarity Function value structure
-	double com;    // complementarity value
-	double con;    // constraint value
-	double wal;    // wall term
-	double sas;    // solvent accessibility surface
-	double totsas; // overall sas of molecule
+	double com;    	// complementarity value
+	double con;    	// constraint value
+	double wal;    	// wall term
+	double sas;    	// solvent accessibility surface
+	double totsas; 	// overall sas of molecule
+	double ligsolv;	// desolvation of ligand (area in contact with target are not solvated)
+	double tarsolv; // desolvation of target (area in contact with ligand are not solvated)
 	int   rclash; // flag that shows whether the residue is making steric clashes
 };
 typedef struct cf_str cfstr;

@@ -18,6 +18,8 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, std::v
 		FA->optres[j].cf.com=0.0;
 		FA->optres[j].cf.con=0.0;
 		FA->optres[j].cf.sas=0.0;
+		FA->optres[j].cf.ligsolv=0.0;
+		FA->optres[j].cf.tarsolv=0.0;
 		FA->optres[j].cf.totsas=0.0;
 	}
 	
@@ -97,7 +99,7 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, std::v
 		double radoA = radA + Rw;
 		
 		double SAS = 4.0*PI*radoA*radoA;
-       		double surfA = SAS;
+   		double surfA = SAS;
 		
 		if(FA->useacs && atoms[atomzero].acs < 0.0){
 			// accessible contact surface with solvent/atom		
@@ -191,6 +193,12 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, std::v
 			// always use normalized areas in density functions
 			double yval = get_yval(energy_matrix,area/surfA);
 			
+			energy_matrix = &FA->energy_matrix[(VC->Calc[i].atom->type-1)*FA->ntypes + (FA->ntypes-1)];
+			double lig_sol_val = get_yval(energy_matrix,area/surfA);
+
+			energy_matrix = &FA->energy_matrix[(VC->Calc[VC->ca_rec[currindex].atom].atom->type-1)*FA->ntypes + (FA->ntypes-1)];
+			double target_sol_val = get_yval(energy_matrix,area/surfA);
+
 			SAS -= area;
 			
 			// number of contacts counter
@@ -322,24 +330,35 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, std::v
 				if(FA->intramolecular || !intramolecular) {
 					
 					double contribution = 0.0;
+					double ligsolcontribution = 0.0, tarsolcontribution = 0.0;
 					if(energy_matrix->weight){
 						if(FA->normalize_area){
 							contribution = yval*area/surfA;
+							ligsolcontribution = lig_sol_val*area/surfA;
+							tarsolcontribution = target_sol_val*area/surfA;
 						}else{
 							contribution = yval*area;
+							ligsolcontribution = lig_sol_val*area;
+							tarsolcontribution = target_sol_val*area;
 						}
 					}else{
 						contribution = yval;
+						ligsolcontribution = lig_sol_val;
+						tarsolcontribution = target_sol_val;
 					}
 					
 					if(FA->useacs){
 						//printf("USE ACS\n");
 						//printf("default contribution=%.3f\n", contribution);
 						contribution = contribution * atoms[atomzero].acs/surfA * FA->acsweight;
+						ligsolcontribution = ligsolcontribution * atoms[atomzero].acs/surfA * FA->acsweight;
+						tarsolcontribution = tarsolcontribution * atoms[atomzero].acs/surfA * FA->acsweight;
 						//printf("after contribution=%.3f\n", contribution);
 					}
 					
 					cfs->com += contribution;
+					cfs->ligsolv += ligsolcontribution;
+					cfs->tarsolv += tarsolcontribution;
 					
 #if DEBUG_LEVEL > 0
 					cfs_atom.com += contribution;
