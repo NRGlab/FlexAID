@@ -227,7 +227,7 @@ void BindingPopulation::output_Population_energy(char* end_strfile, char* tmp_en
 	FILE* outfile_ptr = NULL;
 	double complex_entropy = 0.0, complex_enthalpy = 0.0, complex_energy = 0.0, complex_minusTdS = 0.0;
 	double ligand_entropy = 0.0, ligand_enthalpy = 0.0, ligand_energy = 0.0, ligand_minusTdS = 0.0;
-	// double target_entropy = 0.0, target_enthalpy = 0.0, target_energy = 0.0, target_minusTdS = 0.0;
+	double solvated_complex_entropy = 0.0, solvated_complex_enthalpy = 0.0, solvated_complex_energy = 0.0, solvated_complex_minusTdS = 0.0;
 
 	// output filename processing
 	sprintf(sufix, ".energy");
@@ -240,17 +240,33 @@ void BindingPopulation::output_Population_energy(char* end_strfile, char* tmp_en
 	}
 	else
 	{
-		// 1. Prints HEADER
+		// 1. Prints HEADER to *.energy file
 		// fprintf(outfile_ptr, "%2s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%3s\n","#", "∆Gc", "∆Hc", "∆Sc", "-T∆Sc", "∆Gl", "∆Hl", "∆Sl", "-T∆Sl", "∆Gs", "∆Hs", "∆Ss", "-T∆Ss", "T");
 		fprintf(outfile_ptr, "%2s\t%10s\t%10s\t%10s\t%10s\t%3s\n","#", "∆Gc", "∆Hc", "∆Sc", "-T∆Sc", "T");
 
-		for(std::vector<BindingMode>::iterator iMode = this->BindingModes.begin(); iMode != this->BindingModes.end(); ++iMode)
+		for(std::vector<BindingMode>::const_iterator iMode = this->BindingModes.begin(); iMode != this->BindingModes.end(); ++iMode)
 		{
-			complex_energy = iMode->compute_complex_energy();						// ∆Gc
-			complex_enthalpy = iMode->compute_complex_enthalpy();					// ∆Hc
-			complex_entropy = iMode->compute_complex_enthalpy();						// ∆Sc
-			complex_minusTdS = -1 * complex_entropy * this->Temperature;	// -T∆Sc
+			complex_energy = iMode->compute_complex_energy();				// ∆Gc
+			complex_enthalpy = iMode->compute_complex_enthalpy();			// ∆Hc
+			complex_entropy = iMode->compute_complex_entropy();				// ∆Sc
+			complex_minusTdS = -1 * complex_entropy * this->Temperature;	//-T∆Sc
 
+			ligand_energy = iMode->compute_free_ligand_energy();					// ∆Gl
+			ligand_enthalpy = iMode->compute_free_ligand_enthalpy();				// ∆Hl
+			ligand_entropy = iMode->compute_free_ligand_entropy();				// ∆Sl
+			ligand_minusTdS = -1 * ligand_entropy * this->Temperature;		//-T∆Sl
+
+			solvated_complex_energy = iMode->compute_solvated_complex_energy();				// ∆Gs
+			solvated_complex_enthalpy = iMode->compute_solvated_complex_enthalpy();			// ∆Hs
+			solvated_complex_entropy = iMode->compute_solvated_complex_entropy();			// ∆Ss
+			ligand_minusTdS = -1 * ligand_entropy * this->Temperature;		//-T∆Ss
+
+            
+            // Pose::iterator to Binding Mode reprentative
+            //  false : will use lowest CF
+            //   true : will use BindingMode's centroid
+            std::vector<Pose>::const_iterator iPose = iMode->elect_Representative(false);
+			
 			// prints BindingMode rank, energy, enthalpy, entropy, -T∆S and Temperature for the current BindingMode
 			fprintf(outfile_ptr, "%2ld\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%3d\n", (iMode - this->BindingModes.begin()), complex_energy, complex_enthalpy, complex_entropy, complex_minusTdS, this->Temperature);
 		}
@@ -529,6 +545,59 @@ double BindingMode::compute_complex_energy() const
 	return energy;
 }
 
+double BindingMode::compute_solvated_complex_enthalpy() const
+{
+	double enthalpy = 0.0;
+
+	// compute
+	
+	return enthalpy;
+}
+
+double BindingMode::compute_solvated_complex_entropy() const
+{
+	double entropy = 0.0;
+
+	// compute
+	
+	return entropy;
+}
+
+double BindingMode::compute_solvated_complex_energy() const
+{
+	double energy = 0.0;
+
+	// compute
+	
+	return energy;
+}
+
+double BindingMode::compute_free_ligand_enthalpy() const
+{
+	double enthalpy = 0.0;
+
+	// compute
+	
+	return enthalpy;
+}
+
+double BindingMode::compute_free_ligand_entropy() const
+{
+	double entropy = 0.0;
+
+	// compute
+	
+	return entropy;
+}
+
+double BindingMode::compute_free_ligand_energy() const
+{
+	double energy = 0.0;
+
+	// compute
+	
+	return energy;
+}
 
 int BindingMode::get_BindingMode_size() const { return static_cast<int>(this->Poses.size()); }
 
