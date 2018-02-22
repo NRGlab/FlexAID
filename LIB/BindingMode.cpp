@@ -246,6 +246,8 @@ void BindingPopulation::output_Population_energy(char* end_strfile, char* tmp_en
 
 		for(std::vector<BindingMode>::const_iterator iMode = this->BindingModes.begin(); iMode != this->BindingModes.end(); ++iMode)
 		{
+			// The following 3 blocks of text use variables for clarity,
+			// there is otherwise no need to save these values priror to output
 			complex_energy = iMode->compute_complex_energy();				// ∆Gc
 			complex_enthalpy = iMode->compute_complex_enthalpy();			// ∆Hc
 			complex_entropy = iMode->compute_complex_entropy();				// ∆Sc
@@ -536,7 +538,7 @@ double BindingMode::compute_complex_entropy() const
 
 double BindingMode::compute_complex_energy() const
 { 
-	double energy = ( this->compute_complex_enthalpy() - ( this->Population->Temperature * this->compute_complex_enthalpy() ) );
+	double energy = ( this->compute_complex_enthalpy() - ( this->Population->Temperature * this->compute_complex_entropy() ) );
 	
 	// if energy isNaN, put energy to 0.0
 	// to avoid NaN in BindingModes enery
@@ -566,6 +568,7 @@ double BindingMode::compute_solvated_complex_entropy() const
 double BindingMode::compute_solvated_complex_energy() const
 {
 	double energy = 0.0;
+	double energy = ( this->compute_solvated_complex_enthalpy - ( this->Temperature * this->compute_complex_entropy()) );
 
 	// compute
 	
