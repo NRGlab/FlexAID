@@ -568,7 +568,7 @@ double BindingMode::compute_solvated_complex_entropy() const
 double BindingMode::compute_solvated_complex_energy() const
 {
 	// double energy = 0.0;
-    double energy = ( this->compute_solvated_complex_enthalpy() - ( this->Population->Temperature * this->compute_complex_entropy()) );
+    double energy = ( this->compute_solvated_complex_enthalpy() - ( this->Population->Temperature * this->compute_solvated_complex_entropy()) );
 
 	// compute
 	
