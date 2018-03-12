@@ -89,7 +89,6 @@ void ColonyEnergy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosom
 void entropy_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
 {
     // minPoints will be used for the call to ColonyEnergy
-    // "       " will also be used for output_Population as a suffix (TO UNIFORMIZE)
     int minPoints = 15;
     int nClusters = 0;
     

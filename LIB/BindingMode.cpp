@@ -570,7 +570,9 @@ double BindingMode::compute_solvated_complex_energy() const
 	// double energy = 0.0;
     double energy = ( this->compute_solvated_complex_enthalpy() - ( this->Population->Temperature * this->compute_solvated_complex_entropy()) );
 
-	// compute
+	// if energy isNaN, put energy to 0.0
+	// to avoid NaN in BindingModes enery
+	if(boost::math::isnan(energy)) energy = 0.0;
 	
 	return energy;
 }
@@ -595,9 +597,12 @@ double BindingMode::compute_free_ligand_entropy() const
 
 double BindingMode::compute_free_ligand_energy() const
 {
-	double energy = 0.0;
+	// double energy = 0.0;
+	double energy = ( this->compute_free_ligand_enthalpy() - ( this->Population->Temperature * this->compute_free_ligand_entropy()) );
 
-	// compute
+	// if energy isNaN, put energy to 0.0
+	// to avoid NaN in BindingModes enery
+	if(boost::math::isnan(energy)) energy = 0.0;
 	
 	return energy;
 }
