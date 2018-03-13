@@ -200,13 +200,20 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, std::v
 			// Alternatively, the (else) part of the if/else block is entered when no ligand is found
 			//    in which case no value will be added to contribution when both atoms are from the targets 
 
-			if(&VC->Calc[i].residue == &FA->resligand || &VC->Calc[VC->ca_rec[currindex].atom].residue == &FA->resligand)
+            if(	(	!strcmp(VC->Calc[i].residue->name, FA->resligand->name) &&
+                 !strcmp(&VC->Calc[i].residue->chn, &FA->resligand->chn)	&&
+                 &VC->Calc[i].residue->number == &FA->resligand->number  ) ||
+               (	!strcmp(VC->Calc[VC->ca_rec[currindex].atom].residue->name, FA->resligand->name) &&
+                !strcmp(&VC->Calc[VC->ca_rec[currindex].atom].residue->chn, &FA->resligand->chn)	&&
+                &VC->Calc[VC->ca_rec[currindex].atom].residue->number == &FA->resligand->number   ) )
 			{
 				// the following if/else block is used to get proper ligand's contact with water in lig_sol_val
 				// and the proper target's contact with water in tar_sol_val
 				// Ideally, there would be only one of the two atoms in contact that is from the ligand
 
-				if(&VC->Calc[i].residue == &FA->resligand)
+                if(	!strcmp(VC->Calc[i].residue->name, FA->resligand->name) &&
+                   !strcmp(&VC->Calc[i].residue->chn, &FA->resligand->chn)	&&
+                   &VC->Calc[i].residue->number == &FA->resligand->number  	)
 				{
 					energy_matrix = &FA->energy_matrix[(VC->Calc[i].atom->type-1)*FA->ntypes + (FA->ntypes-1)];
 					lig_sol_val = get_yval(energy_matrix,area/surfA);
@@ -214,7 +221,9 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, std::v
 					energy_matrix = &FA->energy_matrix[(VC->Calc[VC->ca_rec[currindex].atom].atom->type-1)*FA->ntypes + (FA->ntypes-1)];
 					target_sol_val = get_yval(energy_matrix,area/surfA);
 				}
-				else if(&VC->Calc[VC->ca_rec[currindex].atom].residue == &FA->resligand)
+                else if(	!strcmp(VC->Calc[VC->ca_rec[currindex].atom].residue->name, FA->resligand->name) &&
+                        !strcmp(&VC->Calc[VC->ca_rec[currindex].atom].residue->chn, &FA->resligand->chn)	&&
+                        &VC->Calc[VC->ca_rec[currindex].atom].residue->number == &FA->resligand->number   )
 				{
 					energy_matrix = &FA->energy_matrix[(VC->Calc[VC->ca_rec[currindex].atom].atom->type-1)*FA->ntypes + (FA->ntypes-1)];
 					lig_sol_val = get_yval(energy_matrix,area/surfA);
@@ -224,15 +233,15 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, std::v
 				}
 
 			}
-			else
-			{
+			// else
+			// {
 				
-				energy_matrix = &FA->energy_matrix[(VC->Calc[i].atom->type-1)*FA->ntypes + (FA->ntypes-1)];
-				lig_sol_val = get_yval(energy_matrix,area/surfA);
+			// 	energy_matrix = &FA->energy_matrix[(VC->Calc[i].atom->type-1)*FA->ntypes + (FA->ntypes-1)];
+			// 	lig_sol_val = get_yval(energy_matrix,area/surfA);
 
-				energy_matrix = &FA->energy_matrix[(VC->Calc[VC->ca_rec[currindex].atom].atom->type-1)*FA->ntypes + (FA->ntypes-1)];
-				target_sol_val = get_yval(energy_matrix,area/surfA);
-			}
+			// 	energy_matrix = &FA->energy_matrix[(VC->Calc[VC->ca_rec[currindex].atom].atom->type-1)*FA->ntypes + (FA->ntypes-1)];
+			// 	target_sol_val = get_yval(energy_matrix,area/surfA);
+			// }
 			SAS -= area;
 			
 			// number of contacts counter

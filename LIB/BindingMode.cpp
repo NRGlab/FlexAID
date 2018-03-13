@@ -498,6 +498,7 @@ float BindingMode::compute_distance(const Pose& pose1, const Pose& pose2) const
 	return sqrtf(distance / static_cast<float>(this->Population->FA->num_het_atm));
 }
 
+/*###############################################*/
 
 double BindingMode::compute_complex_enthalpy() const
 {
@@ -535,7 +536,6 @@ double BindingMode::compute_complex_entropy() const
 	}
 }
 
-
 double BindingMode::compute_complex_energy() const
 { 
 	double energy = ( this->compute_complex_enthalpy() - ( this->Population->Temperature * this->compute_complex_entropy() ) );
@@ -546,6 +546,8 @@ double BindingMode::compute_complex_energy() const
 	
 	return energy;
 }
+
+/*###############################################*/
 
 double BindingMode::compute_solvated_complex_enthalpy() const
 {
@@ -577,10 +579,12 @@ double BindingMode::compute_solvated_complex_energy() const
 	return energy;
 }
 
+/*###############################################*/
+
 double BindingMode::compute_free_ligand_enthalpy() const
 {
 	double enthalpy = 0.0;
-
+    // double CFl = 
 	// compute
 	
 	return enthalpy;
@@ -606,6 +610,8 @@ double BindingMode::compute_free_ligand_energy() const
 	
 	return energy;
 }
+
+/*###############################################*/
 
 int BindingMode::get_BindingMode_size() const { return static_cast<int>(this->Poses.size()); }
 
