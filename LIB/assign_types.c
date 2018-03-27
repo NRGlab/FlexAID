@@ -109,7 +109,7 @@ void assign_types(FA_Global* FA,atom* atoms,resid* residue,char aminofile[]){
 	for(k=1;k<=FA->res_cnt;k++){ 
 		rot=residue[k].rot;
 		for(i=residue[k].fatm[rot];i<=residue[k].latm[rot];i++){ 
-			if(strcmp(residue[atoms[i].ofres].name,"HOH") == 0){atoms[i].type = 1;}
+			if(strcmp(residue[atoms[i].ofres].name,"HOH") == 0){atoms[i].type = FA->ntypes;}
 		}
 	}
 	
