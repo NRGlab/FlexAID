@@ -2047,7 +2047,7 @@ int generate_multiple_genes_mutants(FA_Global* FA, GB_Global* GB, VC_Global* VC,
 			}
 		}
 		rmsd = calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes, centerIndex, nChroms, NULL, NULL, true);
-		if(rmsd > (1-sizeTolerance)*FA->cluster_rmsd) flag = true;
+		if(rmsd > (2-sizeTolerance)*FA->cluster_rmsd) flag = true;
 		
 
 		// chrom[nChroms].cf=eval_chromosome(FA, GB, VC, gene_lim, atoms, residue, cleftgrid, chrom[nChroms].genes, target);
