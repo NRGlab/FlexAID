@@ -29,6 +29,7 @@ struct Pose
 	double CF;
 	double CFdS;
 	double boltzmann_weight;
+	double solvated_boltzmann_weight;
 	std::vector<float> vPose;
 	inline bool const operator< (const Pose& rhs);
 	inline bool const operator> (const Pose& rhs);
@@ -158,19 +159,23 @@ class BindingPopulation
     
 	public:
 		// Temperature is used for energy calculations of BindingModes
-		unsigned int Temperature;
+		unsigned int 		Temperature;
 		// Explicit constructor to be called (it will handle the PartitionFunction)
-		explicit 	BindingPopulation(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom);
+		explicit 			BindingPopulation(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gene_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom);
 			// 	add new binding mode to population
 		void				add_BindingMode(BindingMode&);
 			// Classify_BindingModes merges similar BindingModes together
 		void 				Classify_BindingModes();
 			// used to compute the distance between 2 poses (same as BindingMode::compute_distance)
 		float 				compute_distance(const Pose& pose1, const Pose& pose2) const;
+			// used to compute the distance between 2 poses (same as BindingMode::compute_distance)
 		float 				compute_distance(std::vector<Pose>::const_iterator,std::vector<Pose>::const_iterator) const;
+			// used to compute the distance between 2 poses (same as BindingMode::compute_distance)
 		float 				compute_vec_distance(std::vector<float>, std::vector<float>) const;
 			// 	returns the number of BindinMonde (size getter)
-		int					get_Population_size();
+		int					get_Population_size() const;
+			// returns the number of possible conformations of the ligand in solution according to simulation parameters (nFlexBonds, DeltaAngle, DeltaDihedral) 
+		int 				count_free_ligand_conformations() const;
 			// 	outputs BindingMode up to nResults results
 		void				output_Population(int nResults, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp);
 			// returns a vectorized Chromosome from Internal Coordinates
@@ -182,6 +187,7 @@ class BindingPopulation
 
 	protected:
 		double PartitionFunction;	// sum of all Boltzmann_weight
+		double SolvatedPartitionFunction;	// sum of all Boltzmann_weighted solvated complexes
 		int nChroms;				// n_chrom_snapshot input to clustergin function
 		int nDimensions;
 
@@ -209,7 +215,7 @@ class BindingPopulation
 		void 	remove_BindingMode(std::vector<BindingMode>::iterator mode);
 			// removes all BindingModes where isValid == false (calls remove_BidningMode)
 		void 	remove_invalid_BindingModes();
-		struct EnergyComparator
+		struct 	EnergyComparator
 		{
 			inline bool operator() ( const BindingMode& BindingMode1, const BindingMode& BindingMode2 )
 			{

@@ -37,7 +37,7 @@
 #define MAX_SHORTEST_PATH 50        // max number of atom to reach any atom of the same molecule
 #define MAX_PATH__ 255              // max size of path length
 #define MAX_REMARK 5000             // max size of comment length
-#define MAX_NUM_RES 250             // max number of residues allowed 
+#define MAX_NUM_RES 500             // max number of residues allowed 
 #define MAX_NUM_MODES 5             // max number of normal modes
 #define MAX_NUM_ATM 10000           // max number of atoms allowed 
 #define MAX_ATM_HET 200             // max number of atoms in het groups allowed 

@@ -2156,7 +2156,7 @@ int generate_true_positive_cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, 
 			gene = (double) atoms[FA->map_par[l].atm].dih;
 		}
 
-		// normal mode (should not be observed yet..)
+		// normal mode (should not be observed yet.. well maybe it's time to integrate it too..06/2018)
 		if(FA->map_par[l].typ == 3) {}
 		
 		// rotamer

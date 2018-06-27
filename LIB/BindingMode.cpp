@@ -6,7 +6,7 @@ boost::random::mt19937 gen;
 \*****************************************/
 // public (explicitely requires unsigned int temperature) *non-overloadable*
 // BindingPopulation::BindingPopulation(unsigned int temp) : Temperature(temp)
-BindingPopulation::BindingPopulation(FA_Global* pFA, GB_Global* pGB, VC_Global* pVC, chromosome* pchrom, genlim* pgene_lim, atom* patoms, resid* presidue, gridpoint* pcleftgrid, int num_chrom) : Temperature(pFA->temperature), PartitionFunction(0.0), nChroms(num_chrom), FA(pFA), GB(pGB), VC(pVC), chroms(pchrom), gene_lim(pgene_lim), atoms(patoms), residue(presidue), cleftgrid(pcleftgrid)
+BindingPopulation::BindingPopulation(FA_Global* pFA, GB_Global* pGB, VC_Global* pVC, chromosome* pchrom, genlim* pgene_lim, atom* patoms, resid* presidue, gridpoint* pcleftgrid, int num_chrom) : Temperature(pFA->temperature), PartitionFunction(0.0), SolvatedPartitionFunction(0.0), nChroms(num_chrom), FA(pFA), GB(pGB), VC(pVC), chroms(pchrom), gene_lim(pgene_lim), atoms(patoms), residue(presidue), cleftgrid(pcleftgrid)
 {
 	// the number of dimensions is used for the vectors of coordinates
 	this->nDimensions = this->FA->num_het_atm*3;	// use with Vectorized_Cartesian_Coordinates()
@@ -25,10 +25,11 @@ BindingPopulation::BindingPopulation(FA_Global* pFA, GB_Global* pGB, VC_Global* 
 		}
 	}
     
-	// calculate the partition function
+	// calculate the partition function and the solvated partition function
 	for(std::vector<Pose>::iterator iPose = this->Poses.begin(); iPose != this->Poses.end(); ++iPose)
 	{
 		this->PartitionFunction += iPose->boltzmann_weight;
+		this->SolvatedPartitionFunction += iPose->solvated_boltzmann_weight;
 	}
 
 	for(std::vector<Pose>::iterator iPose = this->Poses.begin(); iPose != this->Poses.end(); ++iPose)
@@ -181,8 +182,13 @@ float BindingPopulation::compute_vec_distance(std::vector<float> v1 ,std::vector
 	return sqrtf(distance / static_cast<float>(this->FA->num_het_atm));
 }
 
-int BindingPopulation::get_Population_size() { return static_cast<int>(this->BindingModes.size()); }
+int BindingPopulation::get_Population_size() const { return static_cast<int>(this->BindingModes.size()); }
 
+int BindingPopulation::count_free_ligand_conformations() const
+{
+	// count the total number of ligand conformational states in solution
+	return (this->FA->nflexbonds) ? this->FA->nflexbonds * static_cast<int>( 360 / this->FA->delta_flexible ) * static_cast<int>(360 / this->FA->delta_angle) * static_cast<int>(360 / this->FA->delta_dihedral) : static_cast<int>(360 / this->FA->delta_angle) * static_cast<int>(360 / this->FA->delta_dihedral);
+}
 
 // output BindingMode up to nResults results
 void BindingPopulation::output_Population(int nResults, char* end_strfile, char* tmp_end_strfile, char* dockinp, char* gainp)
@@ -242,9 +248,9 @@ void BindingPopulation::output_Population_energy(char* end_strfile, char* tmp_en
 	{
 		// 1. Prints HEADER to *.energy file
 		// fprintf(outfile_ptr, "%2s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%3s\n","#", "∆Gc", "∆Hc", "∆Sc", "-T∆Sc", "∆Gl", "∆Hl", "∆Sl", "-T∆Sl", "∆Gs", "∆Hs", "∆Ss", "-T∆Ss", "T");
-		fprintf(outfile_ptr, "%2s\t%10s\t%10s\t%10s\t%10s\t%3s\n","#", "∆Gc", "∆Hc", "∆Sc", "-T∆Sc", "T");
+		fprintf(outfile_ptr, "%2s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%3s\n","#", "∆Gc", "∆Hc", "∆Sc", "-T∆Sc", "∆Gl", "∆Hl", "∆Sl", "-T∆Sl", "∆Gs", "∆Hs", "∆Ss", "-T∆Ss", "T");
 
-		for(std::vector<BindingMode>::const_iterator iMode = this->BindingModes.begin(); iMode != this->BindingModes.end(); ++iMode)
+		for(std::vector<BindingMode>::const_iterator iMode = this->BindingModes.begin(); iMode != this->BindingModes.end() && ( iMode - this->BindingModes.begin() < this->FA->max_results ); ++iMode)
 		{
 			// The following 3 blocks of text use variables for clarity,
 			// there is otherwise no need to save these values priror to output
@@ -253,15 +259,15 @@ void BindingPopulation::output_Population_energy(char* end_strfile, char* tmp_en
 			complex_entropy = iMode->compute_complex_entropy();				// ∆Sc
 			complex_minusTdS = -1 * complex_entropy * this->Temperature;	//-T∆Sc
 
-			ligand_energy = iMode->compute_free_ligand_energy();					// ∆Gl
-			ligand_enthalpy = iMode->compute_free_ligand_enthalpy();				// ∆Hl
-			ligand_entropy = iMode->compute_free_ligand_entropy();				// ∆Sl
+			ligand_energy = iMode->compute_free_ligand_energy();			// ∆Gl
+			ligand_enthalpy = iMode->compute_free_ligand_enthalpy();		// ∆Hl
+			ligand_entropy = iMode->compute_free_ligand_entropy();			// ∆Sl
 			ligand_minusTdS = -1 * ligand_entropy * this->Temperature;		//-T∆Sl
 
 			solvated_complex_energy = iMode->compute_solvated_complex_energy();				// ∆Gs
 			solvated_complex_enthalpy = iMode->compute_solvated_complex_enthalpy();			// ∆Hs
 			solvated_complex_entropy = iMode->compute_solvated_complex_entropy();			// ∆Ss
-			ligand_minusTdS = -1 * ligand_entropy * this->Temperature;		//-T∆Ss
+			solvated_complex_minusTdS = -1 * solvated_complex_entropy * this->Temperature;	//-T∆Ss
 
             
             // Pose::iterator to Binding Mode reprentative
@@ -270,7 +276,11 @@ void BindingPopulation::output_Population_energy(char* end_strfile, char* tmp_en
             std::vector<Pose>::const_iterator iPose = iMode->elect_Representative(false);
 			
 			// prints BindingMode rank, energy, enthalpy, entropy, -T∆S and Temperature for the current BindingMode
-			fprintf(outfile_ptr, "%2ld\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%3d\n", (iMode - this->BindingModes.begin()), complex_energy, complex_enthalpy, complex_entropy, complex_minusTdS, this->Temperature);
+			fprintf(outfile_ptr, "%2ld\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%3d\n", (iMode - this->BindingModes.begin()),
+				complex_energy, complex_enthalpy, complex_entropy, complex_minusTdS,
+				ligand_energy, ligand_enthalpy, ligand_entropy, ligand_minusTdS,
+				solvated_complex_energy, solvated_complex_enthalpy, solvated_complex_entropy, solvated_complex_minusTdS,
+				this->Temperature);
 		}
 	}
 
@@ -551,58 +561,137 @@ double BindingMode::compute_complex_energy() const
 
 double BindingMode::compute_solvated_complex_enthalpy() const
 {
-	double enthalpy = 0.0;
-
-	// compute
+	double solvated_enthalpy = 0.0;
+	// compute enthalpy
+	for(std::vector<Pose>::const_iterator pose = this->Poses.begin(); pose != this->Poses.end(); ++pose)
+	{
+		// Pis is approximated to be equivalent to Pi
+		// under the assumption that solvation will affect
+		// most poses in the BindingMode in the same way 
+		double boltzmann_prob = pose->solvated_boltzmann_weight / this->Population->SolvatedPartitionFunction;
+		// compute solvated complex enthalpy 
+		// ∆Hs = ∑ Pi * (CFi - CFl - CFt)
+        solvated_enthalpy += boltzmann_prob * ( pose->CF - pose->chrom->cf.ligsolv - pose->chrom->cf.tarsolv );
+	}
 	
-	return enthalpy;
+	return solvated_enthalpy;
 }
 
 double BindingMode::compute_solvated_complex_entropy() const
 {
-	double entropy = 0.0;
-
-	// compute
+	double solvated_entropy = 0.0;
+	for(std::vector<Pose>::const_iterator pose = this->Poses.begin(); pose != this->Poses.end(); ++pose)
+	{
+		double boltzmann_prob = pose->solvated_boltzmann_weight / this->Population->SolvatedPartitionFunction;
+		solvated_entropy += boltzmann_prob * log(boltzmann_prob);
+	}
 	
-	return entropy;
+	if( boost::math::isnan(solvated_entropy) )
+	{
+		solvated_entropy = 0.0;
+		return solvated_entropy;
+	}
+	else
+	{
+		// in order to respect Boltzmann/Shannon entropy formula for a probabilities, we add the negative sign
+		// this is explained by the logarithm property where ln(W) = -ln(1/W)
+		return -solvated_entropy;
+	}
 }
 
 double BindingMode::compute_solvated_complex_energy() const
 {
 	// double energy = 0.0;
-    double energy = ( this->compute_solvated_complex_enthalpy() - ( this->Population->Temperature * this->compute_solvated_complex_entropy()) );
+    double solvated_energy = ( this->compute_solvated_complex_enthalpy() - ( this->Population->Temperature * this->compute_solvated_complex_entropy() ) );
 
-	// if energy isNaN, put energy to 0.0
+	// if solvated_energy isNaN, put solvated_energy to 0.0
 	// to avoid NaN in BindingModes enery
-	if(boost::math::isnan(energy)) energy = 0.0;
+	if(boost::math::isnan(solvated_energy)) solvated_energy = 0.0;
 	
-	return energy;
+	return solvated_energy;
 }
 
 /*###############################################*/
 
 double BindingMode::compute_free_ligand_enthalpy() const
 {
-	double enthalpy = 0.0;
-    // double CFl = 
-	// compute
+	double free_ligand_enthalpy = 0.0;
 	
-	return enthalpy;
+	// uses the representative to compute  ∆Hl
+     // std::vector<Pose>::const_iterator iPose = this->elect_Representative(false);
+	
+	// cf.sas is contact Lig-Sol in Complex
+	// cf.ligsolv is the area in contact with Lig-Prot in Complex
+	// which is now replaced by the value of the same area in contact with the solvent. 
+	// free_ligand_enthalpy = iPose->chrom->cf.sas + iPose->chrom->cf.ligsolv;
+	
+	// ~~ ∆Hl = Pl * ∆Hl(complete value) * nConformationsInSolution
+	// use the theoritical number of conformations of the free ligand ~ nflexbonds
+	// double boltzmann_weight = pow( E, ((-1.0) * (1/static_cast<double>(this->Population->Temperature)) * free_ligand_enthalpy ) );
+	// double boltzmann_prob = boltzmann_weight / ( this->Population->PartitionFunction + boltzmann_weight ) ;
+
+	// free_ligand_enthalpy = boltzmann_prob * free_ligand_enthalpy * this->Population->count_free_ligand_conformations();
+
+	// iterates Poses to compute the ∆Hl
+	for(std::vector<Pose>::const_iterator pose = this->Poses.begin(); pose != this->Poses.end(); ++pose)
+	{
+		// double boltzmann_weight = pow( E, ((-1.0) * (1/static_cast<double>(this->Population->Temperature)) * (pose->chrom->cf.sas + pose->chrom->cf.ligsolv) ) );
+		// double boltzmann_prob = boltzmann_weight / ( this->Population->PartitionFunction + boltzmann_weight ) ;
+		// free_ligand_enthalpy += boltzmann_prob * (pose->chrom->cf.sas + pose->chrom->cf.ligsolv);
+
+		double boltzmann_prob = pose->boltzmann_weight / this->Population->PartitionFunction;
+		free_ligand_enthalpy += boltzmann_prob * (pose->chrom->cf.sas + pose->chrom->cf.ligsolv);
+
+	}
+	
+	return free_ligand_enthalpy;
 }
 
 double BindingMode::compute_free_ligand_entropy() const
 {
-	double entropy = 0.0;
+	double free_ligand_entropy = 0.0;
+	// compute the boltzmann prob of a representative Pose
+	// ~~ ∆Sl = Pl * ln(Pl) * nConformationsInSolution
+	// use the theoritical number of conformations of the free ligand ~ nflexbonds
+	// std::vector<Pose>::const_iterator iPose = this->elect_Representative(false);
+	// double boltzmann_weight = pow( E, ((-1.0) * (1/static_cast<double>(this->Population->Temperature)) * (iPose->chrom->cf.sas + iPose->chrom->cf.ligsolv) ) );
+	// double boltzmann_prob = boltzmann_weight / ( this->Population->PartitionFunction + boltzmann_weight ) ;
 
-	// compute
-	
-	return entropy;
+ //   free_ligand_entropy = boltzmann_prob * log(boltzmann_prob) * this->Population->count_free_ligand_conformations();
+
+	// iterates Poses to compute the ∆Sl
+//    for(std::vector<Pose>::const_iterator pose = this->Poses.begin(); pose != this->Poses.end(); ++pose)
+//    {
+		// double boltzmann_weight = pow( E, ((-1.0) * (1/static_cast<double>(this->Population->Temperature)) * (pose->chrom->cf.sas + pose->chrom->cf.ligsolv) ) );
+		// double boltzmann_prob = boltzmann_weight / ( this->Population->PartitionFunction + boltzmann_weight ) ;
+
+		// double boltzmann_prob = pose->boltzmann_weight / this->Population->PartitionFunction;
+		// free_ligand_entropy += boltzmann_prob * log(boltzmann_prob);
+//    }
+
+    free_ligand_entropy = (this->compute_partition_function() / this->Population->PartitionFunction) * log(this->Population->count_free_ligand_conformations());
+
+	if( boost::math::isnan(free_ligand_entropy) )
+	{
+		free_ligand_entropy = 0.0;
+		return free_ligand_entropy;
+	}
+	else
+	{
+		// in order to respect Boltzmann/Shannon entropy formula for a probabilities, we add the negative sign
+		// this is explained by the logarithm property where ln(W) = -ln(1/W)
+		// return -free_ligand_entropy;
+		// 
+		// returns log(nConfs) - free_ligand_entropy found in BindingMdoe (free_ligand_entropy should be renamed)
+	   	// return  -free_ligand_entropy;
+	   	return  free_ligand_entropy;
+	}
 }
 
 double BindingMode::compute_free_ligand_energy() const
 {
 	// double energy = 0.0;
-	double energy = ( this->compute_free_ligand_enthalpy() - ( this->Population->Temperature * this->compute_free_ligand_entropy()) );
+	double energy = ( this->compute_free_ligand_enthalpy() - ( this->Population->Temperature * this->compute_free_ligand_entropy() ) );
 
 	// if energy isNaN, put energy to 0.0
 	// to avoid NaN in BindingModes enery
@@ -928,6 +1017,8 @@ inline bool const operator==(const BindingMode& lhs, const BindingMode& rhs)
 Pose::Pose(chromosome* chrom, int index, int iorder, float dist, uint temperature, std::vector<float> vec) :  chrom_index(index), order(iorder), reachDist(dist), chrom(chrom), CF(chrom->app_evalue), CFdS(0.0), vPose(vec), processed(false)
 {
 	this->boltzmann_weight = pow( E, ((-1.0) * (1/static_cast<double>(temperature)) * chrom->app_evalue) );
+	// this->solvated_boltzmann_weight = pow( E, ((-1.0) * (1/static_cast<double>(temperature)) * ( chrom->app_evalue - chrom->cf.ligsolv )) );
+	this->solvated_boltzmann_weight = pow( E, ((-1.0) * (1/static_cast<double>(temperature)) * ( chrom->app_evalue - chrom->cf.ligsolv - chrom->cf.tarsolv )) );
     // this->CFdS += this->boltzmann_weight;
 }
 

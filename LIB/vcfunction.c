@@ -293,7 +293,7 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, std::v
 			
 			// number of constraints for contact atom
 			int nconscont = atoms[atomcont].ncons;
-      			double dist_opt = 0.0;
+  			double dist_opt = 0.0;
 			
 			// do contacting atoms have the same constraint
 			constraint* cons = NULL;
