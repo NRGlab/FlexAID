@@ -101,6 +101,33 @@ void BindingPopulation::remove_invalid_BindingModes()
 	}
 }
 
+unsigned long BindingPopulation::rank_BindingMode_free_ligand_energy(std::vector<BindingMode>::const_iterator mode) const
+{
+
+	unsigned long rank = this->get_Population_size() - 1;
+
+
+	for(std::vector<BindingMode>::const_iterator iMode = this->BindingModes.begin(); iMode != this->BindingModes.end(); ++iMode)
+	{
+		if( mode->compute_free_ligand_energy() < iMode->compute_free_ligand_energy() ) --rank;
+	}
+
+	return rank;
+}
+
+unsigned long BindingPopulation::rank_BindingMode_solvated_energy(std::vector<BindingMode>::const_iterator mode) const
+{
+	unsigned long rank = this->get_Population_size() - 1;
+
+
+	for(std::vector<BindingMode>::const_iterator iMode = this->BindingModes.begin(); iMode != this->BindingModes.end(); ++iMode)
+	{
+		if( mode->compute_solvated_complex_energy() < iMode->compute_solvated_complex_energy() ) --rank;
+	}
+
+	return rank;
+}
+
 void BindingPopulation::Classify_BindingModes()
 {
 	int i = 0, j = 0;
@@ -248,7 +275,7 @@ void BindingPopulation::output_Population_energy(char* end_strfile, char* tmp_en
 	{
 		// 1. Prints HEADER to *.energy file
 		// fprintf(outfile_ptr, "%2s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%3s\n","#", "∆Gc", "∆Hc", "∆Sc", "-T∆Sc", "∆Gl", "∆Hl", "∆Sl", "-T∆Sl", "∆Gs", "∆Hs", "∆Ss", "-T∆Ss", "T");
-		fprintf(outfile_ptr, "%2s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%10s\t%3s\n","#", "∆Gc", "∆Hc", "∆Sc", "-T∆Sc", "∆Gl", "∆Hl", "∆Sl", "-T∆Sl", "∆Gs", "∆Hs", "∆Ss", "-T∆Ss", "T");
+		fprintf(outfile_ptr, "%3s\t%10s\t%10s\t%10s\t%10s\t%3s\t%10s\t%10s\t%10s\t%10s\t%3s\t%10s\t%10s\t%10s\t%10s\t%3s\n","#∆c", "∆Gc", "∆Hc", "∆Sc", "-T∆Sc", "#∆l", "∆Gl", "∆Hl", "∆Sl", "-T∆Sl", "#∆s", "∆Gs", "∆Hs", "∆Ss", "-T∆Ss", "T");
 
 		for(std::vector<BindingMode>::const_iterator iMode = this->BindingModes.begin(); iMode != this->BindingModes.end() && ( iMode - this->BindingModes.begin() < this->FA->max_results ); ++iMode)
 		{
@@ -276,10 +303,10 @@ void BindingPopulation::output_Population_energy(char* end_strfile, char* tmp_en
             std::vector<Pose>::const_iterator iPose = iMode->elect_Representative(false);
 			
 			// prints BindingMode rank, energy, enthalpy, entropy, -T∆S and Temperature for the current BindingMode
-			fprintf(outfile_ptr, "%2ld\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%3d\n", (iMode - this->BindingModes.begin()),
-				complex_energy, complex_enthalpy, complex_entropy, complex_minusTdS,
-				ligand_energy, ligand_enthalpy, ligand_entropy, ligand_minusTdS,
-				solvated_complex_energy, solvated_complex_enthalpy, solvated_complex_entropy, solvated_complex_minusTdS,
+			fprintf(outfile_ptr, "%3ld\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%3ld\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%3ld\t%8.3f\t%8.3f\t%8.3f\t%8.3f\t%3d\n",
+				(iMode - this->BindingModes.begin()), complex_energy, complex_enthalpy, complex_entropy, complex_minusTdS,
+				this->rank_BindingMode_free_ligand_energy(iMode), ligand_energy, ligand_enthalpy, ligand_entropy, ligand_minusTdS,
+				this->rank_BindingMode_solvated_energy(iMode), solvated_complex_energy, solvated_complex_enthalpy, solvated_complex_entropy, solvated_complex_minusTdS,
 				this->Temperature);
 		}
 	}
@@ -644,7 +671,7 @@ double BindingMode::compute_free_ligand_enthalpy() const
 
 	}
 	
-	return free_ligand_enthalpy;
+	return this->compute_complex_enthalpy() - free_ligand_enthalpy;
 }
 
 double BindingMode::compute_free_ligand_entropy() const
@@ -674,7 +701,7 @@ double BindingMode::compute_free_ligand_entropy() const
 	if( boost::math::isnan(free_ligand_entropy) )
 	{
 		free_ligand_entropy = 0.0;
-		return free_ligand_entropy;
+		return this->compute_complex_entropy() - free_ligand_entropy;
 	}
 	else
 	{
@@ -684,7 +711,7 @@ double BindingMode::compute_free_ligand_entropy() const
 		// 
 		// returns log(nConfs) - free_ligand_entropy found in BindingMdoe (free_ligand_entropy should be renamed)
 	   	// return  -free_ligand_entropy;
-	   	return  free_ligand_entropy;
+	   	return  this->compute_complex_entropy() - free_ligand_entropy;
 	}
 }
 

@@ -215,11 +215,32 @@ class BindingPopulation
 		void 	remove_BindingMode(std::vector<BindingMode>::iterator mode);
 			// removes all BindingModes where isValid == false (calls remove_BidningMode)
 		void 	remove_invalid_BindingModes();
+
+		unsigned long rank_BindingMode_free_ligand_energy(std::vector<BindingMode>::const_iterator mode) const;
+
+		unsigned long rank_BindingMode_solvated_energy(std::vector<BindingMode>::const_iterator mode) const;
+		
 		struct 	EnergyComparator
 		{
-			inline bool operator() ( const BindingMode& BindingMode1, const BindingMode& BindingMode2 )
+			inline bool operator() ( const BindingMode& BindingMode1, const BindingMode& BindingMode2 ) const
 			{
 				return (BindingMode1.compute_complex_energy() < BindingMode2.compute_complex_energy());
+			}
+		};
+
+		struct 	FreeLigandEnergyComparator
+		{
+			inline bool operator() ( const BindingMode& BindingMode1, const BindingMode& BindingMode2 ) const
+			{
+				return (BindingMode1.compute_free_ligand_energy() < BindingMode2.compute_free_ligand_energy());
+			}
+		};
+
+		struct 	SolvatedEnergyComparator
+		{
+			inline bool operator() ( const BindingMode& BindingMode1, const BindingMode& BindingMode2 ) const
+			{
+				return (BindingMode1.compute_solvated_complex_energy() < BindingMode2.compute_solvated_complex_energy());
 			}
 		};
 };
