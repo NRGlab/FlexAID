@@ -475,21 +475,21 @@ int main(int argc, char **argv){
             
 			printf("n_chrom_snapshot=%d\n", n_chrom_snapshot);
 
-			if( strcmp(FA->clustering_algorithm,"FO") == 0 )
-			{
-				printf("using the Fast OPTICS (FO) density based clustering algorithm.\n");
-				FastOPTICS_cluster(FA,GB,VC,chrom_snapshot,gene_lim,atoms,residue,cleftgrid,n_chrom_snapshot,end_strfile,tmp_end_strfile,dockinp,gainp);
-			}
-			else if( strcmp(FA->clustering_algorithm,"DP") == 0 )
-			{
-				printf("using the Density Peak (DP) based clustering algorithm.\n");
-				DensityPeak_cluster(FA,GB,VC,chrom_snapshot,gene_lim,atoms,residue,cleftgrid,n_chrom_snapshot,end_strfile,tmp_end_strfile,dockinp,gainp);
-			}
-			else
-			{
+			// if( strcmp(FA->clustering_algorithm,"FO") == 0 )
+			// {
+			// 	printf("using the Fast OPTICS (FO) density based clustering algorithm.\n");
+			// 	FastOPTICS_cluster(FA,GB,VC,chrom_snapshot,gene_lim,atoms,residue,cleftgrid,n_chrom_snapshot,end_strfile,tmp_end_strfile,dockinp,gainp);
+			// }
+			// else if( strcmp(FA->clustering_algorithm,"DP") == 0 )
+			// {
+			// 	printf("using the Density Peak (DP) based clustering algorithm.\n");
+			// 	DensityPeak_cluster(FA,GB,VC,chrom_snapshot,gene_lim,atoms,residue,cleftgrid,n_chrom_snapshot,end_strfile,tmp_end_strfile,dockinp,gainp);
+			// }
+			// else
+			// {
 				printf("using the Complementarity Function (CF) based clustering algorithm.\n");
 				cluster(FA,GB,VC,chrom_snapshot,gene_lim,atoms,residue,cleftgrid,n_chrom_snapshot,end_strfile,tmp_end_strfile,dockinp,gainp);
-			}
+			// }
 			//////////////////////////////////////////
 			// Looking at cleftgrid chrom's density //
 			//////////////////////////////////////////
