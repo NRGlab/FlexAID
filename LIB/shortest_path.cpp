@@ -6,7 +6,6 @@
 /* from any atom in residue to all other   */
 /* atoms of the same residue               */
 /*******************************************/
-using namespace std;
 
 void shortest_path(resid* residue, int tot, atom* atoms)
 {	
@@ -43,7 +42,7 @@ void shortest_path(resid* residue, int tot, atom* atoms)
 		//cout << "objective " << atoms[fatm+i].number << endl;
 		for(int j=0; j<tot; j++){
 			
-			stringstream ss("");
+			std::stringstream ss("");
 			
 			if(j==i){
 				//ss << atoms[fatm+i].number;
@@ -56,9 +55,9 @@ void shortest_path(resid* residue, int tot, atom* atoms)
 				continue;
 			}
 			
-			vector<int> queue;
-			map<int, string> mark;
-			map<int, string>::iterator it;
+			std::vector<int> queue;
+			std::map<int, std::string> mark;
+			std::map<int, std::string>::iterator it;
 			queue.push_back(j);
 			
 			//ss << atoms[fatm+j].number;

@@ -2,7 +2,7 @@
 
 #define DEBUG_LEVEL 0
 
-double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector< pair<int,int> > & intraclashes, bool* error)
+double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, std::vector<std::pair<int,int> > & intraclashes, bool* error)
 {
 	int    rnum=0;
 	int    type=1;
@@ -308,7 +308,7 @@ double vcfunction(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue, vector
 				// ligand intramolecular clash exceeds threshold
 				// add an entry in the dee elimination
 				if(intramolecular && type == 1 && Ewall > DEE_WALL_THRESHOLD){
-					intraclashes.push_back(pair<int,int>(atomzero-fatm,atomcont-fatm));
+					intraclashes.push_back(std::pair<int,int>(atomzero-fatm,atomcont-fatm));
 				}
 				
 				// Treat everything as rigid
