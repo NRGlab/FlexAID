@@ -1,27 +1,18 @@
+# On mac the easiest way to install boost is to use brew: brew install boost
+# Then you can build the project using: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release and cmake --build build
+
+# On Windows you can get boost by downloading the zip from the official website and unpacking it
+# If it is not detected automatically you can use something like -DBoost_DIR=C:\boost_1_86_0\stage\lib\cmake\Boost-1.86.0 in the cmake command
+
 cmake_minimum_required(VERSION 3.10)
-
 project(FlexAID)
-
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-
-if(MSVC)
-    message(STATUS "Configuring for Windows with MSVC")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} /W4 /O2 /MT")
-else()
-    message(STATUS "Configuring for Unix-like system (Linux, macOS, etc.)")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -Wall -O3 -static")
+if(POLICY CMP0167)
+    cmake_policy(SET CMP0167 NEW)
 endif()
-
-# Boost path
-set(BOOST_INCLUDE_PATH "C:/boost_1_86_0")
-include_directories(${BOOST_INCLUDE_PATH})
-
-# Include directories
-include_directories(${CMAKE_SOURCE_DIR}/LIB)
-
-# Add source files
-set(SOURCES
+add_executable(FlexAID "")
+target_sources(FlexAID PRIVATE
         LIB/top.cpp
         LIB/boinc.cpp
         LIB/assign_shift.cpp
@@ -92,7 +83,12 @@ set(SOURCES
         LIB/maps.cpp
 )
 
-# Add executable
-add_executable(FlexAID ${SOURCES})
-
-target_link_libraries(FlexAID ${Boost_LIBRARIES})
+target_include_directories(FlexAID PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/LIB)
+set(Boost_USE_STATIC_LIBS ON)
+find_package(Boost REQUIRED)
+target_link_libraries(FlexAID PRIVATE Boost::boost)
+if(MSVC)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} /W4 /O2 /MT")
+else()
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -Wall -O3")
+endif()
