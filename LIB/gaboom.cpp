@@ -50,8 +50,6 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	unsigned int tt = static_cast<unsigned int>(time(0));
 	//tt = (unsigned)1;
 	printf("srand=%u\n", tt);
-	printf("Setting constant seed!!!!!!!");
-	tt = 1752608829;
 	srand(tt);
 	std::mt19937 rng(tt);
 
