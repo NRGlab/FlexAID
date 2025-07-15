@@ -1,8 +1,8 @@
 # On mac the easiest way to install boost is to use brew: brew install boost
 # Then you can build the project using: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release and cmake --build build
 
-# On Windows you can get boost by downloading the zip from the official website and unpacking it
-# If it is not detected automatically you can use something like -DBoost_DIR=C:\boost_1_86_0\stage\lib\cmake\Boost-1.86.0 in the cmake command
+# On Windows you can get boost by downloading the zip from the official website (install binaries) and running the executable
+# If it is not detected automatically you can use something like -DBoost_DIR=C:\boost_1_86_0\stage\lib\cmake\Boost-1.86.0 or C:\boost_1_82_0\lib64-msvc-14.3\cmake\Boost-1.82.0 in the cmake command
 
 cmake_minimum_required(VERSION 3.10)
 project(FlexAID)
@@ -84,9 +84,7 @@ target_sources(FlexAID PRIVATE
 )
 
 target_include_directories(FlexAID PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/LIB)
-set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost REQUIRED)
-target_link_libraries(FlexAID PRIVATE Boost::boost)
+
 if(MSVC)
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} /W4 /O2 /MT")
 else()
