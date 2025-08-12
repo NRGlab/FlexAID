@@ -101,6 +101,7 @@ struct GB_Global_struct{
 	int          outgen;
 	int          rrg_skip;
 
+	int          seed;
 	int          num_print;
 	int	     	print_int;
 

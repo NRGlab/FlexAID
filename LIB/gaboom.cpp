@@ -47,15 +47,6 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 
 	const int INTERVAL = 1; // sleep interval between checking file state
 
-	unsigned int tt = static_cast<unsigned int>(time(0));
-	//tt = (unsigned)1;
-	printf("srand=%u\n", tt);
-	srand(tt);
-	std::mt19937 rng(tt);
-
-	std::uniform_int_distribution<int32_t> one_to_max_int32( 0, MAX_RANDOM_VALUE );
-	std::function<int32_t()> dice = [&]() { return one_to_max_int32(rng); };
-
 	*memchrom=0; //num chrom allocated in memory
 
 	// for generation random doubles from [0,1[ (mutation crossover operators)
@@ -93,6 +84,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	GB->adaptive_ga=0;
 	GB->num_print=10;
 	GB->print_int=1;
+	GB->seed = 0;
 
 	GB->ssnum = 1000;
 	GB->pbfrac = 1.0;
@@ -102,6 +94,22 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 	printf("file in GA is <%s>\n",gainpfile);
 
 	read_gainputs(FA,GB,&geninterval,&popszpartition,gainpfile);
+	unsigned int tt;
+	if (GB->seed==0)
+	{
+		tt = static_cast<unsigned int>(time(0));
+	}
+	else
+	{
+		tt = GB->seed;
+	}
+	//tt = (unsigned)1;
+	printf("srand=%u\n", tt);
+	srand(tt);
+	std::mt19937 rng(tt);
+
+	std::uniform_int_distribution<int32_t> one_to_max_int32( 0, MAX_RANDOM_VALUE );
+	std::function<int32_t()> dice = [&]() { return one_to_max_int32(rng); };
 
 	(*gene_lim) = (genlim*)malloc(GB->num_genes*sizeof(genlim));
 	if(!(*gene_lim)){
@@ -355,7 +363,7 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
         // do not write binary files to continue simulations
 	strcpy(outfile,FA->rrgfile);
 	strcat(outfile,"_par.res");
-	write_par((*chrom),(*gene_lim),i+1,outfile,GB->num_chrom,GB->num_genes);
+	if (FA->htpmode == false) {write_par((*chrom),(*gene_lim),i+1,outfile,GB->num_chrom,GB->num_genes);}
 #endif
 
 	printf("sorting chrom_snapshot\n");
@@ -1302,7 +1310,11 @@ void read_gainputs(FA_Global* FA,GB_Global* GB,int* gen_int,int* sz_part,char fi
 
 	while (fgets(buffer, sizeof(buffer),infile_ptr)){
 
-		buffer[strlen(buffer)-1] = '\0';
+		if (buffer[strlen(buffer)-1] == '\n')
+			buffer[strlen(buffer)-1] = '\0';
+		if (buffer[strlen(buffer)-1] == '\r')
+			buffer[strlen(buffer)-1] = '\0';
+
 
 		if(strncmp(buffer,"NUMCHROM",8) == 0){
 			sscanf(buffer,"%s %d",field,&GB->num_chrom);
@@ -1352,6 +1364,8 @@ void read_gainputs(FA_Global* FA,GB_Global* GB,int* gen_int,int* sz_part,char fi
 			sscanf(buffer,"%s %lf",field,&GB->scale);
 		}else if(strncmp(buffer,"OUTGENER",8) == 0){
 			GB->outgen = 1;
+		}else if(strncmp(buffer,"STRTSEED",8) == 0){
+			sscanf(buffer,"%s %d",field,&GB->seed);
 		}else if(strncmp(buffer,"PRINTCHR",8) == 0){
 			sscanf(buffer,"%s %d",field,&GB->num_print);
 		}else if(strncmp(buffer,"PRINTINT",8) == 0){
@@ -1673,7 +1687,6 @@ int remove_dups(chromosome* chrom, int num_chrom, int num_genes){
 /* 1         2         3         4         5         6         7*/
 /***********************************************************************/
 void print_par(const chromosome* chrom,const genlim* gene_lim,int num_chrom,int num_genes, FILE* outfile_ptr){
-
 	for(int i=0;i<num_chrom;i++){
 		fprintf(outfile_ptr, "%4d (",i);
 		for(int j=0;j<num_genes;j++) fprintf(outfile_ptr, "%10.2f ", chrom[i].genes[j].to_ic);

@@ -107,6 +107,7 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		if(strcmp(field,"NOINTR") == 0){FA->intramolecular=0;}
 		if(strcmp(field,"OMITBU") == 0){FA->omit_buried=1;}
 		if(strcmp(field,"VINDEX") == 0){FA->vindex=1;}
+		if(strcmp(field,"HTPMOD") == 0){FA->htpmode=true;}
 		if(strcmp(field,"PERMEA") == 0){sscanf(buffer,"%s %f",field,&FA->permeability);}
 		if(strcmp(field,"INTRAF") == 0){sscanf(buffer,"%s %f",field,&FA->intrafraction);}
 		if(strcmp(field,"VARDIS") == 0){sscanf(buffer,"%s %lf",field,&FA->delta_angstron);}
@@ -252,9 +253,60 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
   
 	printf("read PDB file <%s>\n",pdb_name);
 
+	// Create a copy of pdb_name that we can modify
+	strcpy(tmpprotname, pdb_name);
+
+	// Find the last directory separator
+	char *filename = tmpprotname;
+	char *last_separator = NULL;
+
+	// Find the last directory separator
+	char *slash = strrchr(tmpprotname, '/');
+	if (slash != NULL) {
+		last_separator = slash;
+	}
+#ifdef _WIN32
+	char *backslash = strrchr(tmpprotname, '\\');
+	if (backslash != NULL && (slash == NULL || backslash > slash)) {
+		last_separator = backslash;
+	}
+#endif
+
+	// If there's a separator, the filename starts after it
+	if (last_separator != NULL) {
+		filename = last_separator + 1;
+	}
+
+	// Find the first dot in the filename part
+	char *dot = strchr(filename, '.');
+	if (dot != NULL) {
+		*dot = '\0'; // Remove everything after the first dot
+	}
+
+	// Generate random 6-digit number
+	srand((unsigned int)time(NULL));
+	int random_num = rand() % 900000 + 100000; // Ensures 6 digits
+
+	// If we had a dot, restore the string terminator to its original position
+	if (dot != NULL) {
+		*dot = '.';
+	}
+
+	// Create the new filename with _tmp_random
+	char *extension_pos = dot;
+	char random_str[16]; // Buffer for "_tmp_XXXXXX"
+	sprintf(random_str, "_tmp_%d.pdb", random_num);
+
+	if (extension_pos != NULL) {
+		strcpy(extension_pos, random_str);
+	} else {
+		strcat(tmpprotname, random_str);
+	}
+
 	modify_pdb(pdb_name,tmpprotname,FA->exclude_het,FA->remove_water,FA->is_protein);
 	read_pdb(FA,atoms,residue,tmpprotname);
-	
+	remove(tmpprotname);
+
 	(*residue)[FA->res_cnt].latm[0]=FA->atm_cnt;
 	for(k=1;k<=FA->res_cnt;k++){
 		FA->atm_cnt_real += (*residue)[k].latm[0]-(*residue)[k].fatm[0]+1;
