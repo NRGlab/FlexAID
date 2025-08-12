@@ -117,6 +117,7 @@ Additionally, one line is required for each line with `FLEDIH` in the ProcessLig
 | `SHAREALF` | Sharing Parameter α                                           |                      |
 | `SHAREPEK` | Sharing parameter peaks                                       |                      |
 | `SHARESCL` | Sharing scaling                                               |                      |
+| `STRTSEED` | Set a custom starting seed                                    | (int)                |
 | `REPMODEL` | Reproduction technique code                                   | `STEADY`, `BOOM`     |
 | `BOOMFRAC` | Population boom size  (fraction of the number of chromosomes) | 0 to 1 (float)       |
 | `PRINTCHR` | Number of best chromosome to print each generation            | (int)                |
