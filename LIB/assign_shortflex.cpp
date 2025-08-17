@@ -1,9 +1,9 @@
-#include "boost/algorithm/string.hpp"
+#include <sstream>
+#include <string>
+#include <vector>
 
 #include "flexaid.h"
 #include "boinc.h"
-
-using namespace std;
 
 /****************************************/
 /* assign_flexclash: assigns the flexible
@@ -12,6 +12,19 @@ using namespace std;
    necessary for the DEE in the ligand
    flexibility                          */
 /****************************************/
+
+
+std::vector<std::string> split_string(const std::string& str, char delimiter) {
+    std::vector<std::string> tokens;
+    std::string token;
+    std::istringstream token_stream(str);
+
+    while (std::getline(token_stream, token, delimiter)) {
+        tokens.push_back(token);
+    }
+
+    return tokens;
+}
 
 void assign_shortflex(resid* residue, int tot, int fdih, atom* atoms)
 {
@@ -39,15 +52,16 @@ void assign_shortflex(resid* residue, int tot, int fdih, atom* atoms)
 			}
 		}
 	}
-	
+
 	for(int i=0; i<tot; i++){
 		for(int j=0; j<tot; j++){
-			vector<string> iatmnum;
-			vector<string>::iterator it,it2;
-			boost::split(iatmnum, residue->shortpath[i][j], boost::is_any_of(" "));
-			
+			std::vector<std::string> iatmnum;
+			std::vector<std::string>::iterator it,it2;
+
+			iatmnum = split_string(residue->shortpath[i][j], ' ');
+
 			//cout << residue->shortpath[i][j] << endl;
-			
+
 			// atoms must at least be seperated by a dihedral
 			if(iatmnum.size() > 3){
 				int counter = 0;
@@ -56,17 +70,17 @@ void assign_shortflex(resid* residue, int tot, int fdih, atom* atoms)
 					if(it!=iatmnum.begin() && it2!=iatmnum.end() && *it2!=iatmnum.back()){
 						int atm1 = atoi((*it).c_str());
 						int atm2 = atoi((*it2).c_str());
-						
+
 						// loops through flexible bonds
 						for(int k=1; k<=fdih; k++){
 							int flexatm = residue->bond[k];
-							
+
 							if((atoms[flexatm].rec[0] == atm1 && atoms[flexatm].rec[1] == atm2) ||
 							   (atoms[flexatm].rec[0] == atm2 && atoms[flexatm].rec[1] == atm1)){
 							/*
-							if((atoms[atoms[flexatm].rec[0]].number == atm1 && 
+							if((atoms[atoms[flexatm].rec[0]].number == atm1 &&
 							    atoms[atoms[flexatm].rec[1]].number == atm2) ||
-							   (atoms[atoms[flexatm].rec[0]].number == atm2 && 
+							   (atoms[atoms[flexatm].rec[0]].number == atm2 &&
 							    atoms[atoms[flexatm].rec[1]].number == atm1)){
 							*/
 								/*
@@ -74,7 +88,7 @@ void assign_shortflex(resid* residue, int tot, int fdih, atom* atoms)
 								     << atoms[atm1].number << " "
 								     << atoms[atm2].number << endl;
 								*/
-								
+
 								residue->shortflex[i][j][counter++] = k;
 								break;
 							}
@@ -84,6 +98,4 @@ void assign_shortflex(resid* residue, int tot, int fdih, atom* atoms)
 			}
 		}
 	}
-	
-	return;
 }

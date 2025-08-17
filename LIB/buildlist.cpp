@@ -188,8 +188,7 @@ void buildlist(FA_Global* FA,atom* atoms,resid* residue,int rnum, int bnum, int 
 			}
 		}
 
-    
-		for(k=0;k<*tot;k++){printf("lout[%d]= %d\n",k,atoms[lout[k]].number);}
+		if (FA->htpmode == false) {for(k=0;k<*tot;k++){printf("lout[%d]= %d\n",k,atoms[lout[k]].number);}}
 		/*
 		  for(k=0;k<*tot;k++){printf("lout[%d]=%d\n",k,lout[k]);}
 		  PAUSE;

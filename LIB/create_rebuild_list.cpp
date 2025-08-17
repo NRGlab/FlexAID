@@ -38,17 +38,14 @@ void create_rebuild_list(FA_Global* FA,atom* atoms,resid* residue){
 			printf("nors=%d opt_res[%d]=%d nmov[%d]=%d\n",
 			       FA->nors,FA->nors,FA->opt_res[FA->nors],FA->nors,FA->nmov[FA->nors]);
              */
-			
-            for(j=0;j<FA->nmov[FA->nors];j++){
-			  printf("mov[%d][%d]=%d\n",FA->nors,j,FA->mov[FA->nors][j]);
-            }
+        	if (FA->htpmode == false) {
+        		for(j=0;j<FA->nmov[FA->nors];j++)
+        		{
+        			printf("mov[%d][%d]=%d\n",FA->nors,j,FA->mov[FA->nors][j]);
+        		}
+        	}
 			//PAUSE;
-			  
-
 			FA->nors++;
-            
         }
-
 	}
-	return;
 }

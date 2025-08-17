@@ -108,6 +108,7 @@ int main(int argc, char **argv){
 	FA->nors=0;
 	//FA->natoms_rmsd=0;
 
+	FA->htpmode=false;
 	FA->nrg_suite=0;
 	FA->nrg_suite_timeout=60;
 	FA->translational=0;
@@ -392,7 +393,7 @@ int main(int argc, char **argv){
 	sprintf(tmpremark,"REMARK inputs: %s & %s",dockinp,gainp);
 	strcat(remark,tmpremark);
 	
-	write_pdb(FA,atoms,residue,tmp_end_strfile,remark);
+	if (FA->htpmode == false) {write_pdb(FA,atoms,residue,tmp_end_strfile,remark);}
 
 	//printf("wrote initial PDB structure on %s\n",tmp_end_strfile);
 	//-----------------------------------------------------------------------------------
