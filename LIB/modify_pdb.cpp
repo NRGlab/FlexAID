@@ -21,140 +21,122 @@ static char protein_atoms_order[NLIST][5]   = { " N  "," CA "," C  "," O  "," CB
 						" CH "," CH1"," CH2"," OH "," NH1"," NH2",
 						" OXT" };
 
-void modify_pdb(char* infile, char* outfile, int exclude_het, int remove_water, int is_protein)
-{
-	char bufnul[10];
-	char buffer[100];   // pdb line
+void modify_pdb(char *infile,
+                       FILE *outfile_ptr,
+                       int exclude_het,
+                       int remove_water,
+                       int is_protein) {
+    char bufnul[10];
+    char buffer[100];   // pdb line
 
-	char lines[50][100]; // store residue lines
-	int  nlines=0;
+    char lines[50][100]; // store residue lines
+    int  nlines = 0;
 
-	int prev_resnum = -1;
-	int resnum = -1;
-	char res[4];
+    int prev_resnum = -1;
+    int resnum = -1;
+    char res[4];
 
-	int read = 0;
-	int wrote = 0;
+    int read = 0;
+    int wrote = 0;
 
-	FILE* infile_ptr = NULL;
-	FILE* outfile_ptr = NULL;
+    FILE *infile_ptr = NULL;
 
-	char insert = '-', prev_insert = '-';
-	
-	printf("Protein PDB files are reordered\n");
-	printf("Hydrogens are removed\n");
-	printf("'A' alternate conformation ONLY is chosen\n");
-	printf("heterogroups are%s excluded\n", exclude_het ? "":" not");
-	printf("water molecules will%s be removed\n", exclude_het || remove_water ? "":" not");
-	
-	if(!OpenFile_B(infile,"r",&infile_ptr)){
-		fprintf(stderr,"ERROR: Could not order PDB file %s\n", infile);
-		Terminate(20);
-	}
+    char insert = '-', prev_insert = '-';
 
-	outfile_ptr = fopen(outfile,"w");
-	if(outfile_ptr == NULL){
-		fprintf(stderr, "ERROR: Could not write temporary PDB file.\n");
-		Terminate(20);
-	}
-	
-	
-	while(fgets(buffer,sizeof(buffer),infile_ptr) != NULL){
-		if(!strncmp(&buffer[0],"ATOM  ",6)){
-			// all lines that start with 'ATOM  ' field
+    printf("Protein PDB files are reordered\n");
+    printf("Hydrogens are removed\n");
+    printf("'A' alternate conformation ONLY is chosen\n");
+    printf("heterogroups are%s excluded\n", exclude_het ? "" : " not");
+    printf("water molecules will%s be removed\n",
+           exclude_het || remove_water ? "" : " not");
 
-			read++;
-			
-			//0         1         2         3         4         5         6         
-			//0123456789012345678901234567890123456789012345678901234567890123456789
-			//ATOM     47  CB  ILE A   7      38.324  -3.725  17.587  1.00  0.00           C  
-			strncpy(res,&buffer[17],3);
-			res[3]='\0';
+    if (!OpenFile_B(infile, "r", &infile_ptr)) {
+        fprintf(stderr, "ERROR: Could not order PDB file %s\n", infile);
+        Terminate(20);
+    }
 
-			strncpy(bufnul,&buffer[22],4);
-			sscanf(bufnul,"%d",&resnum);
-				
-			// insertion of residue
-			insert = buffer[26];
-				
-			// skip alternate conformations other than 'A'
-			if(buffer[16] != ' ' && buffer[16] != 'A'){ continue; }
-				
-			if(resnum == prev_resnum && insert == prev_insert){
-				if(is_protein && is_natural_amino(res)){
-					// store line
-					strcpy(lines[nlines++],buffer);
-				}else if(!is_protein && is_natural_nucleic(res)){
-					fprintf(outfile_ptr,"%s",buffer);
-				}else{
-					// ligands/mod. amino acids are marked as HETATM by default
-					fprintf(outfile_ptr,"HETATM%s",&buffer[6]);
-				}
-					
-			}else if(prev_resnum != -1){
-				if(is_protein && nlines > 0){
-					//write out ordered lines
-					rewrite_residue2(lines,nlines,&wrote,outfile_ptr);
-					nlines=0;
-				}
-				
-				if(is_protein && is_natural_amino(res)){
-					strcpy(lines[nlines++],buffer);
-				}else if(!is_protein && is_natural_nucleic(res)){
-					fprintf(outfile_ptr,"%s",buffer);					
-				}else{
-					// ligands/mod. amino acids are marked as HETATM by default
-					fprintf(outfile_ptr,"HETATM%s",&buffer[6]);
-				}
-				
-			}else{
-				if(is_protein && is_natural_amino(res)){
-					strcpy(lines[nlines++],buffer);
-				}else if(is_natural_nucleic(res)){
-					fprintf(outfile_ptr,"%s",buffer);
-				}else{
-					// ligands/mod. amino acids are marked as HETATM by default
-					fprintf(outfile_ptr,"HETATM%s",&buffer[6]);
-				}
-			}
-				
-			prev_resnum = resnum;
-			prev_insert = insert;
-			
+    while (fgets(buffer, sizeof(buffer), infile_ptr) != NULL) {
+        if (!strncmp(&buffer[0], "ATOM  ", 6)) {
+            // all lines that start with 'ATOM  ' field
+            read++;
 
-		}else{
-			// all other lines that do not start with 'ATOM  ' field
+            strncpy(res, &buffer[17], 3);
+            res[3] = '\0';
 
-			if(!strncmp(&buffer[0],"HETATM",6)){
-				if(exclude_het) { continue; }
-				else {
-					if(!strncmp(&buffer[17],"HOH",3) && remove_water){ continue; }
-				}
-			}
+            strncpy(bufnul, &buffer[22], 4);
+            sscanf(bufnul, "%d", &resnum);
 
-			if(is_protein && nlines > 0){
-				rewrite_residue2(lines,nlines,&wrote,outfile_ptr);
-				nlines=0;
-			}
-			
-			fprintf(outfile_ptr,"%s",buffer);
-			
-		}
+            // insertion of residue
+            insert = buffer[26];
 
+            // skip alternate conformations other than 'A'
+            if (buffer[16] != ' ' && buffer[16] != 'A') {
+                continue;
+            }
 
-	}
+            if (resnum == prev_resnum && insert == prev_insert) {
+                if (is_protein && is_natural_amino(res)) {
+                    strcpy(lines[nlines++], buffer);
+                } else if (!is_protein && is_natural_nucleic(res)) {
+                    fprintf(outfile_ptr, "%s", buffer);
+                } else {
+                    fprintf(outfile_ptr, "HETATM%s", &buffer[6]);
+                }
+            } else if (prev_resnum != -1) {
+                if (is_protein && nlines > 0) {
+                    rewrite_residue2(lines, nlines, &wrote, outfile_ptr);
+                    nlines = 0;
+                }
 
-	if(is_protein && nlines > 0){	
-		rewrite_residue2(lines,nlines,&wrote,outfile_ptr);
-	}
-	
-	CloseFile_B(&infile_ptr,"r");
+                if (is_protein && is_natural_amino(res)) {
+                    strcpy(lines[nlines++], buffer);
+                } else if (!is_protein && is_natural_nucleic(res)) {
+                    fprintf(outfile_ptr, "%s", buffer);
+                } else {
+                    fprintf(outfile_ptr, "HETATM%s", &buffer[6]);
+                }
+            } else {
+                if (is_protein && is_natural_amino(res)) {
+                    strcpy(lines[nlines++], buffer);
+                } else if (is_natural_nucleic(res)) {
+                    fprintf(outfile_ptr, "%s", buffer);
+                } else {
+                    fprintf(outfile_ptr, "HETATM%s", &buffer[6]);
+                }
+            }
 
-	fclose(outfile_ptr);
-	
-	printf("number of ATOM lines read is %d\n", read);
-	printf("number of lines outputted is %d\n", wrote);
-	
+            prev_resnum = resnum;
+            prev_insert = insert;
+
+        } else {
+            // all other lines that do not start with 'ATOM  ' field
+            if (!strncmp(&buffer[0], "HETATM", 6)) {
+                if (exclude_het) {
+                    continue;
+                } else {
+                    if (!strncmp(&buffer[17], "HOH", 3) && remove_water) {
+                        continue;
+                    }
+                }
+            }
+
+            if (is_protein && nlines > 0) {
+                rewrite_residue2(lines, nlines, &wrote, outfile_ptr);
+                nlines = 0;
+            }
+
+            fprintf(outfile_ptr, "%s", buffer);
+        }
+    }
+
+    if (is_protein && nlines > 0) {
+        rewrite_residue2(lines, nlines, &wrote, outfile_ptr);
+    }
+
+    CloseFile_B(&infile_ptr, "r");
+
+    printf("number of ATOM lines read is %d\n", read);
+    printf("number of lines outputted is %d\n", wrote);
 }
 
 int get_NextLine(char lines[][100], int nlines){

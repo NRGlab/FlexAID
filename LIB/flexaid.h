@@ -501,7 +501,7 @@ int    spfunction(FA_Global* FA,atom* atoms,resid*);                            
 
 void   read_coor(FA_Global* FA,atom** atoms,resid** residue,char line[], char res_numold[]);          // reads PDB coordinates
 void   read_conect(FA_Global* FA,atom** atoms,char line[]);                           // reads CONECT field for ligand
-void   read_pdb(FA_Global* FA,atom** atoms,resid** residue, char* pdb_name);                          // reads PDB file and acts accordingly
+void   read_pdb(FA_Global* FA,atom** atoms,resid** residue, FILE *pdb_name);                          // reads PDB file and acts accordingly
 void   read_grid(FA_Global* FA,gridpoint** cleftgrid,char file[]);                             // reads cleft sphere file
 void   read_normalgrid(FA_Global* FA,char file[]);                       // reads normal mode grid file
 void   read_eigen(FA_Global* FA,char file[]);                            // reads normal mode grid file
@@ -580,7 +580,7 @@ double get_cf_evalue(cfstr* cf);
 
 double GetValueFromGaussian(double x,double max,double zero);
 
-void modify_pdb(char* infile, char* outfile, int exclude_het, int remove_water, int is_protein); // reorder protein atoms in PDB file
+void modify_pdb(char* infile, FILE *outfile, int exclude_het, int remove_water, int is_protein); // reorder protein atoms in PDB file
 int rna_structure(char* infile);
 int get_NextLine(char lines[][100], int nlines);
 int is_rna_structure(char* infile);

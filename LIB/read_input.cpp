@@ -1,6 +1,5 @@
 #include "flexaid.h"
 #include "boinc.h"
-#include <random>
 
 /***************************************************************************** 
  * SUBROUTINE read_input reads input file.
@@ -253,60 +252,15 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 	///////////////////////////////////////////////
   
 	printf("read PDB file <%s>\n",pdb_name);
-
-	// Create a copy of pdb_name that we can modify
-	strcpy(tmpprotname, pdb_name);
-
-	// Find the last directory separator
-	char *filename = tmpprotname;
-	char *last_separator = NULL;
-
-	// Find the last directory separator
-	char *slash = strrchr(tmpprotname, '/');
-	if (slash != NULL) {
-		last_separator = slash;
+	FILE *tmp = tmpfile();
+	if (!tmp) {
+		perror("tmpfile failed");
+		exit(1);
 	}
-#ifdef _WIN32
-	char *backslash = strrchr(tmpprotname, '\\');
-	if (backslash != NULL && (slash == NULL || backslash > slash)) {
-		last_separator = backslash;
-	}
-#endif
-
-	// If there's a separator, the filename starts after it
-	if (last_separator != NULL) {
-		filename = last_separator + 1;
-	}
-
-	// Find the first dot in the filename part
-	char *dot = strchr(filename, '.');
-	if (dot != NULL) {
-		*dot = '\0'; // Remove everything after the first dot
-	}
-
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<int> dist(100000, 9999999);
-	const int random_num = dist(gen);
-
-	// If we had a dot, restore the string terminator to its original position
-	if (dot != NULL) {
-		*dot = '.';
-	}
-
-	// Create the new filename with _tmp_random
-	char *extension_pos = dot;
-	char random_str[16]; // Buffer for "_tmp_XXXXXX"
-	sprintf(random_str, "_tmp_%d.pdb", random_num);
-
-	if (extension_pos != NULL) {
-		strcpy(extension_pos, random_str);
-	} else {
-		strcat(tmpprotname, random_str);
-	}
-	modify_pdb(pdb_name,tmpprotname,FA->exclude_het,FA->remove_water,FA->is_protein);
-	read_pdb(FA,atoms,residue,tmpprotname);
-	remove(tmpprotname);
+	modify_pdb(pdb_name,tmp,FA->exclude_het,FA->remove_water,FA->is_protein);
+	rewind(tmp);
+	read_pdb(FA,atoms,residue,tmp);
+	fclose(tmp);
 
 	(*residue)[FA->res_cnt].latm[0]=FA->atm_cnt;
 	for(k=1;k<=FA->res_cnt;k++){
