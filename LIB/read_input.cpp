@@ -1,5 +1,6 @@
 #include "flexaid.h"
 #include "boinc.h"
+#include <random>
 
 /***************************************************************************** 
  * SUBROUTINE read_input reads input file.
@@ -283,9 +284,10 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 		*dot = '\0'; // Remove everything after the first dot
 	}
 
-	// Generate random 6-digit number
-	srand((unsigned int)time(NULL));
-	int random_num = rand() % 900000 + 100000; // Ensures 6 digits
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<int> dist(100000, 9999999);
+	const int random_num = dist(gen);
 
 	// If we had a dot, restore the string terminator to its original position
 	if (dot != NULL) {
@@ -302,7 +304,6 @@ void read_input(FA_Global* FA,atom** atoms, resid** residue,rot** rotamer,gridpo
 	} else {
 		strcat(tmpprotname, random_str);
 	}
-
 	modify_pdb(pdb_name,tmpprotname,FA->exclude_het,FA->remove_water,FA->is_protein);
 	read_pdb(FA,atoms,residue,tmpprotname);
 	remove(tmpprotname);
