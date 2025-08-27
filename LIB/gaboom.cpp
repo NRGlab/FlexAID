@@ -310,7 +310,11 @@ int GA(FA_Global* FA, GB_Global* GB,VC_Global* VC,chromosome** chrom,chromosome*
 					     GB->pop_init_method,target,GB->pop_init_file,at,popszpartition,print,dice,duplicates);
 		}
 
-		print = ( (i+1) % GB->print_int == 0 ) ? 1 : 0;
+		if (GB->print_int > 0) {
+    		print = ((i + 1) % GB->print_int == 0) ? 1 : 0;
+		} else {
+    		print = 0;
+		}
 		//if(print) { printf("Generation: %5d\n",i+1); }
 
 		//print_par(chrom,gene_lim,20,GB->num_genes);
