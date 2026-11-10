@@ -663,7 +663,16 @@ int reproduce(FA_Global* FA,GB_Global* GB,VC_Global* VC, chromosome* chrom, cons
 	if(strcmp(repmodel,"STEADY")==0){
 		// replace the n individuals from the old population with the new one (elitism)
 		QuickSort(chrom,0,GB->num_chrom-1,true);
-		for(i=0;i<nnew;i++) chrom[GB->num_chrom-1-i]=chrom[GB->num_chrom+i];
+		for(i=0;i<nnew;i++){
+			// Struct assignment aliases the genes pointer and double-frees
+			// at shutdown. Keep each chromosome's own buffer.
+			int dst = GB->num_chrom-1-i;
+			int src = GB->num_chrom+i;
+			gene* dst_genes = chrom[dst].genes;
+			chrom[dst] = chrom[src];
+			chrom[dst].genes = dst_genes;
+			memcpy(dst_genes, chrom[src].genes, GB->num_genes*sizeof(gene));
+		}
 		calculate_fitness(FA,GB,VC,chrom,gene_lim,atoms,residue,cleftgrid,
 				  GB->fitness_model,GB->num_chrom,print,target);
 	}else if(strcmp(repmodel,"BOOM")==0){

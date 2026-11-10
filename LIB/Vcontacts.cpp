@@ -324,6 +324,13 @@ RESTART:
 			VC->poly[vn].xi[1] = vstp->xi[1] + vtmin*V[1];
 			VC->poly[vn].xi[2] = vstp->xi[2] + vtmin*V[2];
 		}
+
+		// No positive intersection leaves planeC at -1. cont[-1] is the
+		// byte just before the plane array (AddressSanitizer heap underflow).
+		// Treat it like the other polyhedron failure already returned as -1.
+		if(planeC < 0){
+			return(-1);
+		}
         
 		add_vertex(VC->poly, vn, VC->poly[vn].xi, planeA, planeB, planeC);
 		VC->vedge[startedge].endpt = vn;
