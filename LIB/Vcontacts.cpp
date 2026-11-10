@@ -1633,10 +1633,13 @@ atomindex* index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,
 	
 	if (alter) {
 		for(j=0;j<3;++j){
+			// Snap bounds outward. The old expression used +1 for a
+			// positive minimum, which stepped the minimum inward and let
+			// a moved ligand index box[] off either end.
 			//-37.5 -> -38
 			//37.5 -> 38
-			global_min[j] = global_min[j] < 0.0 ? (int)global_min[j]-1.0 : (int)global_min[j]+1.0;
-			global_max[j] = global_max[j] < 0.0 ? (int)global_max[j]-1.0 : (int)global_max[j]+1.0;
+			global_min[j] = global_min[j] < 0.0 ? (int)global_min[j]-1.0 : (int)global_min[j];
+			global_max[j] = global_max[j] < 0.0 ? (int)global_max[j] : (int)global_max[j]+1.0;
 			diff=global_max[j]-global_min[j];
 			if (diff > max_width) {
 				//printf("New difference=%8.3f\n",diff);
@@ -1682,9 +1685,17 @@ atomindex* index_protein(FA_Global* FA,atom* atoms,resid* residue,atomsas* Calc,
 	// count entries per box, assign box number to atom
 	for(atmi=0;atmi<atmcnt;++atmi){
 		if(Calc[atmi].boxnum == -1){
-			boxi = (int)((Calc[atmi].atom->coor[0]-global_min[0])/CELLSIZE)*dim2
-				+ (int)((Calc[atmi].atom->coor[1]-global_min[1])/CELLSIZE)*(*dim)
-				+ (int)((Calc[atmi].atom->coor[2]-global_min[2])/CELLSIZE);
+			int ix = (int)((Calc[atmi].atom->coor[0]-global_min[0])/CELLSIZE);
+			int iy = (int)((Calc[atmi].atom->coor[1]-global_min[1])/CELLSIZE);
+			int iz = (int)((Calc[atmi].atom->coor[2]-global_min[2])/CELLSIZE);
+			// Float rounding can still land one cell outside the cube.
+			if(ix < 0) ix = 0;
+			if(iy < 0) iy = 0;
+			if(iz < 0) iz = 0;
+			if(ix >= *dim) ix = *dim-1;
+			if(iy >= *dim) iy = *dim-1;
+			if(iz >= *dim) iz = *dim-1;
+			boxi = ix*dim2 + iy*(*dim) + iz;
 
 			Calc[atmi].boxnum = boxi;
 			//nbox++;
