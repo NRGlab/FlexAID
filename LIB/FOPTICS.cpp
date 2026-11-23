@@ -1,11 +1,14 @@
 #include "FOPTICS.h"
 #include "gaboom.h"
 
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int_distribution.hpp>
-boost::random::mt19937 gen;
+#include <random>
+#include <algorithm>
+#include <chrono>
 
-struct RNG 
+std::random_device rd;
+std::mt19937 gen(rd());
+
+struct RNG
 {
     int operator() (int n) {
         return std::rand() / (1.0 + RAND_MAX) * n;
@@ -22,8 +25,8 @@ bool definitelyLessThan(float a, float b, float epsilon)
     return (b - a) > ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
 }
 
-//Normalizes any number to an arbitrary range 
-//by assuming the range wraps around when going below min or above max 
+//Normalizes any number to an arbitrary range
+//by assuming the range wraps around when going below min or above max
 float normalize_IC_interval(const genlim* gene_lim, float value)
 {
 	float start = gene_lim->min;
@@ -79,7 +82,7 @@ inline bool const ClusterOrdering::operator> (const ClusterOrdering& rhs)
 // Constructor and Algorithm main+only call
 // int FastOPTICS::iOrder;
 FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, genlim* gen_lim, atom* atoms, resid* residue, gridpoint* cleftgrid, int nChrom, BindingPopulation& Population, int nPoints)
-{	
+{
 // Declarations
 	///////////////////////////////////////////////////////
 	// Entropy
@@ -94,13 +97,13 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
     this->chroms = chrom;
     this->gene_lim = gen_lim;
 	this->N = nChrom;
-    
+
 	// FastOPTICS
     this->nDimensions = this->FA->num_het_atm*3;	// use with Vectorized_Cartesian_Coordinates()
     // this->nDimensions = this->FA->npar + 2; 	// use with Vectorized_Chromosome()
-    
+
     this->minPoints = nPoints;
-    
+
     // FastOPTICS::iOrder = 0;
     this->iOrder = 0;
 	this->order.reserve(this->N);
@@ -109,7 +112,7 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 	this->inverseDensities.reserve(this->N);
 	this->points.reserve(this->N);
 	this->neighbors.reserve(this->N);
-    
+
 	for(int i = 0; i < this->N; ++i)
 	{
 		// need to transform the chromosomes into vector f
@@ -132,33 +135,33 @@ FastOPTICS::FastOPTICS(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* 
 
 void FastOPTICS::Execute_FastOPTICS(char* end_strfile, char* tmp_end_strfile)
 {
-	// vector of point indexes 
+	// vector of point indexes
 	std::vector< int > ptInd;
     ptInd.reserve(this->N);
     for(int k = 0; k < this->N; ++k)
     {
         ptInd.push_back(k);
     }
-	
+
 	// Build object, compute projections, density estimates and density neighborhoods (in serial order of function calls below)
 	RandomProjectedNeighborsAndDensities::RandomProjectedNeighborsAndDensities MultiPartition(this->points, this->minPoints, this); // use minPoints amount of random projections
 	MultiPartition.computeSetBounds(ptInd);
 	MultiPartition.getInverseDensities(this->inverseDensities);
 	MultiPartition.getNeighbors(this->neighbors);
-    
+
 	// Compute OPTICS ordering
 	for(int ipt = 0; ipt < this->N; ipt++) 		// starting from 0
 //	for(int ipt = this->N-1; ipt >= 0; --ipt)	// starting from this->N-1
     {
 		if(!this->processed[ipt]) this->ExpandClusterOrder(ipt);
     }
-    
+
     // Would it be useful to normalize 'reachability distance' ?
     // this->normalizeDistances();
     // output the projected distances
-    
+
     MultiPartition.output_projected_distance(end_strfile, tmp_end_strfile);
-    
+
 	// Order chromosome and their reachDist in OPTICS
     //  points pairs contain :
     //   first  -> pair<chromosome*, index>
@@ -199,7 +202,7 @@ void FastOPTICS::output_OPTICS(char* end_strfile, char* tmp_end_strfile)
 {
 	// output variables
     char sufix[25];
-    
+
     // priting OPTICS variable to '__minPoints.optics' file
     sprintf(sufix,"__%d.optics",this->minPoints);
     strcpy(tmp_end_strfile,end_strfile);
@@ -260,10 +263,10 @@ void FastOPTICS::output_3d_OPTICS_ordering(char* end_strfile, char* tmp_end_strf
 			{
 				pRes = &this->residue[this->FA->optres[j].rnum];
 				pCF  = &this->FA->optres[j].cf;
-		        
+
 		        sprintf(tmpremark,"REMARK optimizable residue %s %c %d\n", pRes->name, pRes->chn, pRes->number);
 		        strcat(remark,tmpremark);
-		        
+
 		        sprintf(tmpremark ,"REMARK CF.com=%8.5f\n", pCF->com);
 		        strcat(remark, tmpremark);
 		        sprintf(tmpremark ,"REMARK CF.sas=%8.5f\n", pCF->sas);
@@ -275,7 +278,7 @@ void FastOPTICS::output_3d_OPTICS_ordering(char* end_strfile, char* tmp_end_strf
 		        sprintf(tmpremark, "REMARK Residue has an overall SAS of %.3f\n", pCF->totsas);
 		        strcat(remark, tmpremark);
 			}
-		    
+
 		    for(int j=0; j < this->FA->npar; ++j)
 			{
 				sprintf(tmpremark, "REMARK [%8.3f]\n",this->FA->opt_par[j]);
@@ -294,7 +297,7 @@ void FastOPTICS::output_3d_OPTICS_ordering(char* end_strfile, char* tmp_end_strf
 				calc_rmsd(this->FA,this->atoms,this->residue,this->cleftgrid,this->FA->npar,this->FA->opt_par, Hungarian));
 				strcat(remark,tmpremark);
 			}
-	        
+
 			// 5. write_pdb(FA,atoms,residue,tmp_end_strfile,remark)
 			if(Pose == this->OPTICS.begin() && Pose+1 == this->OPTICS.end())
 			{
@@ -364,10 +367,10 @@ std::vector<float> FastOPTICS::Vectorized_Chromosome(chromosome* chrom)
             norm += vChrom[j+2]*vChrom[j+2];
 		}
 	}
-    
+
   // norm = sqrtf(norm);
   // for(int k = 0; k < this->nDimensions; ++k) { vChrom[k]/=norm; }
-   
+
    return vChrom;
 }
 
@@ -384,7 +387,7 @@ std::vector<float> FastOPTICS::Vectorized_Cartesian_Coordinates(int chrom_index)
     std::vector<float> vChrom(this->nDimensions);
 
 	int npar = this->GB->num_genes;
-	
+
 	j = chrom_index;
 
 	for(i=0;i<npar;i++){ this->FA->opt_par[i] = this->chroms[j].genes[i].to_ic; }
@@ -392,8 +395,8 @@ std::vector<float> FastOPTICS::Vectorized_Cartesian_Coordinates(int chrom_index)
 	for(i=0;i<npar;i++)
 	{
 		//printf("[%8.3f]",FA->opt_par[i]);
-  
-		if(this->FA->map_par[i].typ==-1) 
+
+		if(this->FA->map_par[i].typ==-1)
 		{ //by index
 			grd_idx = (uint)this->FA->opt_par[i];
 			//printf("this->FA->opt_par(index): %d\n", grd_idx);
@@ -421,7 +424,7 @@ std::vector<float> FastOPTICS::Vectorized_Cartesian_Coordinates(int chrom_index)
 			{
 				while(cat != this->FA->map_par[i].atm)
 				{
-					this->atoms[cat].dih=this->atoms[j].dih + this->atoms[cat].shift; 
+					this->atoms[cat].dih=this->atoms[j].dih + this->atoms[cat].shift;
 					j=cat;
 					cat=this->atoms[j].rec[3];
 				}
@@ -439,7 +442,7 @@ std::vector<float> FastOPTICS::Vectorized_Cartesian_Coordinates(int chrom_index)
 
 			this->residue[this->atoms[this->FA->map_par[i].atm].ofres].rot=rot_idx;
 		}
-  
+
 	}
 
 	if(normalmode > -1) alter_mode(this->atoms,this->residue,this->FA->normal_grid[normalmode],this->FA->res_cnt,this->FA->normal_modes);
@@ -471,15 +474,15 @@ void FastOPTICS::ExpandClusterOrder(int ipt)
 		ClusterOrdering current = queue.top();
 		queue.pop();
 		int currPt = current.objectID;
-		
+
 		if(this->processed[currPt] == true) continue;
-		
+
 		this->order[this->iOrder] = currPt;
 		// incrementing STATIC rank ordering ()
 		// FastOPTICS::iOrder++;
 		this->iOrder++;
 		this->processed[currPt] = true;
-		
+
 		float coredist = this->inverseDensities[currPt];
 		for( std::vector<int>::iterator it = this->neighbors[currPt].begin(); it != this->neighbors[currPt].end(); ++it)
 		{
@@ -515,18 +518,8 @@ float FastOPTICS::compute_distance(std::pair< chromosome*,std::vector<float> > &
         distance +=  tempDist * tempDist;
 	}
 
-   			return sqrtf(distance);
-   	
-   	// if(boost::math::isfinite(distance))
-   	// {
-   	// 		return sqrtf(distance);
-   	// }
-    // else if( boost::math::isinf(distance) && distance > FLT_EPSILON )
-    // {
-    //     	return UNDEFINED_DIST;
-    // }
-    // else 	return 0.0f;
-   	}
+   	return sqrtf(distance);
+}
 
 float FastOPTICS::compute_vect_distance(std::vector<float> a, std::vector<float> b)
 {
@@ -594,7 +587,7 @@ void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > &
 	{
         // std::vector<float> currentRp = this->Randomized_InternalCoord_Vector();
         std::vector<float> currentRp(this->Randomized_CartesianCoord_Vector());
-        
+
 		int k = 0;
 		std::vector<int>::iterator it = ptList.begin();
 		while(it != ptList.end())
@@ -614,10 +607,10 @@ void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > &
 	}
 
 	// Split Points Set
-    
+
 	std::vector<int> projInd(this->nProject1D);
 	projInd.reserve(this->nProject1D);
-	for(int j = 0; j < this->nProject1D; ++j) 
+	for(int j = 0; j < this->nProject1D; ++j)
 	{
 //		projInd.push_back(j);
         projInd[j] = j;
@@ -630,9 +623,8 @@ void RandomProjectedNeighborsAndDensities::computeSetBounds(std::vector< int > &
 //			tempProj.push_back(this->projectedPoints[i]);
             tempProj[i] = this->projectedPoints[i];
         }
-//        std::random_shuffle(projInd.begin(), projInd.end(), ([](int n) { return rand() % n; }) );
-        std::random_shuffle(projInd.begin(), projInd.end());
-		
+        std::shuffle(projInd.begin(), projInd.end(), gen);
+
 		int i = 0;
         for(std::vector<int>::iterator it = projInd.begin(); it != projInd.end(); ++it, i++)
 		{
@@ -664,7 +656,7 @@ void RandomProjectedNeighborsAndDensities::SplitUpNoSort(std::vector< int >& ind
 	if(nElements > this->minSplitSize*(1 - RandomProjectedNeighborsAndDensities::sizeTolerance) && nElements < this->minSplitSize*(1 + RandomProjectedNeighborsAndDensities::sizeTolerance))
 	{
 		std::vector<float> cpro(nElements);
-		for(int i = 0; i < nElements; ++i)	
+		for(int i = 0; i < nElements; ++i)
 		{
 //			cpro.push_back(tProj[ind[i]]);
             cpro[i] = tProj[ind[i]];
@@ -689,7 +681,7 @@ void RandomProjectedNeighborsAndDensities::SplitUpNoSort(std::vector< int >& ind
 			{
 				while(minInd < maxInd && tProj[ind[maxInd]] > rs) maxInd--;
 				if(minInd == maxInd) break;
-				
+
 				int currInd = ind[minInd];
 				ind[minInd] = ind[maxInd];
 				ind[maxInd] = currInd;
@@ -701,7 +693,7 @@ void RandomProjectedNeighborsAndDensities::SplitUpNoSort(std::vector< int >& ind
 
 		// split set recursively
 		splitPos = minInd + 1;
-		
+
 		// std::vector<int> ind2(splitPos);
 		std::vector<int> ind2(splitPos);
 		for(int l = 0; l < splitPos; ++l)
@@ -710,7 +702,7 @@ void RandomProjectedNeighborsAndDensities::SplitUpNoSort(std::vector< int >& ind
 //			ind2.push_back(ind[l]);
 		}
 		this->SplitUpNoSort(ind2,dim+1);
-		
+
         std::vector<int> ind3(nElements - splitPos);
 //        ind2 = std::vector<int>( nElements-splitPos );
 		for(int l = 0; l < nElements-splitPos; ++l)
@@ -732,7 +724,7 @@ void RandomProjectedNeighborsAndDensities::getInverseDensities(std::vector< floa
 	{
 //		std::vector<int>::iterator pinSet = it1->begin();
         std::vector<int> & pinSet = this->splitsets.at(i);
-		
+
 //		int len = it1->size();
         int len = pinSet.size();
 		int indoff = static_cast<int>(round(len/2));
@@ -741,7 +733,7 @@ void RandomProjectedNeighborsAndDensities::getInverseDensities(std::vector< floa
 		{
 			int ind = pinSet[i];
 			if(ind == indoff) continue;
-			
+
 			float dist = this->top->compute_distance(this->points[ind],this->points[oldind]);
 			inverseDensities[oldind] += dist;
 			nDists[oldind]++;
@@ -782,7 +774,7 @@ void RandomProjectedNeighborsAndDensities::getNeighbors(std::vector< std::vector
 		{
 			ind = pinSet[i];
 
-			// The following block of code uses an iterator to check 
+			// The following block of code uses an iterator to check
 			std::vector<int> & cneighs = neighs.at(ind);
 			// std::vector<int>::iterator itPos = std::find(cneighs.begin(),cneighs.end(),oldind);
 			// if(itPos == cneighs.end()) //element not found in cneigh
@@ -860,7 +852,7 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_InternalCoor
 	sum = sqrtf(sum);
 	// for(int k = 0; k < this->nDimensions; ++k) { vChrom[k]/=sum; }
 
-    
+
 	return vChrom;
 }
 
@@ -884,8 +876,8 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_CartesianCoo
 
 	for(i=0;i<npar;i++)
 	{
-  
-		if(this->top->FA->map_par[i].typ==-1) 
+
+		if(this->top->FA->map_par[i].typ==-1)
 		{ //by index
 			grd_idx = (uint)this->top->FA->opt_par[i];
 
@@ -912,7 +904,7 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_CartesianCoo
 			{
 				while(cat != this->top->FA->map_par[i].atm)
 				{
-					this->top->atoms[cat].dih=this->top->atoms[j].dih + this->top->atoms[cat].shift; 
+					this->top->atoms[cat].dih=this->top->atoms[j].dih + this->top->atoms[cat].shift;
 					j=cat;
 					cat=this->top->atoms[j].rec[3];
 				}
@@ -930,7 +922,7 @@ std::vector<float> RandomProjectedNeighborsAndDensities::Randomized_CartesianCoo
 
 			this->top->residue[this->top->atoms[this->top->FA->map_par[i].atm].ofres].rot=rot_idx;
 		}
-  
+
 	}
 
 	if(normalmode > -1) alter_mode(this->top->atoms,this->top->residue,this->top->FA->normal_grid[normalmode],this->top->FA->res_cnt,this->top->FA->normal_modes);
@@ -967,12 +959,12 @@ void RandomProjectedNeighborsAndDensities::quicksort_concurrent_Vectors(std::vec
 	{
 		l = beg; p = beg + (end-beg)/2; r = end;
 		pivot = data[p];
-		
+
 		while(1)
 		{
 			while( (l<=r) && QS_ASC(data[l],pivot) <= 0 ) ++l;
 			while( (l<=r) && QS_ASC(data[r],pivot)  > 0 ) --r;
-	
+
 			if (l > r) break;
 			xData = data.begin()+l; yData = data.begin()+r;
 			xIndex = index.begin()+l; yIndex = index.begin()+r;
@@ -1032,20 +1024,9 @@ void RandomProjectedNeighborsAndDensities::output_projected_distance(char* end_s
 	CloseFile_B(&outfile,"w");;//fclose(outfile);
 }
 
-// This function generates a RandomInt32 who can be used as *genes->to_int32 value
-// int RandomProjectedNeighborsAndDensities::Dice()
-// {
-// 	unsigned int tt = static_cast<unsigned int>(time(0));
-// 	srand(tt);
-// 	RNGType rng(tt);
-// 	boost::uniform_int<> one_to_max_int32( 0, MAX_RANDOM_VALUE );
-// 	boost::variate_generator< RNGType, boost::uniform_int<> > dice(rng, one_to_max_int32);
-// 	return dice();
-// }
-
 int roll_die()
 {
-    boost::random::uniform_int_distribution<> dist(0, MAX_RANDOM_VALUE);
+    std::uniform_int_distribution<> dist(0, MAX_RANDOM_VALUE);
     return dist(gen);
 }
 int roll_rand_die()

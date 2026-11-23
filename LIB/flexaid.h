@@ -342,6 +342,7 @@ struct FA_Global_struct{
 	int force_interaction;               // forces interaction although complementarity is negative
   
 	int   max_results;                   // maximum result file(s) generated after GA.
+	bool   htpmode;						 // high throughput mode that writes a minimal amount of files
 
 	//resid residue[MAX_NUM_RES];          // array of residues structure
 	int   res_cnt;                       // total number of residues

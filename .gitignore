@@ -15,3 +15,10 @@
 !*.pdb
 !*.inp.pdb
 !*.clef.pdb
+# CI workflow and the tiny smoke-test inputs
+!.github/
+!.github/workflows/
+!.github/workflows/ci.yml
+!ci/
+!ci/smoke/
+!ci/smoke/**

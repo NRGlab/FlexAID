@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build-and-smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install ccache
+        run: |
+          if [ "$(uname)" = "Darwin" ]; then
+            brew install ccache
+          else
+            sudo apt-get update
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y ccache
+          fi
+
+      - name: Cache compiler output
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ccache
+          key: ccache-${{ runner.os }}-${{ hashFiles('CMakeLists.txt', 'LIB/**') }}
+          restore-keys: |
+            ccache-${{ runner.os }}-
+
+      - name: Configure and build
+        run: |
+          set -euo pipefail
+          if [ "$(uname)" = "Darwin" ]; then
+            jobs="$(sysctl -n hw.ncpu)"
+          else
+            jobs="$(nproc)"
+          fi
+          export CCACHE_DIR="${HOME}/.cache/ccache"
+          mkdir -p "${CCACHE_DIR}"
+          ccache --set-config=max_size=200M
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+          cmake --build build --target FlexAID -j"${jobs}"
+          test -x build/FlexAID
+
+      - name: Smoke test
+        run: bash ci/smoke/run.sh "${PWD}/build/FlexAID"

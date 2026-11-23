@@ -152,33 +152,35 @@ void cluster(FA_Global* FA, GB_Global* GB, VC_Global* VC, chromosome* chrom, gen
 	sprintf(sufix,".cad");
 	strcpy(tmp_end_strfile,end_strfile);
 	strcat(tmp_end_strfile,sufix);
-      
-	if(!OpenFile_B(tmp_end_strfile,"w",&outfile_ptr))
+	if (FA->htpmode == false)
 	{
-		Terminate(6);
-	}
-	else
-	{
-		for(i=0;i<num_of_clusters;++i)
+		if(!OpenFile_B(tmp_end_strfile,"w",&outfile_ptr))
 		{
-			fprintf(outfile_ptr,"Cluster %d: TOP=%d TCF=%f ACF=%f freq=%d\n",i,
-				Clus_TOP[i],Clus_TCF[i],
-				Clus_ACF[i], Clus_FRE[i]);
+			Terminate(6);
 		}
-		if(num_of_clusters > 1)
+		else
 		{
-			fprintf(outfile_ptr,"RMSD between clusters\n");
 			for(i=0;i<num_of_clusters;++i)
 			{
-				for(j=i+1;j<num_of_clusters;++j)
+				fprintf(outfile_ptr,"Cluster %d: TOP=%d TCF=%f ACF=%f freq=%d\n",i,
+					Clus_TOP[i],Clus_TCF[i],
+					Clus_ACF[i], Clus_FRE[i]);
+			}
+			if(num_of_clusters > 1)
+			{
+				fprintf(outfile_ptr,"RMSD between clusters\n");
+				for(i=0;i<num_of_clusters;++i)
 				{
-					rmsd=calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes,Clus_TOP[i],Clus_TOP[j], NULL, NULL, true);
-					fprintf(outfile_ptr,"rmsd(%d,%d)=%f\n",i,j,rmsd);
+					for(j=i+1;j<num_of_clusters;++j)
+					{
+						rmsd=calc_rmsd_chrom(FA,GB,chrom,gene_lim,atoms,residue,cleftgrid,GB->num_genes,Clus_TOP[i],Clus_TOP[j], NULL, NULL, true);
+						fprintf(outfile_ptr,"rmsd(%d,%d)=%f\n",i,j,rmsd);
+					}
 				}
-			} 
+			}
 		}
+		CloseFile_B(&outfile_ptr,"w");
 	}
-	CloseFile_B(&outfile_ptr,"w");
 	
 
 	if(num_of_clusters < num_of_results){num_of_results=num_of_clusters;}

@@ -118,7 +118,7 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,
 		buildcc(FA,atoms,FA->nmov[i],FA->mov[i]);
 	}
   
-	vector< pair<int,int> > intraclashes;
+	std::vector< std::pair<int,int> > intraclashes;
 	bool error;
 	double penalty = vcfunction(FA,VC,atoms,residue,intraclashes,&error);
 	if(error){
@@ -156,7 +156,7 @@ cfstr ic2cf(FA_Global* FA,VC_Global* VC,atom* atoms,resid* residue,
 			
 			//int fatm = res->fatm[0];
 			if(FA->deelig_flex){
-				vector< pair<int,int> >::iterator it;
+				std::vector< std::pair<int,int> >::iterator it;
 				for(it=intraclashes.begin(); it!=intraclashes.end(); ++it)
 				{
 					for(k=1; k<=res->fdih; k++){
